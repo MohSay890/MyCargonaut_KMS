@@ -19,7 +19,7 @@ jobs:
           distribution: 'temurin'
       - name: Build and Test with Maven
         run: mvn clean verify
-        working-directory: ./backend
+        working-directory: ./BACKEND
 
   # Job 2: Test Frontend (Angular + Jest)
   build-frontend:
@@ -32,10 +32,10 @@ jobs:
           node-version: '18'
       - name: Install Dependencies
         run: npm ci
-        working-directory: ./frontend
+        working-directory: ./FRONTEND
       - name: Run Unit Tests (Jest)
         run: npm test -- --watch=false --browsers=ChromeHeadless
-        working-directory: ./frontend
+        working-directory: ./FRONTEND
       - name: Build Angular App
         run: npm run build
-        working-directory: ./frontend
+        working-directory: ./FRONTEND
