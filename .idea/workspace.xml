@@ -5,22 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d4d500c1-31fc-44e1-8093-cabcc8ba36b4" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/MyCargonaut_KMS.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/controller/TestController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/security/JwtAuthenticationFilter.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/security/JwtService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/user/User.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/user/UserRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/user/UserService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/user/api/AuthController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/user/api/LoginRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/user/api/LoginResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/user/api/RegisterRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BACKEND/src/test/resources/application.properties" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BACKEND/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/BACKEND/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/config/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BACKEND/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/BACKEND/src/main/resources/application.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -79,7 +66,7 @@
       <workItem from="1765042266660" duration="4305000" />
       <workItem from="1765055320751" duration="6990000" />
       <workItem from="1765988278361" duration="2669000" />
-      <workItem from="1766019735204" duration="3000000" />
+      <workItem from="1766019735204" duration="4823000" />
     </task>
     <servers />
   </component>
