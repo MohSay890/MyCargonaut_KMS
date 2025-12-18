@@ -2,9 +2,12 @@ package com.mycargonaut.backend;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles; // <--- WICHTIG
 
+// Wir sagen Spring: "Tu so, als wären wir im 'test'-Profil (das leer ist)"
+// Damit wird 'dev' und damit PostgreSQL ignoriert.
+@ActiveProfiles("test")
 @SpringBootTest(properties = {
-    // Wir überschreiben die PostgreSQL-Einstellung mit H2 (nur für diesen Test)
     "spring.datasource.url=jdbc:h2:mem:testdb",
     "spring.datasource.driverClassName=org.h2.Driver",
     "spring.datasource.username=sa",
@@ -16,6 +19,5 @@ class BackendApplicationTests {
 
     @Test
     void contextLoads() {
-        // Wenn die App hochfährt (Context lädt), ist der Test bestanden.
     }
 }
