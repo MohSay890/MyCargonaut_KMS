@@ -65,6 +65,31 @@
       <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/services/favorites.service.ts" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/services/offer.service.ts" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/services/review.service.ts" afterDir="false" />
+    <list default="true" id="d4d500c1-31fc-44e1-8093-cabcc8ba36b4" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/controller/BuchungController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/controller/FahrtController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/model/Bewertung.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/model/Buchung.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/model/Cargonaut.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/model/Fahrt.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/model/Fahrzeug.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/model/Fracht.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/repository/BuchungRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/repository/CargonautRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/repository/FahrtRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/service/BuchungService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/service/FahrtService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/security/JwtAuthenticationFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/security/JwtAuthenticationFilter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/user/User.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/user/UserRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/user/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/user/UserService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/user/api/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/user/api/AuthController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/user/api/RegisterRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/user/api/RegisterRequest.java" afterDir="false" />
+    <list default="true" id="d4d500c1-31fc-44e1-8093-cabcc8ba36b4" name="Changes" comment="- Add 15 wireframe pages (low-fidelity prototypes)&#10;- Add 15 mockup pages (high-fidelity prototypes)">
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/models/cargo.model.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/models/cargonaut.model.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/models/ride.model.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/FRONTEND/src/app/app.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/FRONTEND/src/app/app.component.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/FRONTEND/src/app/app.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/FRONTEND/src/app/app.component.html" afterDir="false" />
@@ -174,6 +199,10 @@
       <workItem from="1764791513054" duration="1865000" />
       <workItem from="1765042266660" duration="4305000" />
       <workItem from="1765055320751" duration="6990000" />
+      <workItem from="1765988278361" duration="2669000" />
+      <workItem from="1766019735204" duration="5841000" />
+      <workItem from="1766067586326" duration="4782000" />
+      <workItem from="1766586425260" duration="5262000" />
       <workItem from="1765316283825" duration="1139000" />
       <workItem from="1765317454870" duration="1429000" />
       <workItem from="1765469191820" duration="916000" />
