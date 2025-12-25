@@ -10,6 +10,13 @@ describe('VehicleEditorComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [VehicleEditorComponent]
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            params: of ({}),
+            snapshot: { params: {} }
+          }}]
     })
     .compileComponents();
 
