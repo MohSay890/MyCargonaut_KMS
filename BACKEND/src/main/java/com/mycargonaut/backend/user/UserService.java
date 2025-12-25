@@ -1,6 +1,9 @@
 package com.mycargonaut.backend.user;
 
+import com.mycargonaut.backend.model.Cargonaut;
 import com.mycargonaut.backend.user.api.RegisterRequest;
+// WICHTIG: Dieser Import hat gefehlt, da das Repository jetzt in einem anderen Ordner liegt
+import com.mycargonaut.backend.repository.CargonautRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -8,42 +11,41 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class UserService {
 
-    private final UserRepository userRepository;
+    private final CargonautRepository cargonautRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
+    public UserService(CargonautRepository cargonautRepository, PasswordEncoder passwordEncoder) {
+        this.cargonautRepository = cargonautRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
-    public User registerUser(RegisterRequest request) {
-        if (userRepository.findByPrimaryEmail(request.primaryEmail()).isPresent()) {
+    public Cargonaut registerUser(RegisterRequest request) {
+        if (cargonautRepository.findByEmail(request.primaryEmail()).isPresent()) {
             throw new RuntimeException("Benutzer mit dieser Email existiert bereits.");
         }
 
-        User user = new User();
-        user.setFirstName(request.firstName());
-        user.setLastName(request.lastName());
-        user.setPrimaryEmail(request.primaryEmail());
-        user.setSecondaryEmail(request.secondaryEmail());
-        user.setDateOfBirth(request.dateOfBirth());
-        user.setPasswordHash(passwordEncoder.encode(request.password()));
+        Cargonaut cargonaut = new Cargonaut();
+        cargonaut.setVorname(request.firstName()); // laut UML
+        cargonaut.setNachname(request.lastName()); // laut UML
+        cargonaut.setEmail(request.primaryEmail()); // laut UML
+        cargonaut.setGeburtsdatum(request.dateOfBirth()); // laut UML
+        cargonaut.setPasswort(passwordEncoder.encode(request.password())); // laut UML
 
-        return userRepository.save(user);
+        cargonaut.setStadt(request.stadt());
+        cargonaut.setPlz(request.plz());
+
+        return cargonautRepository.save(cargonaut);
     }
 
-    // --- NEU: Diese Methode hat gefehlt ---
-    public User loginUser(String email, String rawPassword) {
-        // 1. Suche User in DB
-        User user = userRepository.findByPrimaryEmail(email)
+    public Cargonaut loginUser(String email, String rawPassword) {
+        Cargonaut cargonaut = cargonautRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Benutzer nicht gefunden."));
 
-        // 2. Vergleiche Passwörter (Eingegeben vs. Datenbank-Hash)
-        if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
+        if (!passwordEncoder.matches(rawPassword, cargonaut.getPasswort())) {
             throw new RuntimeException("Falsches Passwort!");
         }
 
-        return user;
+        return cargonaut;
     }
 }

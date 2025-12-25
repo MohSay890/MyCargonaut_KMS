@@ -1,13 +1,13 @@
 package com.mycargonaut.backend.security;
 
-import com.mycargonaut.backend.user.UserRepository;
+import com.mycargonaut.backend.model.Cargonaut; // Nutzt jetzt die offizielle Entity
+import com.mycargonaut.backend.repository.CargonautRepository; // Nutzt das neue Repository
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -20,11 +20,11 @@ import java.util.Collections;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserRepository userRepository;
+    private final CargonautRepository cargonautRepository; // Repository angepasst
 
-    public JwtAuthenticationFilter(JwtService jwtService, UserRepository userRepository) {
+    public JwtAuthenticationFilter(JwtService jwtService, CargonautRepository cargonautRepository) {
         this.jwtService = jwtService;
-        this.userRepository = userRepository;
+        this.cargonautRepository = cargonautRepository;
     }
 
     @Override
@@ -32,38 +32,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        // 1. Header auslesen
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         final String userEmail;
 
-        // 2. Prüfen: Ist ein Header da und fängt er mit "Bearer " an?
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 3. Token extrahieren (alles nach "Bearer ")
         jwt = authHeader.substring(7);
-        // Email aus dem Token lesen
         userEmail = jwtService.extractUsername(jwt);
 
-        // 4. Falls Email da ist und User noch nicht authentifiziert ist
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            // User aus der Datenbank laden
-            var userEntity = userRepository.findByPrimaryEmail(userEmail).orElse(null);
+            // Suche über das Feld 'email' laut UML
+            Cargonaut cargonaut = cargonautRepository.findByEmail(userEmail).orElse(null);
 
-            if (userEntity != null && jwtService.isTokenValid(jwt, userEntity.getPrimaryEmail())) {
+            if (cargonaut != null && jwtService.isTokenValid(jwt, cargonaut.getEmail())) {
 
-                // Spring Security "User" Objekt erstellen (Adapter)
-                UserDetails userDetails = new User(
-                        userEntity.getPrimaryEmail(),
-                        userEntity.getPasswordHash(),
-                        Collections.emptyList() // Hier könnten später Rollen rein
-                );
+                // Wir nutzen hier den Spring Security User als "Adapter"
+                UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
+                        .username(cargonaut.getEmail())
+                        .password(cargonaut.getPasswort()) // Feldname 'passwort' laut UML
+                        .authorities(Collections.emptyList())
+                        .build();
 
-                // 5. Authentifizierung setzen (Der User ist jetzt offiziell "drin")
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
@@ -74,7 +68,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
-        // Weiter zur nächsten Station
         filterChain.doFilter(request, response);
     }
 }
