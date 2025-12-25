@@ -10,6 +10,13 @@ describe('ProfileComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ProfileComponent]
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            params: of ({}),
+            snapshot: { params: {} }
+          }}]
     })
     .compileComponents();
 
