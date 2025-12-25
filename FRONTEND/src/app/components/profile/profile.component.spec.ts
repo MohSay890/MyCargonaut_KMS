@@ -9,7 +9,7 @@ describe('ProfileComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ProfileComponent]
+      imports: [ProfileComponent],
       providers: [
         {
           provide: ActivatedRoute,
