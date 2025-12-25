@@ -7,6 +7,13 @@ describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            params: of ({}),
+            snapshot: { params: {} }
+          }}]
     }).compileComponents();
   });
 
