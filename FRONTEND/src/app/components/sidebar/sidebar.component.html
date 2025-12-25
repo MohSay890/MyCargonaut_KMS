@@ -1,0 +1,50 @@
+<aside class="sidebar">
+  <nav class="sidebar-nav">
+    <a routerLink="/dashboard" routerLinkActive="active" class="sidebar-item">
+      <span class="sidebar-icon">📊</span>
+      <span class="sidebar-label">Dashboard</span>
+    </a>
+
+    <a routerLink="/my-trips" routerLinkActive="active" class="sidebar-item">
+      <span class="sidebar-icon">🚗</span>
+      <span class="sidebar-label">Meine Fahrten</span>
+    </a>
+
+    <a routerLink="/tracking/1" routerLinkActive="active" class="sidebar-item">
+      <span class="sidebar-icon">📍</span>
+      <span class="sidebar-label">Live Tracking</span>
+    </a>
+
+    <a routerLink="/profile" routerLinkActive="active" class="sidebar-item">
+      <span class="sidebar-icon">👤</span>
+      <span class="sidebar-label">Profil</span>
+    </a>
+
+    <a routerLink="/vehicle-editor" routerLinkActive="active" class="sidebar-item">
+      <span class="sidebar-icon">🚙</span>
+      <span class="sidebar-label">Fahrzeuge</span>
+    </a>
+
+    <a routerLink="/reviews/me" routerLinkActive="active" class="sidebar-item">
+      <span class="sidebar-icon">⭐</span>
+      <span class="sidebar-label">Bewertungen</span>
+    </a>
+
+    <a routerLink="/messages" routerLinkActive="active" class="sidebar-item">
+      <span class="sidebar-icon">💬</span>
+      <span class="sidebar-label">Nachrichten</span>
+    </a>
+
+    <div class="sidebar-divider"></div>
+
+    <a routerLink="/how-it-works" class="sidebar-item">
+      <span class="sidebar-icon">❓</span>
+      <span class="sidebar-label">Hilfe</span>
+    </a>
+
+    <button (click)="onLogout($event)" class="sidebar-item sidebar-logout">
+      <span class="sidebar-icon">🚪</span>
+      <span class="sidebar-label">Abmelden</span>
+    </button>
+  </nav>
+</aside>

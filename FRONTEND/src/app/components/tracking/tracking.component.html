@@ -1,0 +1,197 @@
+<div class="tracking-page">
+  <div class="container">
+    <div class="page-layout">
+
+      <!-- Sidebar -->
+      <app-sidebar></app-sidebar>
+
+      <!-- Main Content -->
+      <div class="main-content">
+
+        <!-- Page Title + Back Button in einer Reihe -->
+        <div class="page-header-row">
+          <div class="page-title">
+            <h1>Live Tracking</h1>
+            <p class="subtitle">Verfolge deinen Transport in Echtzeit</p>
+          </div>
+          <a routerLink="/my-trips" class="btn-back">← Zurück zu meinen Fahrten</a>
+        </div>
+
+        <!-- Trip Info Header -->
+        <div class="trip-header">
+          <div class="trip-date">
+            <span class="date-day">{{ tripHeader.date }}</span>
+            <span class="date-month">{{ tripHeader.month }}</span>
+          </div>
+          <div class="trip-info">
+            <h2 class="trip-route">{{ tripHeader.route }}</h2>
+            <div class="trip-meta">
+              <span>Fahrer: {{ tripHeader.driver }}</span>
+              <span>|</span>
+              <span>{{ tripHeader.vehicle }}</span>
+              <span>|</span>
+              <span>Tracking-Nr: {{ tripHeader.trackingNr }}</span>
+            </div>
+            <div class="trip-times">
+              <span>Abholung: {{ tripHeader.pickup }}</span>
+              <span>|</span>
+              <span>Voraussichtliche Ankunft: {{ tripHeader.estimatedArrival }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transport Status -->
+        <div class="status-section">
+          <h3>Transport-Status</h3>
+
+          <div class="status-timeline">
+            <div class="status-card"
+                 *ngFor="let status of statusUpdates"
+                 [class.current]="status.current"
+                 [style.border-left-color]="status.color">
+              <div class="status-indicator" [style.background]="status.color">
+                <span class="status-icon">{{ status.icon }}</span>
+              </div>
+              <div class="status-content">
+                <h4 class="status-title">{{ status.title }}</h4>
+                <p class="status-time">{{ status.time }}</p>
+                <p class="status-location">{{ status.location }}</p>
+                <p class="status-details" *ngIf="status.details">{{ status.details }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Karte -->
+        <div class="map-section">
+          <h3>Live-Karte</h3>
+          <div class="map-container">
+            <div class="map-placeholder">
+              <span class="map-icon">🗺️</span>
+              <p class="map-title">[LIVE KARTE]</p>
+              <p class="map-route">📍 Start: Berlin Mitte</p>
+              <p class="map-route">🚚 Aktuelle Position: A24, Richtung Hamburg</p>
+              <p class="map-route">📍 Ziel: Hamburg Altona</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Position Card (when unterwegs) -->
+        <div class="live-position-card">
+          <div class="position-badge">
+            <span class="badge-icon">🚚</span>
+            <span>Unterwegs</span>
+          </div>
+          <div class="position-info">
+            <p class="position-update">Letzte Aktualisierung: Gerade eben</p>
+          </div>
+
+          <div class="position-location">
+            <span class="pin-icon">📍</span>
+            <strong>{{ currentPosition.location }}</strong>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="progress-section">
+            <div class="progress-labels">
+              <span>Hamburg</span>
+              <span>Berlin</span>
+            </div>
+            <div class="progress-bar-wrapper">
+              <div class="progress-bar">
+                <div class="progress-fill" [style.width.%]="currentPosition.progress"></div>
+              </div>
+              <div class="progress-truck" [style.left.%]="currentPosition.progress">🚚</div>
+            </div>
+            <div class="progress-percent">{{ currentPosition.progress }}% absolviert</div>
+          </div>
+
+          <!-- ETA Stats -->
+          <div class="eta-stats">
+            <div class="eta-item">
+              <span class="eta-label">Voraussichtliche Ankunft</span>
+              <strong class="eta-value">{{ currentPosition.estimatedArrival }}</strong>
+            </div>
+            <div class="eta-item">
+              <span class="eta-label">Verbleibende Strecke</span>
+              <strong class="eta-value">{{ currentPosition.remainingDistance }}</strong>
+            </div>
+            <div class="eta-item">
+              <span class="eta-label">Geschätzte Zeit</span>
+              <strong class="eta-value">{{ currentPosition.remainingTime }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 1: Contact & Actions nebeneinander -->
+        <div class="info-row">
+
+          <!-- Fahrer kontaktieren -->
+          <div class="contact-section">
+            <h3>Fahrer kontaktieren</h3>
+            <button class="btn-contact btn-call" (click)="onCallDriver()">
+              <span class="btn-icon">📞</span>
+              Anrufen
+            </button>
+            <button class="btn-contact btn-message" (click)="onSendMessage()">
+              <span class="btn-icon">💬</span>
+              Nachricht senden
+            </button>
+          </div>
+
+          <!-- Aktionen -->
+          <div class="actions-section">
+            <h3>Aktionen</h3>
+            <button class="btn-action" (click)="onEnableNotifications()">
+              <span class="action-icon">🔔</span>
+              Benachrichtigungen einstellen
+            </button>
+            <button class="btn-action" (click)="onShowDeliveryNote()">
+              <span class="action-icon">📄</span>
+              Lieferschein anzeigen
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Row 2: Details & Cargo nebeneinander -->
+        <div class="info-row">
+
+          <!-- Lieferdetails -->
+          <div class="details-section">
+            <h3>Lieferdetails</h3>
+
+            <div class="detail-group">
+              <h4>Abholort</h4>
+              <p>{{ deliveryDetails.pickup.address }}</p>
+              <p>{{ deliveryDetails.pickup.city }}</p>
+              <p>Kontakt: {{ deliveryDetails.pickup.contact }}</p>
+              <p>Tel: {{ deliveryDetails.pickup.phone }}</p>
+            </div>
+
+            <div class="detail-group">
+              <h4>Zielort</h4>
+              <p>{{ deliveryDetails.delivery.address }}</p>
+              <p>{{ deliveryDetails.delivery.city }}</p>
+              <p>Kontakt: {{ deliveryDetails.delivery.contact }}</p>
+              <p>Tel: {{ deliveryDetails.delivery.phone }}</p>
+            </div>
+          </div>
+
+          <!-- Ladung -->
+          <div class="cargo-section">
+            <h3>Ladung</h3>
+            <div class="cargo-info">
+              <p><strong>Gewicht:</strong> {{ cargoInfo.weight }}</p>
+              <p><strong>Abmessungen:</strong> {{ cargoInfo.dimensions }}</p>
+              <p><strong>Anzahl Pakete:</strong> {{ cargoInfo.packages }}</p>
+              <p><strong>Versicherung:</strong> {{ cargoInfo.insurance }}</p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,216 @@
+<div class="offer-detail-page" *ngIf="offer">
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <div class="container">
+      <a routerLink="/">Home</a>
+      <span class="separator">›</span>
+      <a [routerLink]="['/search']">Suche</a>
+      <span class="separator">›</span>
+      <span class="current">{{ offer.route }}</span>
+      <span class="separator">›</span>
+      <span class="current">Angebot von {{ offer.driverName }}</span>
+    </div>
+  </nav>
+
+  <!-- Back Button -->
+  <div class="back-button-container">
+    <div class="container">
+      <button class="btn-back" (click)="onBackToSearch()">← Zurück zur Suche</button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="offer-content">
+    <div class="container">
+      <div class="offer-layout">
+        <!-- Left Column -->
+        <main class="offer-main">
+          <!-- Route Header -->
+          <section class="route-header">
+            <h1>{{ offer.route }}</h1>
+            <div class="route-info">
+              <span class="info-item">📅 {{ offer.date }}, {{ offer.time }} Uhr</span>
+              <span class="info-item">⏱️ {{ offer.duration }}</span>
+              <span class="info-item">📏 {{ offer.distance }}</span>
+              <span class="info-item">🚗 {{ offer.vehicleType }}</span>
+            </div>
+          </section>
+
+          <!-- Transport Details -->
+          <section class="detail-section">
+            <h2>Transport-Details</h2>
+            <div class="detail-grid">
+              <div class="detail-card">
+                <span class="detail-label">Max. Gewicht</span>
+                <strong class="detail-value">{{ offer.maxWeight }} kg</strong>
+              </div>
+              <div class="detail-card">
+                <span class="detail-label">Max. Abmessungen</span>
+                <strong class="detail-value">{{ offer.dimensions }}</strong>
+              </div>
+              <div class="detail-card">
+                <span class="detail-label">Fahrzeugtyp</span>
+                <strong class="detail-value">{{ offer.vehicleType }} ({{ offer.vehicleModel }})</strong>
+              </div>
+              <div class="detail-card">
+                <span class="detail-label">Ladekapazität</span>
+                <strong class="detail-value">{{ offer.capacity }}</strong>
+              </div>
+            </div>
+            <div class="offer-tags">
+              <span class="tag" *ngFor="let tag of offer.tags">{{ tag }}</span>
+            </div>
+          </section>
+
+          <!-- Route Section -->
+          <section class="detail-section">
+            <h2>Route</h2>
+            <div class="route-locations">
+              <div class="location-card">
+                <span class="location-label">Abholort</span>
+                <strong class="location-value">{{ offer.pickupLocation }}</strong>
+              </div>
+              <div class="location-card">
+                <span class="location-label">Zielort</span>
+                <strong class="location-value">{{ offer.dropoffLocation }}</strong>
+              </div>
+            </div>
+            <div class="map-placeholder">
+              <span class="map-icon">🗺️</span>
+              <p>Karte: {{ offer.from }} → {{ offer.to }}</p>
+            </div>
+          </section>
+
+          <!-- Description -->
+          <section class="detail-section">
+            <h2>Beschreibung</h2>
+            <p class="description-text">{{ offer.description }}</p>
+          </section>
+
+          <!-- Reviews -->
+          <section class="detail-section">
+            <h2>Bewertungen ({{ offer.reviews.length }})</h2>
+
+            <div class="review-card" *ngFor="let review of offer.reviews">
+              <div class="review-header">
+                <div class="reviewer-info">
+                  <img [src]="review.reviewerAvatar" [alt]="review.reviewerName">
+                  <div>
+                    <strong class="reviewer-name">{{ review.reviewerName }}</strong>
+                    <span class="review-date">{{ review.date }}</span>
+                  </div>
+                </div>
+                <div class="review-rating">{{ getStars(review.rating) }}</div>
+              </div>
+              <p class="review-text">{{ review.comment }}</p>
+            </div>
+
+            <button class="btn-view-all" (click)="onViewReviews()">
+              Alle Bewertungen anzeigen
+            </button>
+          </section>
+        </main>
+
+        <!-- Right Column - Driver Card (Sticky) -->
+        <aside class="driver-card-container">
+          <div class="driver-card">
+            <!-- Driver Avatar -->
+            <div class="driver-avatar">
+              <img [src]="offer.driverAvatar" [alt]="offer.driverName">
+            </div>
+
+            <!-- Driver Info -->
+            <div class="driver-info">
+              <h3 class="driver-name">{{ offer.driverName }}</h3>
+              <div class="driver-rating">{{ getStars(offer.driverRating) }} {{ offer.driverRating }}</div>
+              <p class="driver-trips">{{ offer.driverTrips }} erfolgreich abgeschlossene Fahrten</p>
+            </div>
+
+            <!-- Verification Badges -->
+            <div class="verification-badges">
+              <div class="badge" [class.verified]="offer.verified.id" title="Ausweis verifiziert">
+                <span *ngIf="offer.verified.id">✓</span>
+                <span *ngIf="!offer.verified.id">○</span>
+              </div>
+              <div class="badge" [class.verified]="offer.verified.license" title="Führerschein verifiziert">
+                <span *ngIf="offer.verified.license">✓</span>
+                <span *ngIf="!offer.verified.license">○</span>
+              </div>
+              <div class="badge" [class.verified]="offer.verified.phone" title="Telefon verifiziert">
+                <span *ngIf="offer.verified.phone">✓</span>
+                <span *ngIf="!offer.verified.phone">○</span>
+              </div>
+            </div>
+            <p class="verification-text">
+              <span *ngIf="offer.verified.id">Ausweis</span>
+              <span *ngIf="offer.verified.id && (offer.verified.license || offer.verified.phone)"> | </span>
+              <span *ngIf="offer.verified.license">Führerschein</span>
+              <span *ngIf="offer.verified.license && offer.verified.phone"> | </span>
+              <span *ngIf="offer.verified.phone">Telefon</span>
+              verifiziert
+            </p>
+
+            <!-- Price -->
+            <div class="price-card">
+              <strong class="price-value">{{ offer.price }} €</strong>
+              <span class="price-label">Gesamtpreis</span>
+            </div>
+
+            <!-- Action Buttons -->
+            <button class="btn-book" (click)="onBookNow()">Jetzt anfragen</button>
+            <button class="btn-message" (click)="onSendMessage()">Nachricht senden</button>
+            <button class="btn-save" [class.saved]="isSaved" (click)="onToggleFavorite()">
+              <span class="heart-icon">{{ isSaved ? '♥' : '♡' }}</span>
+              {{ isSaved ? 'Gespeichert' : 'Merken' }}
+            </button>
+
+            <!-- Additional Info -->
+            <div class="additional-info">
+              <div class="info-item">
+                <span class="info-label">Mitglied seit</span>
+                <strong class="info-value">{{ offer.memberSince }}</strong>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Reaktionszeit</span>
+                <strong class="info-value">{{ offer.responseTime }}</strong>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <!-- Booking Confirmation Modal -->
+  <app-confirmation-modal
+    [isOpen]="showBookingModal"
+    title="Anfrage bestätigen"
+    message="Möchtest du diese Fahrt wirklich anfragen? Der Fahrer wird benachrichtigt und kann deine Anfrage annehmen."
+    confirmText="Ja, anfragen"
+    cancelText="Abbrechen"
+    (confirm)="onConfirmBooking()"
+    (cancel)="onCancelBooking()">
+  </app-confirmation-modal>
+
+  <!-- Success Modal -->
+  <app-confirmation-modal
+    [isOpen]="showSuccessModal"
+    [isSuccess]="true"
+    [showCancelButton]="false"
+    title="Anfrage gesendet!"
+    message="Deine Anfrage wurde erfolgreich an den Fahrer gesendet. Du wirst benachrichtigt, sobald der Fahrer antwortet."
+    confirmText="OK"
+    (confirm)="onSuccessConfirm()">
+  </app-confirmation-modal>
+
+  <!-- Favorite Modal -->
+  <app-confirmation-modal
+    [isOpen]="showFavoriteModal"
+    [isFavorite]="true"
+    [showCancelButton]="false"
+    [title]="isSaved ? 'Zu Favoriten hinzugefügt!' : 'Aus Favoriten entfernt!'"
+    [message]="favoriteModalMessage"
+    confirmText="OK"
+    (confirm)="onFavoriteModalClose()">
+  </app-confirmation-modal>
+</div>

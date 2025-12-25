@@ -1,0 +1,314 @@
+<div class="how-it-works-page">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container">
+      <h1>So funktioniert's</h1>
+      <p class="hero-subtitle">
+        In 4 einfachen Schritten zum erfolgreichen Transport<br>
+        Egal ob du Transporte suchst oder anbietest – wir machen es dir einfach!
+      </p>
+    </div>
+  </section>
+
+  <!-- Tabs -->
+  <div class="tabs-container">
+    <div class="container">
+      <div class="tabs">
+        <button
+          class="tab"
+          [class.active]="activeTab === 'sender'"
+          (click)="activeTab = 'sender'">
+          Für Versender
+        </button>
+        <button
+          class="tab"
+          [class.active]="activeTab === 'driver'"
+          (click)="activeTab = 'driver'">
+          Für Fahrer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Steps for Sender -->
+  <div *ngIf="activeTab === 'sender'">
+    <section class="section-header">
+      <div class="container">
+        <h2>Für Versender</h2>
+        <p>Du möchtest etwas transportieren lassen? So geht's:</p>
+      </div>
+    </section>
+
+    <div class="steps-container">
+      <div class="container">
+        <!-- Step 1 -->
+        <div class="step">
+          <div class="step-number">
+            <span>1</span>
+          </div>
+          <div class="step-content">
+            <h3>Transport suchen</h3>
+            <ul class="step-list">
+              <li>Gib Start- und Zielort ein</li>
+              <li>Wähle das gewünschte Datum</li>
+              <li>Filtere nach Fahrzeugtyp, Preis und Bewertungen</li>
+              <li>Durchsuche passende Angebote von verifizierten Fahrern</li>
+            </ul>
+            <p class="step-tip"><strong>Tipp:</strong> Je flexibler du beim Datum bist, desto mehr Optionen findest du!</p>
+          </div>
+          <div class="step-image">
+            <div class="illustration illustration-search">
+              <div class="map-icon">
+                <div class="pin pin-start">A</div>
+                <div class="route-line"></div>
+                <div class="pin pin-end">B</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step alternate">
+          <div class="step-number">
+            <span>2</span>
+          </div>
+          <div class="step-content">
+            <h3>Fahrer auswählen & buchen</h3>
+            <ul class="step-list">
+              <li>Vergleiche Profile, Bewertungen und Preise</li>
+              <li>Prüfe die Fahrzeugdetails und Verfügbarkeit</li>
+              <li>Stelle Fragen über die Nachrichtenfunktion</li>
+              <li>Buche mit einem Klick – sichere Zahlung inklusive</li>
+            </ul>
+            <p class="step-tip"><strong>Wichtig:</strong> Alle Fahrer sind verifiziert und versichert!</p>
+          </div>
+          <div class="step-image">
+            <div class="illustration illustration-profile">
+              <div class="profile-card">
+                <div class="profile-avatar"></div>
+                <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+                <div class="profile-line"></div>
+                <div class="profile-line short"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step">
+          <div class="step-number">
+            <span>3</span>
+          </div>
+          <div class="step-content">
+            <h3>Transport verfolgen</h3>
+            <ul class="step-list">
+              <li>Erhalte Bestätigung mit allen Details</li>
+              <li>Verfolge deinen Transport in Echtzeit auf der Karte</li>
+              <li>Bleibe per SMS/E-Mail über den Status informiert</li>
+              <li>Kontaktiere den Fahrer jederzeit direkt</li>
+            </ul>
+            <p class="step-tip"><strong>Sicherheit:</strong> Transportversicherung ist immer inklusive!</p>
+          </div>
+          <div class="step-image">
+            <div class="illustration illustration-tracking">
+              <div class="gps-icon">
+                <div class="gps-circle"></div>
+                <div class="gps-circle pulse"></div>
+                <div class="truck-icon">🚚</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="step alternate">
+          <div class="step-number">
+            <span>4</span>
+          </div>
+          <div class="step-content">
+            <h3>Bewerten & fertig</h3>
+            <ul class="step-list">
+              <li>Bestätige die erfolgreiche Zustellung</li>
+              <li>Bewerte deine Erfahrung mit dem Fahrer</li>
+              <li>Zahlung wird automatisch freigegeben</li>
+              <li>Nutze die Plattform beim nächsten Mal wieder!</li>
+            </ul>
+            <p class="step-tip"><strong>Fair:</strong> Bewertungen helfen der Community, die besten Fahrer zu finden!</p>
+          </div>
+          <div class="step-image">
+            <div class="illustration illustration-review">
+              <div class="review-card">
+                <div class="stars-big">⭐⭐⭐⭐⭐</div>
+                <div class="checkmark">✓</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Steps for Driver -->
+  <div *ngIf="activeTab === 'driver'">
+    <section class="section-header">
+      <div class="container">
+        <h2>Für Fahrer</h2>
+        <p>Du möchtest Transporte anbieten und Geld verdienen? So geht's:</p>
+      </div>
+    </section>
+
+    <div class="steps-container">
+      <div class="container">
+        <!-- Driver Step 1 -->
+        <div class="step">
+          <div class="step-number">
+            <span>1</span>
+          </div>
+          <div class="step-content">
+            <h3>Registrieren & verifizieren</h3>
+            <ul class="step-list">
+              <li>Erstelle dein Fahrerprofil mit Foto</li>
+              <li>Verifiziere deinen Ausweis und Führerschein</li>
+              <li>Füge dein(e) Fahrzeug(e) hinzu mit Fotos</li>
+              <li>Gib deine bevorzugten Routen und Zeiten an</li>
+            </ul>
+            <p class="step-tip"><strong>Schnell:</strong> Die Verifizierung dauert nur 24 Stunden!</p>
+          </div>
+          <div class="step-image">
+            <div class="illustration illustration-verify">
+              <div class="verify-card">
+                <div class="id-card"></div>
+                <div class="checkmark-large">✓</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Driver Step 2 -->
+        <div class="step alternate">
+          <div class="step-number">
+            <span>2</span>
+          </div>
+          <div class="step-content">
+            <h3>Fahrt anbieten</h3>
+            <ul class="step-list">
+              <li>Erstelle Angebote für deine geplanten Fahrten</li>
+              <li>Lege Preis, Kapazität und Bedingungen fest</li>
+              <li>Erhalte automatisch Benachrichtigungen bei Anfragen</li>
+              <li>Akzeptiere passende Buchungen mit einem Klick</li>
+            </ul>
+            <p class="step-tip"><strong>Flexibel:</strong> Du kannst Angebote auch für regelmäßige Fahrten erstellen!</p>
+          </div>
+          <div class="step-image">
+            <div class="illustration illustration-offer">
+              <div class="offer-card">
+                <div class="route-visual">
+                  <div class="dot"></div>
+                  <div class="line-dotted"></div>
+                  <div class="dot"></div>
+                </div>
+                <div class="price-tag">€</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Driver Step 3 -->
+        <div class="step">
+          <div class="step-number">
+            <span>3</span>
+          </div>
+          <div class="step-content">
+            <h3>Transport durchführen</h3>
+            <ul class="step-list">
+              <li>Hole die Ladung zum vereinbarten Zeitpunkt ab</li>
+              <li>Transportiere sorgfältig zum Zielort</li>
+              <li>Halte den Versender per App auf dem Laufenden</li>
+              <li>Bestätige die Zustellung mit Foto/Unterschrift</li>
+            </ul>
+            <p class="step-tip"><strong>Sicher:</strong> Du bist über die Plattform vollständig versichert!</p>
+          </div>
+          <div class="step-image">
+            <div class="illustration illustration-deliver">
+              <div class="delivery-icon">
+                <div class="box-icon">📦</div>
+                <div class="arrow-icon">→</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Driver Step 4 -->
+        <div class="step alternate">
+          <div class="step-number">
+            <span>4</span>
+          </div>
+          <div class="step-content">
+            <h3>Geld verdienen</h3>
+            <ul class="step-list">
+              <li>Erhalte deine Zahlung automatisch auf dein Konto</li>
+              <li>Sammle positive Bewertungen für mehr Buchungen</li>
+              <li>Verdiene zusätzliches Geld bei deinen regulären Fahrten</li>
+              <li>Werde Teil unserer wachsenden Fahrer-Community!</li>
+            </ul>
+            <p class="step-tip"><strong>Transparent:</strong> Keine versteckten Gebühren – nur 15% Provision!</p>
+          </div>
+          <div class="step-image">
+            <div class="illustration illustration-money">
+              <div class="money-card">
+                <div class="coins">
+                  <div class="coin">€</div>
+                  <div class="coin">€</div>
+                  <div class="coin">€</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ Section -->
+  <section class="faq-section">
+    <div class="container">
+      <h2>Häufig gestellte Fragen</h2>
+      <p class="section-subtitle">Hier findest du Antworten auf die wichtigsten Fragen</p>
+
+      <div class="faq-grid">
+        <!-- Sender FAQs -->
+        <div class="faq-column">
+          <h3>Für Versender</h3>
+          <div class="faq-item" *ngFor="let faq of senderFaqs">
+            <h4>{{ faq.question }}</h4>
+            <p>{{ faq.answer }}</p>
+          </div>
+        </div>
+
+        <!-- Driver FAQs -->
+        <div class="faq-column">
+          <h3>Für Fahrer</h3>
+          <div class="faq-item" *ngFor="let faq of driverFaqs">
+            <h4>{{ faq.question }}</h4>
+            <p>{{ faq.answer }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="container">
+      <h2>Bereit loszulegen?</h2>
+      <div class="cta-buttons">
+        <button class="btn-cta secondary" (click)="onSearchTransport()">
+          Transport suchen
+        </button>
+        <button class="btn-cta primary" (click)="onRegisterDriver()">
+          Als Fahrer registrieren
+        </button>
+      </div>
+    </div>
+  </section>
+</div>

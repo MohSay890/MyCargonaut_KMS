@@ -4,11 +4,83 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d4d500c1-31fc-44e1-8093-cabcc8ba36b4" name="Changes" comment="- Add 15 wireframe pages (low-fidelity prototypes)&#10;- Add 15 mockup pages (high-fidelity prototypes)">
-      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/models/cargo.model.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/models/cargonaut.model.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/models/ride.model.ts" afterDir="false" />
+    <list default="true" id="d4d500c1-31fc-44e1-8093-cabcc8ba36b4" name="Changes" comment="Add Profile and Vehicle Editor Components&#10;&#10;- Create Profile component with avatar, ratings, and statistics&#10;- Create Vehicle Editor component with form and vehicle list&#10;- Add styling for both components with gradient backgrounds&#10;- Implement TypeScript logic with mock data">
+      <change afterPath="$PROJECT_DIR$/FRONTEND/public/MyCargonaut.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/confirmation-modal/confirmation-modal.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/confirmation-modal/confirmation-modal.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/confirmation-modal/confirmation-modal.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/dashboard/dashboard.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/dashboard/dashboard.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/dashboard/dashboard.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/edit-profile/edit-profile.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/edit-profile/edit-profile.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/edit-profile/edit-profile.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/favorites/favorites.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/favorites/favorites.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/favorites/favorites.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/footer/footer.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/footer/footer.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/footer/footer.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/how-it-works/how-it-works.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/how-it-works/how-it-works.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/how-it-works/how-it-works.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/landing/landing.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/landing/landing.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/landing/landing.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/login/login.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/login/login.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/login/login.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/messages/messages.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/messages/messages.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/messages/messages.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/my-trips/my-trips.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/my-trips/my-trips.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/my-trips/my-trips.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/offer-create/offer-create.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/offer-create/offer-create.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/offer-create/offer-create.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/offer-detail/offer-detail.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/offer-detail/offer-detail.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/offer-detail/offer-detail.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/review-create/review-create.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/review-create/review-create.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/review-create/review-create.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/reviews/reviews.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/reviews/reviews.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/reviews/reviews.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/search-results/search-results.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/search-results/search-results.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/search-results/search-results.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/sidebar/sidebar.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/sidebar/sidebar.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/sidebar/sidebar.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/tracking/tracking.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/tracking/tracking.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/tracking/tracking.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/vehicle-modal/vehicle-modal.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/vehicle-modal/vehicle-modal.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/vehicle-modal/vehicle-modal.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/services/auth.guard.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/services/auth.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/services/favorites.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/services/offer.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FRONTEND/src/app/services/review.service.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FRONTEND/src/app/app.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/FRONTEND/src/app/app.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FRONTEND/src/app/app.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/FRONTEND/src/app/app.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FRONTEND/src/app/app.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FRONTEND/src/app/app.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FRONTEND/src/app/app.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FRONTEND/src/app/app.config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FRONTEND/src/app/app.routes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FRONTEND/src/app/app.routes.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FRONTEND/src/app/components/profile/profile.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/profile/profile.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FRONTEND/src/app/components/profile/profile.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/profile/profile.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FRONTEND/src/app/components/profile/profile.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/profile/profile.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FRONTEND/src/app/components/registration/registration.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/registration/registration.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FRONTEND/src/app/components/registration/registration.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/registration/registration.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FRONTEND/src/app/components/registration/registration.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/registration/registration.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FRONTEND/src/app/components/vehicle-editor/vehicle-editor.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/vehicle-editor/vehicle-editor.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FRONTEND/src/app/components/vehicle-editor/vehicle-editor.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/vehicle-editor/vehicle-editor.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FRONTEND/src/app/components/vehicle-editor/vehicle-editor.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FRONTEND/src/app/components/vehicle-editor/vehicle-editor.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FRONTEND/src/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/FRONTEND/src/styles.css" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,6 +107,9 @@
     &quot;accountId&quot;: &quot;46097615-34bd-40f3-9d8d-debe19aed904&quot;
   }
 }</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 6
 }</component>
@@ -43,27 +118,43 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "wireframes-und-mockups",
-    "last_opened_file_path": "C:/Users/cakar/WebstormProjects/MyCargonaut_KMS",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "ts.external.directory.path": "C:\\Program Files\\JetBrains\\WebStorm 2024.2.3\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;JavaScript Debug.app.component.html.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;wireframes-und-mockups&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/cakar/WebstormProjects/MyCargonautDesign&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;settings.qodana&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\cakar\\WebstormProjects\\MyCargonaut_KMS\\FRONTEND\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\cakar\WebstormProjects\MyCargonaut_KMS\FRONTEND\public" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\cakar\WebstormProjects\MyCargonaut_KMS\FRONTEND\src\assets" />
       <recent name="$PROJECT_DIR$/BACKEND/src/main/java/com/mycargonaut/backend/user" />
     </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="app.component.html" type="JavascriptDebugType" temporary="true" nameIsGenerated="true" uri="http://localhost:63342/MyCargonaut_KMS/FRONTEND/src/app/app.component.html" useBuiltInWebServerPort="true">
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JavaScript Debug.app.component.html" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -86,7 +177,13 @@
       <workItem from="1765316283825" duration="1139000" />
       <workItem from="1765317454870" duration="1429000" />
       <workItem from="1765469191820" duration="916000" />
-      <workItem from="1765715577968" duration="2805000" />
+      <workItem from="1765715577968" duration="32160000" />
+      <workItem from="1766002157758" duration="2919000" />
+      <workItem from="1766058667622" duration="5930000" />
+      <workItem from="1766192049105" duration="1006000" />
+      <workItem from="1766231739268" duration="2412000" />
+      <workItem from="1766234401711" duration="670000" />
+      <workItem from="1766236003430" duration="12014000" />
     </task>
     <task id="LOCAL-00001" summary="- Add 15 wireframe pages (low-fidelity prototypes)&#10;- Add 15 mockup pages (high-fidelity prototypes)">
       <option name="closed" value="true" />
@@ -96,7 +193,31 @@
       <option name="project" value="LOCAL" />
       <updated>1765318610023</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Add domain models (Cargonaut, Ride, Cargo)">
+      <option name="closed" value="true" />
+      <created>1765718693001</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1765718693001</updated>
+    </task>
+    <task id="LOCAL-00003" summary="- Create registration form with name, date of birth, mobile number&#10;- Add styling with gradient background&#10;- Implement TypeScript logic for form handling&#10;- Add package-lock.json">
+      <option name="closed" value="true" />
+      <created>1765735145744</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1765735145744</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Add Profile and Vehicle Editor Components&#10;&#10;- Create Profile component with avatar, ratings, and statistics&#10;- Create Vehicle Editor component with form and vehicle list&#10;- Add styling for both components with gradient backgrounds&#10;- Implement TypeScript logic with mock data">
+      <option name="closed" value="true" />
+      <created>1765736005140</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1765736005140</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -115,6 +236,9 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="- Add 15 wireframe pages (low-fidelity prototypes)&#10;- Add 15 mockup pages (high-fidelity prototypes)" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Add 15 wireframe pages (low-fidelity prototypes)&#10;- Add 15 mockup pages (high-fidelity prototypes)" />
+    <MESSAGE value="Add domain models (Cargonaut, Ride, Cargo)" />
+    <MESSAGE value="- Create registration form with name, date of birth, mobile number&#10;- Add styling with gradient background&#10;- Implement TypeScript logic for form handling&#10;- Add package-lock.json" />
+    <MESSAGE value="Add Profile and Vehicle Editor Components&#10;&#10;- Create Profile component with avatar, ratings, and statistics&#10;- Create Vehicle Editor component with form and vehicle list&#10;- Add styling for both components with gradient backgrounds&#10;- Implement TypeScript logic with mock data" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add Profile and Vehicle Editor Components&#10;&#10;- Create Profile component with avatar, ratings, and statistics&#10;- Create Vehicle Editor component with form and vehicle list&#10;- Add styling for both components with gradient backgrounds&#10;- Implement TypeScript logic with mock data" />
   </component>
 </project>

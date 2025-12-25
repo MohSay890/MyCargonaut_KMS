@@ -1,0 +1,104 @@
+<div class="dashboard-page">
+  <div class="container">
+    <div class="page-layout">
+  <!-- Sidebar -->
+  <app-sidebar></app-sidebar>
+
+  <!-- Main Content -->
+      <main class="main-content">
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1>Dashboard</h1>
+      <p class="subtitle">Willkommen zurück, {{ userName }}! Hier ist eine Übersicht deiner Aktivitäten</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">{{ stats.activeOffers }}</div>
+        <div class="stat-label">Aktive Angebote</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ stats.completedTrips }}</div>
+        <div class="stat-label">Abgeschlossene Fahrten</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ stats.averageRating }}</div>
+        <div class="stat-label">Durchschn. Bewertung</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ stats.totalEarnings }} €</div>
+        <div class="stat-label">Einnahmen (Gesamt)</div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <h2>Schnellaktionen</h2>
+      <div class="actions-grid">
+        <button class="action-card" (click)="onNewOffer()">
+          <div class="action-icon">🚗</div>
+          <div class="action-title">Neue Fahrt anbieten</div>
+        </button>
+        <button class="action-card" (click)="onSearchTransport()">
+          <div class="action-icon">🔍</div>
+          <div class="action-title">Transport suchen</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Upcoming Trips -->
+    <div class="content-section">
+      <div class="section-header">
+        <h2>Anstehende Fahrten</h2>
+        <button class="btn-link" (click)="onViewAllTrips()">Alle anzeigen →</button>
+      </div>
+
+      <div class="trips-list">
+        <div class="trip-card" *ngFor="let trip of upcomingTrips">
+          <div class="trip-date">
+            <div class="date-day">{{ formatDate(trip.date).day }}</div>
+            <div class="date-month">{{ formatDate(trip.date).month }}</div>
+          </div>
+          <div class="trip-info">
+            <h3>{{ trip.route }}</h3>
+            <p>{{ trip.time }} • {{ trip.vehicle }} • Max. {{ trip.maxWeight }}kg</p>
+          </div>
+          <div class="trip-status">
+            <span class="status-badge" [class.confirmed]="trip.status === 'confirmed'" [class.pending]="trip.status === 'pending'">
+              {{ trip.status === 'confirmed' ? 'Bestätigt' : 'Anfrage' }}
+            </span>
+          </div>
+          <div class="trip-action">
+            <button class="btn-details" (click)="onTripAction(trip)">
+              {{ trip.status === 'confirmed' ? 'Details' : 'Antworten' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="content-section">
+      <div class="section-header">
+        <h2>Benachrichtigungen</h2>
+        <button class="btn-link" (click)="onViewAllNotifications()">Alle anzeigen →</button>
+      </div>
+
+      <div class="notifications-list">
+        <div class="notification-card" *ngFor="let notification of notifications">
+          <div class="notification-icon">
+            {{ getNotificationIcon(notification.type) }}
+          </div>
+          <div class="notification-content">
+            <h3>{{ notification.title }}</h3>
+            <p>{{ notification.message }}</p>
+            <span class="notification-time">{{ formatTimestamp(notification.timestamp) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+    </div> <!-- Ende page-layout -->
+  </div> <!-- Ende container -->
+</div> <!-- Ende dashboard-page -->

@@ -1,0 +1,256 @@
+<div class="search-results-page">
+  <!-- Search Header -->
+  <div class="search-header">
+    <div class="container">
+      <h1>Transportangebote finden</h1>
+      <p class="subtitle">Finde den perfekten Transport für deine Bedürfnisse</p>
+
+      <!-- Search Form -->
+      <div class="search-form">
+        <div class="search-row">
+          <div class="search-field">
+            <label>Von</label>
+            <input type="text" [(ngModel)]="searchFrom" placeholder="Startort">
+          </div>
+          <div class="search-field">
+            <label>Nach</label>
+            <input type="text" [(ngModel)]="searchTo" placeholder="Zielort">
+          </div>
+          <div class="search-field">
+            <label>Datum</label>
+            <input type="date" [(ngModel)]="searchDate">
+          </div>
+          <button class="btn-search" (click)="onSearch()">🔍 Suchen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Section -->
+  <div class="results-section">
+    <div class="container">
+      <div class="results-layout">
+
+        <!-- Filters Sidebar -->
+        <aside class="filters-sidebar">
+          <div class="filters-header">
+            <h3>Filter</h3>
+            <button class="btn-reset" (click)="onResetFilters()">Zurücksetzen</button>
+          </div>
+
+          <!-- Price Filter -->
+          <div class="filter-group">
+            <h4>Preis</h4>
+            <div class="price-range">
+              <input type="range" min="0" max="200" [(ngModel)]="currentPriceMax" class="price-slider">
+              <div class="price-labels">
+                <span>0 €</span>
+                <span>{{ currentPriceMax }} €</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Size Filter -->
+          <div class="filter-group">
+            <h4>Größe</h4>
+            <label class="filter-checkbox">
+              <input type="checkbox" [(ngModel)]="sizeFilters.small">
+              <span>Klein (bis 20kg)</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" [(ngModel)]="sizeFilters.medium">
+              <span>Mittel (bis 50kg)</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" [(ngModel)]="sizeFilters.large">
+              <span>Groß (bis 100kg)</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" [(ngModel)]="sizeFilters.xlarge">
+              <span>Sehr groß (100kg+)</span>
+            </label>
+          </div>
+
+          <!-- Vehicle Type Filter -->
+          <div class="filter-group">
+            <h4>Fahrzeugtyp</h4>
+            <label class="filter-checkbox">
+              <input type="checkbox" [(ngModel)]="vehicleFilters.car">
+              <span>PKW</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" [(ngModel)]="vehicleFilters.van">
+              <span>Transporter</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" [(ngModel)]="vehicleFilters.truck">
+              <span>LKW</span>
+            </label>
+          </div>
+
+          <!-- Rating Filter -->
+          <div class="filter-group">
+            <h4>Bewertung</h4>
+            <label class="filter-checkbox">
+              <input type="checkbox" [(ngModel)]="ratingFilters.rating45">
+              <span>⭐ 4.5+</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" [(ngModel)]="ratingFilters.rating40">
+              <span>⭐ 4.0+</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" [(ngModel)]="ratingFilters.rating35">
+              <span>⭐ 3.5+</span>
+            </label>
+          </div>
+
+          <!-- Services Filter -->
+          <div class="filter-group">
+            <h4>Services</h4>
+            <label class="filter-checkbox">
+              <input type="checkbox" [(ngModel)]="serviceFilters.insurance">
+              <span>Versicherung inkl.</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" [(ngModel)]="serviceFilters.loading">
+              <span>Be-/Entladehilfe</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" [(ngModel)]="serviceFilters.express">
+              <span>Express</span>
+            </label>
+          </div>
+
+          <button class="btn-apply-filters" (click)="onApplyFilters()">Filter anwenden</button>
+        </aside>
+
+        <!-- Results List -->
+        <main class="results-main">
+          <!-- Results Header -->
+          <div class="results-header">
+            <div class="results-count">
+              <strong>{{ resultsCount }}</strong> Angebote gefunden
+            </div>
+            <div class="results-sort">
+              <label>Sortieren:</label>
+              <select [(ngModel)]="sortBy" (change)="onApplyFilters()">
+                <option value="best">Beste Übereinstimmung</option>
+                <option value="price-asc">Preis aufsteigend</option>
+                <option value="price-desc">Preis absteigend</option>
+                <option value="rating">Bewertung</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Offers List -->
+          <div class="offers-list">
+            <div class="offer-card" *ngFor="let offer of paginatedOffers">
+              <!-- Driver Info -->
+              <div class="offer-driver">
+                <img [src]="offer.driverAvatar" [alt]="offer.driverName" class="driver-avatar">
+                <div class="driver-info">
+                  <strong class="driver-name">{{ offer.driverName }}</strong>
+                  <div class="driver-rating">
+                    <span class="stars">{{ getStars(offer.driverRating) }}</span>
+                    <span class="rating-value">{{ offer.driverRating }}</span>
+                  </div>
+                  <span class="trips-count">({{ offer.driverTrips }} Fahrten)</span>
+                </div>
+              </div>
+
+              <!-- Route Info & Details -->
+              <div class="offer-route">
+                <div class="route-main">
+                  <h3>{{ offer.route }}</h3>
+                  <span class="route-distance">{{ offer.distance }}</span>
+                </div>
+                <div class="route-details">
+                  <span class="detail-item">📅 {{ offer.date }}, {{ offer.time }} Uhr</span>
+                  <span class="detail-item">⏱️ {{ offer.duration }}</span>
+                  <span class="detail-item">🚗 {{ offer.vehicleType }}</span>
+                </div>
+
+                <!-- Transport Details -->
+                <div class="offer-details">
+                  <span class="detail-item">
+                    <span class="detail-label">Max. Gewicht:</span>
+                    <strong>{{ offer.maxWeight }} kg</strong>
+                  </span>
+                  <span class="detail-item">
+                    <span class="detail-label">Abmessungen:</span>
+                    <strong>{{ offer.dimensions }}</strong>
+                  </span>
+                  <span class="detail-item">
+                    <span class="detail-label">Kapazität:</span>
+                    <strong>{{ offer.capacity }}</strong>
+                  </span>
+                </div>
+
+                <!-- Tags - kleine Beschreibungen unter den Details -->
+                <div class="offer-tags" *ngIf="offer.tags.length > 0">
+                  <span class="tag" *ngFor="let tag of offer.tags">{{ tag }}</span>
+                </div>
+              </div>
+
+              <!-- Price & Action -->
+              <div class="offer-action">
+                <div class="offer-price">
+                  <strong>{{ offer.price }} €</strong>
+                  <span>pro Transport</span>
+                </div>
+                <button class="btn-details" (click)="onViewDetails(offer)">Details</button>
+                <button class="btn-message" (click)="onSendMessage(offer)">💬 Nachricht</button>
+              </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-results" *ngIf="filteredOffers.length === 0">
+              <div class="empty-icon">🔍</div>
+              <h3>Keine Angebote gefunden</h3>
+              <p>Versuche andere Suchkriterien oder Filter</p>
+              <button class="btn-reset-search" (click)="onResetFilters()">Filter zurücksetzen</button>
+            </div>
+          </div>
+
+          <!-- Pagination -->
+          <div class="pagination" *ngIf="totalPages > 1">
+            <button
+              class="pagination-btn"
+              [disabled]="currentPage === 1"
+              (click)="onPreviousPage()">
+              ← Zurück
+            </button>
+
+            <button
+              class="pagination-number"
+              *ngFor="let page of pageNumbers"
+              [class.active]="page === currentPage"
+              (click)="onPageChange(page)">
+              {{ page }}
+            </button>
+
+            <button
+              class="pagination-btn"
+              [disabled]="currentPage === totalPages"
+              (click)="onNextPage()">
+              Weiter →
+            </button>
+          </div>
+        </main>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Message Confirmation Modal -->
+<app-confirmation-modal
+  [isOpen]="showMessageModal"
+  title="Nachricht senden"
+  [message]="'Möchtest du ' + (selectedOffer?.driverName || '') + ' eine Nachricht senden?'"
+  confirmText="Ja, Nachricht senden"
+  cancelText="Abbrechen"
+  (confirm)="onConfirmMessage()"
+  (cancel)="onCancelMessage()">
+</app-confirmation-modal>

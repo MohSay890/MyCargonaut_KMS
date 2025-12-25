@@ -1,0 +1,179 @@
+<div class="review-create-page">
+  <div class="container">
+    <div class="page-layout">
+
+      <!-- Sidebar -->
+      <app-sidebar></app-sidebar>
+
+      <!-- Main Content -->
+      <div class="main-content">
+
+        <!-- Page Title + Back Button -->
+        <div class="page-header-row">
+          <div class="page-title">
+            <h1>Bewertung abgeben</h1>
+            <p class="subtitle">{{ driverName }} • {{ tripRoute }}</p>
+          </div>
+          <button class="btn-back" (click)="onCancel()">← Zurück zu Meine Fahrten</button>
+        </div>
+
+        <!-- Review Form -->
+        <div class="review-form">
+
+          <!-- Overall Rating -->
+          <div class="form-section">
+            <h2>Gesamtbewertung <span class="required">*</span></h2>
+            <p class="section-description">Wie zufrieden warst du insgesamt mit diesem Transport?</p>
+
+            <div class="star-rating-large">
+              <button
+                *ngFor="let star of getStars(overallRating); let i = index"
+                class="star-btn large"
+                [class.filled]="i < overallRating"
+                (click)="setRating('overall', i + 1)">
+                {{ star }}
+              </button>
+            </div>
+            <p class="rating-label" *ngIf="overallRating > 0">
+              {{ overallRating === 1 ? 'Sehr schlecht' :
+              overallRating === 2 ? 'Schlecht' :
+                overallRating === 3 ? 'Okay' :
+                  overallRating === 4 ? 'Gut' : 'Sehr gut' }}
+            </p>
+          </div>
+
+          <!-- Category Ratings -->
+          <div class="form-section">
+            <h2>Detaillierte Bewertung <span class="required">*</span></h2>
+            <p class="section-description">Bewerte verschiedene Aspekte des Transports</p>
+
+            <div class="category-ratings">
+              <!-- Pünktlichkeit -->
+              <div class="category-rating-item">
+                <div class="category-label">
+                  <span>⏰</span>
+                  <strong>Pünktlichkeit</strong>
+                </div>
+                <div class="star-rating">
+                  <button
+                    *ngFor="let star of getStars(punctualityRating); let i = index"
+                    class="star-btn"
+                    [class.filled]="i < punctualityRating"
+                    (click)="setRating('punctuality', i + 1)">
+                    {{ star }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Sorgfalt -->
+              <div class="category-rating-item">
+                <div class="category-label">
+                  <span>📦</span>
+                  <strong>Sorgfalt</strong>
+                </div>
+                <div class="star-rating">
+                  <button
+                    *ngFor="let star of getStars(careRating); let i = index"
+                    class="star-btn"
+                    [class.filled]="i < careRating"
+                    (click)="setRating('care', i + 1)">
+                    {{ star }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Kommunikation -->
+              <div class="category-rating-item">
+                <div class="category-label">
+                  <span>💬</span>
+                  <strong>Kommunikation</strong>
+                </div>
+                <div class="star-rating">
+                  <button
+                    *ngFor="let star of getStars(communicationRating); let i = index"
+                    class="star-btn"
+                    [class.filled]="i < communicationRating"
+                    (click)="setRating('communication', i + 1)">
+                    {{ star }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Freundlichkeit -->
+              <div class="category-rating-item">
+                <div class="category-label">
+                  <span>😊</span>
+                  <strong>Freundlichkeit</strong>
+                </div>
+                <div class="star-rating">
+                  <button
+                    *ngFor="let star of getStars(friendlinessRating); let i = index"
+                    class="star-btn"
+                    [class.filled]="i < friendlinessRating"
+                    (click)="setRating('friendliness', i + 1)">
+                    {{ star }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Comment -->
+          <div class="form-section">
+            <h2>Deine Erfahrung (optional)</h2>
+            <p class="section-description">Teile deine Erfahrungen mit anderen Nutzern</p>
+
+            <textarea
+              [(ngModel)]="reviewComment"
+              class="comment-textarea"
+              placeholder="Beschreibe deine Erfahrung mit diesem Transport..."
+              rows="6"
+              maxlength="500"></textarea>
+            <p class="char-count">{{ reviewComment.length }}/500 Zeichen</p>
+          </div>
+
+          <!-- Tags -->
+          <div class="form-section">
+            <h2>Eigenschaften (optional)</h2>
+            <p class="section-description">Wähle passende Eigenschaften aus</p>
+
+            <div class="tags-selection">
+              <button
+                *ngFor="let tag of availableTags"
+                class="tag-btn"
+                [class.selected]="isTagSelected(tag)"
+                (click)="toggleTag(tag)">
+                {{ tag }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="form-actions">
+            <button class="btn-cancel" (click)="onCancel()">Abbrechen</button>
+            <button
+              class="btn-submit"
+              [disabled]="!isFormValid()"
+              (click)="onSubmitReview()">
+              Bewertung abschicken
+            </button>
+          </div>
+
+        </div> <!-- Ende review-form -->
+
+      </div> <!-- Ende main-content -->
+    </div> <!-- Ende page-layout -->
+  </div> <!-- Ende container -->
+
+  <!-- Success Modal -->
+  <app-confirmation-modal
+    [isOpen]="showSuccessModal"
+    [isSuccess]="true"
+    [showCancelButton]="false"
+    title="Bewertung abgeschickt!"
+    message="Vielen Dank für deine Bewertung. Sie hilft anderen Nutzern bei ihrer Entscheidung."
+    confirmText="Zu Meinen Fahrten"
+    (confirm)="onSuccessConfirm()">
+  </app-confirmation-modal>
+
+</div>

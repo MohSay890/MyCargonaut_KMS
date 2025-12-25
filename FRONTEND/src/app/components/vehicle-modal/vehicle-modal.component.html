@@ -1,0 +1,84 @@
+<div class="modal-overlay" (click)="onClose()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ isEditMode ? 'Fahrzeug bearbeiten' : 'Neues Fahrzeug hinzufügen' }}</h2>
+      <button class="btn-close" (click)="onClose()">✕</button>
+    </div>
+
+    <form class="modal-body" (ngSubmit)="onSubmit()">
+      <!-- Brand & Model -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="brand">Marke *</label>
+          <input type="text" id="brand" [(ngModel)]="formData.brand" name="brand" required placeholder="z.B. Mercedes">
+        </div>
+        <div class="form-group">
+          <label for="model">Modell *</label>
+          <input type="text" id="model" [(ngModel)]="formData.model" name="model" required placeholder="z.B. Sprinter">
+        </div>
+      </div>
+
+      <!-- Type & License Plate -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="type">Fahrzeugtyp *</label>
+          <select id="type" [(ngModel)]="formData.type" name="type" required>
+            <option *ngFor="let type of vehicleTypes" [value]="type">{{ type }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="licensePlate">Kennzeichen *</label>
+          <input type="text" id="licensePlate" [(ngModel)]="formData.licensePlate" name="licensePlate" required placeholder="z.B. B-XX 1234">
+        </div>
+      </div>
+
+      <!-- Year & Max Weight -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="year">Baujahr *</label>
+          <input type="number" id="year" [(ngModel)]="formData.year" name="year" required min="1900" max="2025" placeholder="2020">
+        </div>
+        <div class="form-group">
+          <label for="maxWeight">Max. Gewicht (kg) *</label>
+          <input type="number" id="maxWeight" [(ngModel)]="formData.maxWeight" name="maxWeight" required min="0" placeholder="1200">
+        </div>
+      </div>
+
+      <!-- Dimensions -->
+      <div class="form-group-full">
+        <label>Abmessungen Ladefläche (cm) *</label>
+        <div class="form-row">
+          <div class="form-group">
+            <input type="number" [(ngModel)]="formData.length" name="length" required min="0" placeholder="Länge">
+          </div>
+          <div class="form-group">
+            <input type="number" [(ngModel)]="formData.width" name="width" required min="0" placeholder="Breite">
+          </div>
+          <div class="form-group">
+            <input type="number" [(ngModel)]="formData.height" name="height" required min="0" placeholder="Höhe">
+          </div>
+        </div>
+      </div>
+
+      <!-- Insurance -->
+      <div class="form-group">
+        <label for="insurance">Versicherung *</label>
+        <select id="insurance" [(ngModel)]="formData.insurance" name="insurance" required>
+          <option *ngFor="let insurance of insuranceTypes" [value]="insurance">{{ insurance }}</option>
+        </select>
+      </div>
+
+      <!-- Active Status -->
+      <div class="checkbox-group">
+        <input type="checkbox" id="isActive" [(ngModel)]="formData.isActive" name="isActive">
+        <label for="isActive">Fahrzeug ist aktiv (wird für neue Angebote angezeigt)</label>
+      </div>
+
+      <!-- Buttons -->
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="onClose()">Abbrechen</button>
+        <button type="submit" class="btn-save">{{ isEditMode ? 'Speichern' : 'Hinzufügen' }}</button>
+      </div>
+    </form>
+  </div>
+</div>

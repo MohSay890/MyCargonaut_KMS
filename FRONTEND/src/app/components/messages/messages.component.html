@@ -1,0 +1,136 @@
+<div class="messages-page">
+  <!-- Messages Container -->
+  <div class="messages-container">
+    <div class="container">
+      <div class="page-layout">
+
+        <!-- Sidebar -->
+        <app-sidebar></app-sidebar>
+
+        <!-- Main Content -->
+        <div class="main-content">
+
+          <!-- Page Title -->
+          <div class="page-title">
+            <h1>Nachrichten</h1>
+            <p class="subtitle">Bleibe in Kontakt mit Fahrern und Kunden</p>
+          </div>
+
+          <div class="messages-layout">
+
+            <!-- Chat List (Left Sidebar) -->
+            <div class="chat-list">
+              <!-- Chat Search -->
+              <div class="chat-search">
+                <input
+                  type="text"
+                  [(ngModel)]="searchQuery"
+                  class="search-input"
+                  placeholder="Konversationen durchsuchen...">
+              </div>
+
+              <!-- Chat Items -->
+              <div class="chat-items">
+                <div
+                  class="chat-item"
+                  *ngFor="let chat of filteredChats"
+                  [class.active]="selectedChat?.id === chat.id"
+                  (click)="selectChat(chat)">
+
+                  <div class="chat-avatar">
+                    <img [src]="chat.userAvatar" [alt]="chat.userName">
+                    <span class="online-indicator" *ngIf="chat.isOnline"></span>
+                  </div>
+
+                  <div class="chat-info">
+                    <div class="chat-header-row">
+                      <span class="chat-name">{{ chat.userName }}</span>
+                      <span class="chat-time">{{ getTimeAgo(chat.timestamp) }}</span>
+                    </div>
+                    <div class="chat-preview">
+                      <span class="chat-last-message">{{ chat.lastMessage }}</span>
+                      <span class="unread-badge" *ngIf="chat.unreadCount > 0">{{ chat.unreadCount }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-chats" *ngIf="filteredChats.length === 0">
+                  <div class="empty-icon">💬</div>
+                  <p>Keine Konversationen gefunden</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chat Window (Right) -->
+            <div class="chat-window" *ngIf="selectedChat">
+              <!-- Chat Window Header -->
+              <div class="chat-window-header">
+                <div class="header-user-info">
+                  <div class="header-avatar">
+                    <img [src]="selectedChat.userAvatar" [alt]="selectedChat.userName">
+                  </div>
+                  <div>
+                    <strong class="header-name">{{ selectedChat.userName }}</strong>
+                    <span class="header-status" [class.online]="selectedChat.isOnline">
+                      {{ selectedChat.isOnline ? 'Online' : 'Offline' }}
+                    </span>
+                  </div>
+                </div>
+                <button class="btn-info">Info</button>
+              </div>
+
+              <!-- Messages Area -->
+              <div class="messages-area" #messagesArea>
+                <div
+                  class="message"
+                  *ngFor="let message of selectedChat.messages"
+                  [class.message-own]="message.isOwn"
+                  [class.message-other]="!message.isOwn">
+
+                  <div class="message-content">
+                    <div class="message-avatar" *ngIf="!message.isOwn">
+                      <img [src]="selectedChat.userAvatar" [alt]="message.senderName">
+                    </div>
+
+                    <div class="message-bubble-wrapper">
+                      <div class="message-bubble"
+                           [class.message-bubble-own]="message.isOwn"
+                           [class.message-bubble-other]="!message.isOwn">
+                        {{ message.text }}
+                      </div>
+                      <span class="message-time" [class.message-time-right]="message.isOwn">
+                        {{ getMessageTime(message.timestamp) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Message Input Area -->
+              <div class="message-input-area">
+                <input
+                  type="text"
+                  [(ngModel)]="newMessageText"
+                  (keyup.enter)="sendMessage()"
+                  class="message-input"
+                  placeholder="Nachricht eingeben...">
+                <button class="btn-send" (click)="sendMessage()">Senden</button>
+              </div>
+            </div>
+
+            <!-- Empty Window State -->
+            <div class="chat-window-empty" *ngIf="!selectedChat">
+              <div class="empty-window">
+                <div class="empty-window-icon">💬</div>
+                <h3>Keine Konversation ausgewählt</h3>
+                <p>Wähle eine Konversation aus, um Nachrichten zu sehen</p>
+              </div>
+            </div>
+
+          </div> <!-- Ende messages-layout -->
+        </div> <!-- Ende main-content -->
+      </div> <!-- Ende page-layout -->
+    </div>
+  </div>
+</div>

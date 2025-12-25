@@ -1,115 +1,115 @@
-<div class="vehicle-editor-container">
-  <div class="vehicle-editor-card">
+<div class="vehicle-editor-page">
+  <div class="container">
+    <div class="page-layout">
 
-    <h1>{{ isEditMode ? 'Fahrzeug bearbeiten' : 'Fahrzeug hinzufügen' }}</h1>
-    <p class="subtitle">Füge dein Fahrzeug hinzu um Transporte anzubieten</p>
+      <!-- Sidebar -->
+      <app-sidebar></app-sidebar>
 
-    <form class="vehicle-form">
-
-      <!-- Fahrzeugtyp -->
-      <div class="form-group">
-        <label for="type">Fahrzeugtyp *</label>
-        <select id="type" required>
-          <option value="">Bitte wählen...</option>
-          <option value="PKW">PKW</option>
-          <option value="Transporter">Transporter</option>
-          <option value="LKW">LKW</option>
-        </select>
-      </div>
-
-      <!-- Marke & Modell -->
-      <div class="form-row">
-        <div class="form-group">
-          <label for="brand">Marke *</label>
-          <input type="text" id="brand" placeholder="z.B. Mercedes" required>
-        </div>
-        <div class="form-group">
-          <label for="model">Modell *</label>
-          <input type="text" id="model" placeholder="z.B. Sprinter" required>
-        </div>
-      </div>
-
-      <!-- Kennzeichen & Baujahr -->
-      <div class="form-row">
-        <div class="form-group">
-          <label for="licensePlate">Kennzeichen *</label>
-          <input type="text" id="licensePlate" placeholder="B-XX 1234" required>
-        </div>
-        <div class="form-group">
-          <label for="year">Baujahr *</label>
-          <input type="number" id="year" placeholder="2020" min="1990" max="2025" required>
-        </div>
-      </div>
-
-      <!-- Ladekapazität -->
-      <div class="form-group">
-        <label for="loadCapacity">Ladekapazität (kg) *</label>
-        <input type="number" id="loadCapacity" placeholder="1200" min="0" required>
-      </div>
-
-      <!-- Abmessungen -->
-      <div class="dimensions-group">
-        <label>Abmessungen (cm) *</label>
-        <div class="form-row">
-          <div class="form-group">
-            <input type="number" placeholder="Länge" min="0" required>
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+          <div>
+            <h1>Meine Fahrzeuge</h1>
+            <p class="subtitle">Verwalte deine Fahrzeuge für Transportangebote</p>
           </div>
-          <div class="form-group">
-            <input type="number" placeholder="Breite" min="0" required>
-          </div>
-          <div class="form-group">
-            <input type="number" placeholder="Höhe" min="0" required>
-          </div>
+          <button class="btn-add" (click)="onAddVehicle()">+ Neues Fahrzeug hinzufügen</button>
         </div>
-      </div>
 
-      <!-- Versicherung -->
-      <div class="form-group">
-        <label for="insurance">Versicherung *</label>
-        <select id="insurance" required>
-          <option value="">Bitte wählen...</option>
-          <option value="Haftpflicht">Haftpflicht</option>
-          <option value="Teilkasko">Teilkasko</option>
-          <option value="Vollkasko">Vollkasko</option>
-        </select>
-      </div>
+        <!-- Vehicle List -->
+        <div class="vehicle-list">
+          <div class="vehicle-card" *ngFor="let vehicle of vehicles" [class.inactive]="!vehicle.isActive">
+            <!-- Vehicle Image -->
+            <div class="vehicle-image">
+              <div class="image-placeholder">
+                FOTO
+              </div>
+            </div>
 
-      <!-- Status -->
-      <div class="form-group checkbox-group">
-        <label>
-          <input type="checkbox" checked>
-          <span>Fahrzeug ist aktiv (für Transporte verfügbar)</span>
-        </label>
-      </div>
+            <!-- Vehicle Info -->
+            <div class="vehicle-info">
+              <div class="vehicle-header">
+                <div>
+                  <h3>{{ vehicle.name }}</h3>
+                  <p class="vehicle-type">{{ vehicle.type }}</p>
+                </div>
+                <span class="status-badge" [class.active]="vehicle.isActive" [class.inactive-badge]="!vehicle.isActive">
+                  {{ vehicle.isActive ? 'Aktiv' : 'Inaktiv' }}
+                </span>
+              </div>
 
-      <!-- Buttons -->
-      <div class="button-group">
-        <button type="submit" class="btn-primary">
-          {{ isEditMode ? 'Änderungen speichern' : 'Fahrzeug hinzufügen' }}
-        </button>
-        <button type="button" class="btn-secondary">Abbrechen</button>
-      </div>
+              <div class="vehicle-details">
+                <div class="detail-item">
+                  <span class="detail-label">Kennzeichen</span>
+                  <span class="detail-value">{{ vehicle.licensePlate }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Baujahr</span>
+                  <span class="detail-value">{{ vehicle.year }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Ladekapazität</span>
+                  <span class="detail-value">{{ vehicle.capacity }} m³</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Max. Gewicht</span>
+                  <span class="detail-value">{{ vehicle.maxWeight }} kg</span>
+                </div>
+              </div>
 
-    </form>
+              <div class="vehicle-details">
+                <div class="detail-item">
+                  <span class="detail-label">Abmessungen (Ladefläche)</span>
+                  <span class="detail-value">{{ vehicle.dimensions }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Versicherung</span>
+                  <span class="detail-value">{{ vehicle.insurance }}</span>
+                </div>
+              </div>
+            </div>
 
-    <!-- Fahrzeugliste -->
-    <div class="vehicle-list" *ngIf="vehicles.length > 0">
-      <h2>Meine Fahrzeuge</h2>
-      <div class="vehicle-item" *ngFor="let vehicle of vehicles">
-        <div class="vehicle-info">
-          <div class="vehicle-icon">🚗</div>
-          <div class="vehicle-details">
-            <h3>{{ vehicle.brand }} {{ vehicle.model }}</h3>
-            <p>{{ vehicle.licensePlate }} • {{ vehicle.year }}</p>
-            <p class="capacity">Kapazität: {{ vehicle.loadCapacity }} kg</p>
+            <!-- Vehicle Actions -->
+            <div class="vehicle-actions">
+              <button class="btn-edit" (click)="onEditVehicle(vehicle)">Bearbeiten</button>
+              <button class="btn-delete" (click)="onDeleteVehicle(vehicle)">Löschen</button>
+            </div>
           </div>
         </div>
-        <div class="vehicle-actions">
-          <button class="btn-edit">✏️ Bearbeiten</button>
-          <button class="btn-delete">🗑️ Löschen</button>
-        </div>
-      </div>
-    </div>
 
-  </div>
-</div>
+        <!-- Info Box -->
+        <div class="info-box">
+          <h4>💡 Hinweis</h4>
+          <p>
+            Füge deine Fahrzeuge hinzu, um sie bei Transportangeboten auszuwählen.
+            Stelle sicher, dass alle Angaben korrekt und aktuell sind.
+            Du kannst jederzeit Fahrzeuge bearbeiten oder deaktivieren.
+          </p>
+        </div>
+      </main>
+
+    </div> <!-- Ende page-layout -->
+  </div> <!-- Ende container -->
+</div> <!-- Ende vehicle-editor-page -->
+
+<!-- Add/Edit Vehicle Modal -->
+<app-vehicle-modal
+  *ngIf="isModalOpen"
+  [vehicle]="selectedVehicle"
+  (save)="onModalSave($event)"
+  (close)="onModalClose()">
+</app-vehicle-modal>
+
+<!-- Delete Confirmation Modal -->
+<app-confirmation-modal
+  *ngIf="showDeleteModal"
+  [isOpen]="true"
+  [title]="'Fahrzeug löschen?'"
+  [message]="'Möchtest du das Fahrzeug &quot;' + vehicleToDelete?.name + '&quot; wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.'"
+  [confirmText]="'Löschen'"
+  [cancelText]="'Abbrechen'"
+  [showCancelButton]="true"
+  [isDangerous]="true"
+  (confirm)="onConfirmDelete()"
+  (cancel)="onCancelDelete()">
+</app-confirmation-modal>
