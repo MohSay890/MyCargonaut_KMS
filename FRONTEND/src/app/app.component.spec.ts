@@ -29,10 +29,10 @@ describe('AppComponent', () => {
     expect(app.title).toEqual('MyCargonaut');
   });
 
-  it('should render title', () => {
+  it('should render logo', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, frontend');
+    expect(compiled.querySelector('. logo-img')).toBeTruthy();
   });
 });
