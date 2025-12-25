@@ -10,6 +10,13 @@ describe('RegistrationComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [RegistrationComponent]
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            params: of ({}),
+            snapshot: { params: {} }
+          }}]
     })
     .compileComponents();
 
