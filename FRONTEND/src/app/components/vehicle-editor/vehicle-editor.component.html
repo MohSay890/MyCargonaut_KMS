@@ -1,0 +1,115 @@
+<div class="vehicle-editor-container">
+  <div class="vehicle-editor-card">
+
+    <h1>{{ isEditMode ? 'Fahrzeug bearbeiten' : 'Fahrzeug hinzufügen' }}</h1>
+    <p class="subtitle">Füge dein Fahrzeug hinzu um Transporte anzubieten</p>
+
+    <form class="vehicle-form">
+
+      <!-- Fahrzeugtyp -->
+      <div class="form-group">
+        <label for="type">Fahrzeugtyp *</label>
+        <select id="type" required>
+          <option value="">Bitte wählen...</option>
+          <option value="PKW">PKW</option>
+          <option value="Transporter">Transporter</option>
+          <option value="LKW">LKW</option>
+        </select>
+      </div>
+
+      <!-- Marke & Modell -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="brand">Marke *</label>
+          <input type="text" id="brand" placeholder="z.B. Mercedes" required>
+        </div>
+        <div class="form-group">
+          <label for="model">Modell *</label>
+          <input type="text" id="model" placeholder="z.B. Sprinter" required>
+        </div>
+      </div>
+
+      <!-- Kennzeichen & Baujahr -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="licensePlate">Kennzeichen *</label>
+          <input type="text" id="licensePlate" placeholder="B-XX 1234" required>
+        </div>
+        <div class="form-group">
+          <label for="year">Baujahr *</label>
+          <input type="number" id="year" placeholder="2020" min="1990" max="2025" required>
+        </div>
+      </div>
+
+      <!-- Ladekapazität -->
+      <div class="form-group">
+        <label for="loadCapacity">Ladekapazität (kg) *</label>
+        <input type="number" id="loadCapacity" placeholder="1200" min="0" required>
+      </div>
+
+      <!-- Abmessungen -->
+      <div class="dimensions-group">
+        <label>Abmessungen (cm) *</label>
+        <div class="form-row">
+          <div class="form-group">
+            <input type="number" placeholder="Länge" min="0" required>
+          </div>
+          <div class="form-group">
+            <input type="number" placeholder="Breite" min="0" required>
+          </div>
+          <div class="form-group">
+            <input type="number" placeholder="Höhe" min="0" required>
+          </div>
+        </div>
+      </div>
+
+      <!-- Versicherung -->
+      <div class="form-group">
+        <label for="insurance">Versicherung *</label>
+        <select id="insurance" required>
+          <option value="">Bitte wählen...</option>
+          <option value="Haftpflicht">Haftpflicht</option>
+          <option value="Teilkasko">Teilkasko</option>
+          <option value="Vollkasko">Vollkasko</option>
+        </select>
+      </div>
+
+      <!-- Status -->
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" checked>
+          <span>Fahrzeug ist aktiv (für Transporte verfügbar)</span>
+        </label>
+      </div>
+
+      <!-- Buttons -->
+      <div class="button-group">
+        <button type="submit" class="btn-primary">
+          {{ isEditMode ? 'Änderungen speichern' : 'Fahrzeug hinzufügen' }}
+        </button>
+        <button type="button" class="btn-secondary">Abbrechen</button>
+      </div>
+
+    </form>
+
+    <!-- Fahrzeugliste -->
+    <div class="vehicle-list" *ngIf="vehicles.length > 0">
+      <h2>Meine Fahrzeuge</h2>
+      <div class="vehicle-item" *ngFor="let vehicle of vehicles">
+        <div class="vehicle-info">
+          <div class="vehicle-icon">🚗</div>
+          <div class="vehicle-details">
+            <h3>{{ vehicle.brand }} {{ vehicle.model }}</h3>
+            <p>{{ vehicle.licensePlate }} • {{ vehicle.year }}</p>
+            <p class="capacity">Kapazität: {{ vehicle.loadCapacity }} kg</p>
+          </div>
+        </div>
+        <div class="vehicle-actions">
+          <button class="btn-edit">✏️ Bearbeiten</button>
+          <button class="btn-delete">🗑️ Löschen</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

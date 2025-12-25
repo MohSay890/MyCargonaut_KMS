@@ -1,0 +1,47 @@
+<div class="registration-container">
+  <div class="registration-card">
+    <h1>Registrierung</h1>
+    <p class="subtitle">Erstelle dein MyCargonaut Konto</p>
+
+    <form class="registration-form">
+      <!-- Name -->
+      <div class="form-group">
+        <label for="name">Name *</label>
+        <input
+          type="text"
+          id="name"
+          placeholder="Max Mustermann"
+          required
+        >
+      </div>
+
+      <!-- Geburtsdatum -->
+      <div class="form-group">
+        <label for="dateOfBirth">Geburtsdatum *</label>
+        <input
+          type="date"
+          id="dateOfBirth"
+          required
+        >
+      </div>
+
+      <!-- Handynummer -->
+      <div class="form-group">
+        <label for="mobileNumber">Handynummer *</label>
+        <input
+          type="tel"
+          id="mobileNumber"
+          placeholder="+49 123 456789"
+          required
+        >
+        <small class="hint">Wird nur für Transportabwicklung verwendet</small>
+      </div>
+
+      <!-- Buttons -->
+      <div class="button-group">
+        <button type="submit" class="btn-primary">Registrieren</button>
+        <button type="button" class="btn-secondary">Abbrechen</button>
+      </div>
+    </form>
+  </div>
+</div>

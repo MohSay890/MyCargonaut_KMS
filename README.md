@@ -11,14 +11,26 @@ MyCargonaut_KMS/
 ├── BACKEND/                # Spring Boot 3.2.0 (Java 21)
 │   ├── src/
 │   ├── pom.xml
-│   └── README.md          # Backend-specific documentation
+│   └── README.md           # Backend-specific documentation
 ├── FRONTEND/               # Angular (Node.js 18+)
 │   ├── src/
 │   ├── package.json
-│   └── README.md          # Frontend-specific documentation
+│   └── README.md           # Frontend-specific documentation
+|── DESIGN/                 # Angular (Node.js 18+)
+│   ├── mockups/            # HTML/CSS mockups
+│   └── wireframes/         # High-fidelity wireframe sketches
 ├── docker-compose.yml      # PostgreSQL database setup
-└── README.md              # This file
+└── README.md               # This file
 ```
+
+## Design & Prototypes
+Before development, we established the visual structure of the application. You can find these assets in the `DESIGN` folder at the project root:
+
+- **Wireframes**: Low-fidelity sketches outlining the layout.
+  - 📂 Location: [`DESIGN/wireframes/`](./DESIGN/wireframes/)
+- **Mockups**: High-fidelity static designs using HTML & CSS.
+  - 📂 Location: [`DESIGN/mockup/`](./DESIGN/mockup/)
+
 
 ## Prerequisites
 
