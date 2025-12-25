@@ -1,0 +1,116 @@
+<div class="favorites-page">
+  <div class="container">
+    <div class="page-layout">
+
+      <!-- Sidebar -->
+      <app-sidebar></app-sidebar>
+
+      <!-- Main Content -->
+      <div class="main-content">
+
+        <!-- Page Title -->
+        <div class="page-header">
+          <div class="page-title">
+            <h1>Meine Favoriten</h1>
+            <p class="subtitle">{{ favorites.length }} gespeicherte {{ favorites.length === 1 ? 'Fahrt' : 'Fahrten' }}</p>
+          </div>
+          <button
+            *ngIf="favorites.length > 0"
+            class="btn-clear-all"
+            (click)="onClearAll()">
+            Alle löschen
+          </button>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters" *ngIf="favorites.length > 0">
+          <select [(ngModel)]="sortBy" class="filter-select">
+            <option value="newest">Zuletzt gespeichert</option>
+            <option value="oldest">Zuerst gespeichert</option>
+            <option value="date">Nach Fahrtdatum</option>
+            <option value="price-low">Preis aufsteigend</option>
+            <option value="price-high">Preis absteigend</option>
+          </select>
+        </div>
+
+        <!-- Favorites List -->
+        <div class="favorites-list" *ngIf="favorites.length > 0">
+          <div class="favorite-card" *ngFor="let offer of sortedFavorites">
+
+            <!-- Driver Info -->
+            <div class="offer-driver">
+              <img [src]="offer.driverAvatar" [alt]="offer.driverName" class="driver-avatar">
+              <div class="driver-info">
+                <strong class="driver-name">{{ offer.driverName }}</strong>
+                <div class="driver-rating">
+                  <span class="stars">{{ getStars(offer.driverRating) }}</span>
+                  <span class="rating-value">{{ offer.driverRating }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Offer Info -->
+            <div class="offer-info">
+              <h3 class="offer-route">{{ offer.route }}</h3>
+
+              <div class="offer-details">
+                <span>📅 {{ offer.date }}, {{ offer.time }}</span>
+                <span>|</span>
+                <span>📏 {{ offer.distance }}</span>
+                <span>|</span>
+                <span>🚗 {{ offer.vehicle }}</span>
+                <span>|</span>
+                <span>Max. {{ offer.maxWeight }}kg</span>
+              </div>
+
+              <div class="saved-date">
+                💾 {{ formatSavedDate(offer.savedAt) }}
+              </div>
+            </div>
+
+            <!-- Price -->
+            <div class="offer-price">
+              <strong class="price-value">{{ offer.price }} €</strong>
+              <span class="price-label">Gesamtpreis</span>
+            </div>
+
+            <!-- Actions -->
+            <div class="offer-actions">
+              <button class="btn-action btn-primary" (click)="onViewDetails(offer)">
+                Details ansehen
+              </button>
+              <button class="btn-action btn-remove" (click)="onRemoveFavorite(offer)">
+                ❌ Entfernen
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" *ngIf="favorites.length === 0">
+          <div class="empty-icon">⭐</div>
+          <h3>Keine Favoriten gespeichert</h3>
+          <p>Du hast noch keine Fahrten zu deinen Favoriten hinzugefügt.</p>
+          <p>Klicke auf das ♥ Symbol bei einem Angebot, um es zu speichern.</p>
+          <a routerLink="/search" class="btn-search">Transporte suchen</a>
+        </div>
+
+      </div> <!-- main-content -->
+    </div> <!-- page-layout -->
+  </div> <!-- container -->
+
+  <!-- Delete Confirmation Modal -->
+  <app-confirmation-modal
+    [isOpen]="showDeleteModal"
+    [title]="'Favorit entfernen?'"
+    [message]="'Möchtest du &quot;' + offerToDelete?.route + '&quot; wirklich aus deinen Favoriten entfernen?'"
+    [confirmText]="'Entfernen'"
+    [cancelText]="'Abbrechen'"
+    [showCancelButton]="true"
+    [isDangerous]="true"
+    (confirm)="onConfirmDelete()"
+    (cancel)="onCancelDelete()">
+  </app-confirmation-modal>
+
+</div>

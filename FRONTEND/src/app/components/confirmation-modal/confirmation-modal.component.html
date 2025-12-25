@@ -1,0 +1,30 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="onCancel()">
+  <div class="modal-content"
+       [class.success]="isSuccess"
+       [class.favorite]="isFavorite"
+       [class.danger]="isDangerous"
+       (click)="$event.stopPropagation()">
+
+    <button class="close-btn" (click)="onCancel()" *ngIf="!isSuccess && !isFavorite && showCancelButton">×</button>
+
+    <div class="modal-icon" [ngClass]="iconClass">
+      <span class="icon-symbol">{{ modalIcon }}</span>
+    </div>
+
+    <h2 class="modal-title">{{ title }}</h2>
+    <p class="modal-message">{{ message }}</p>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" (click)="onCancel()" *ngIf="showCancelButton">
+        {{ cancelText }}
+      </button>
+      <button class="btn-confirm"
+              [class.success]="isSuccess"
+              [class.danger]="isDangerous"
+              [class.favorite]="isFavorite"
+              (click)="onConfirm()">
+        {{ confirmText }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,176 @@
+<div class="edit-profile-page">
+  <div class="container">
+    <div class="page-layout">
+
+      <!-- Sidebar -->
+      <app-sidebar></app-sidebar>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+          <div>
+            <h1>Profil bearbeiten</h1>
+            <p class="subtitle">Aktualisiere deine persönlichen Informationen</p>
+          </div>
+          <button class="btn-back" (click)="onBackToProfile()">← Zurück zum Profil</button>
+        </div>
+
+        <!-- Edit Form -->
+        <form class="edit-form" (ngSubmit)="onSaveProfile()">
+
+          <!-- Profile Image Section -->
+          <div class="form-section">
+            <h2>Profilbild</h2>
+            <div class="profile-image-upload">
+              <img [src]="formData.profileImage" alt="Profilbild" class="profile-preview" *ngIf="formData.profileImage">
+              <div class="profile-placeholder" *ngIf="!formData.profileImage">
+                <span class="placeholder-icon">👤</span>
+              </div>
+              <div class="upload-actions">
+                <button type="button" class="btn-upload" (click)="onUploadImage()">Bild hochladen</button>
+                <button type="button" class="btn-remove" *ngIf="formData.profileImage" (click)="onRemoveImage()">Bild löschen</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Personal Information -->
+          <div class="form-section">
+            <h2>Persönliche Informationen</h2>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="firstName">Vorname *</label>
+                <input type="text" id="firstName" [(ngModel)]="formData.firstName" name="firstName" required placeholder="Max">
+              </div>
+              <div class="form-group">
+                <label for="lastName">Nachname *</label>
+                <input type="text" id="lastName" [(ngModel)]="formData.lastName" name="lastName" required placeholder="Mustermann">
+              </div>
+            </div>
+
+            <div class="form-group-full">
+              <label for="email">E-Mail *</label>
+              <input type="email" id="email" [(ngModel)]="formData.email" name="email" required placeholder="max@example.com">
+              <span class="verification-badge verified" *ngIf="formData.emailVerified">✓ Verifiziert</span>
+            </div>
+
+            <div class="form-group-full">
+              <label for="phone">Telefonnummer</label>
+              <input type="tel" id="phone" [(ngModel)]="formData.phone" name="phone" placeholder="+49 123 456789">
+              <span class="verification-badge verified" *ngIf="formData.phoneVerified">✓ Verifiziert</span>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="city">Stadt</label>
+                <input type="text" id="city" [(ngModel)]="formData.city" name="city" placeholder="Berlin">
+              </div>
+              <div class="form-group">
+                <label for="zipCode">PLZ</label>
+                <input type="text" id="zipCode" [(ngModel)]="formData.zipCode" name="zipCode" placeholder="10115">
+              </div>
+            </div>
+
+            <div class="form-group-full">
+              <label for="country">Land</label>
+              <select id="country" [(ngModel)]="formData.country" name="country">
+                <option value="Deutschland">Deutschland</option>
+                <option value="Österreich">Österreich</option>
+                <option value="Schweiz">Schweiz</option>
+              </select>
+            </div>
+
+            <div class="form-group-full">
+              <label for="languages">Sprachen</label>
+              <input type="text" id="languages" [(ngModel)]="formData.languages" name="languages" placeholder="Deutsch, Englisch">
+            </div>
+          </div>
+
+          <!-- About Me -->
+          <div class="form-section">
+            <h2>Über mich</h2>
+            <div class="form-group-full">
+              <label for="bio">Beschreibe dich und deine Erfahrung (max. 500 Zeichen)</label>
+              <textarea id="bio" [(ngModel)]="formData.bio" name="bio" rows="4" maxlength="500"
+                        placeholder="Hallo! Ich bin Max und fahre regelmäßig zwischen verschiedenen Städten in Deutschland. Ich biete zuverlässigen Transport für verschiedene Gegenstände an."></textarea>
+              <span class="char-counter">{{ formData.bio.length }}/500</span>
+            </div>
+          </div>
+
+          <!-- Verification Status -->
+          <div class="form-section">
+            <h2>Verifizierung</h2>
+
+            <div class="verification-item verified">
+              <div class="verification-icon">✓</div>
+              <div class="verification-info">
+                <strong>Ausweis verifiziert</strong>
+                <span class="verification-date">Verifiziert am 15.01.2023</span>
+              </div>
+            </div>
+
+            <div class="verification-item verified">
+              <div class="verification-icon">✓</div>
+              <div class="verification-info">
+                <strong>Führerschein verifiziert</strong>
+                <span class="verification-date">Verifiziert am 15.01.2023</span>
+              </div>
+            </div>
+
+            <div class="verification-item verified">
+              <div class="verification-icon">✓</div>
+              <div class="verification-info">
+                <strong>Telefon verifiziert</strong>
+                <span class="verification-date">Verifiziert am 16.01.2023</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Privacy Settings -->
+          <div class="form-section">
+            <h2>Privatsphäre-Einstellungen</h2>
+
+            <div class="checkbox-group">
+              <input type="checkbox" id="profilePublic" [(ngModel)]="formData.profilePublic" name="profilePublic">
+              <label for="profilePublic">Mein Profil ist öffentlich sichtbar</label>
+            </div>
+
+            <div class="checkbox-group">
+              <input type="checkbox" id="phoneVisible" [(ngModel)]="formData.phoneVisible" name="phoneVisible">
+              <label for="phoneVisible">Telefonnummer für verifizierte Nutzer sichtbar</label>
+            </div>
+
+            <div class="checkbox-group">
+              <input type="checkbox" id="reviewsVisible" [(ngModel)]="formData.reviewsVisible" name="reviewsVisible">
+              <label for="reviewsVisible">Bewertungen sind öffentlich sichtbar</label>
+            </div>
+
+            <div class="checkbox-group">
+              <input type="checkbox" id="emailNotifications" [(ngModel)]="formData.emailNotifications" name="emailNotifications">
+              <label for="emailNotifications">E-Mail Benachrichtigungen bei neuen Anfragen</label>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <button type="button" class="btn-cancel" (click)="onBackToProfile()">Abbrechen</button>
+            <button type="submit" class="btn-save">Änderungen speichern</button>
+          </div>
+
+        </form>
+      </main>
+      <!-- Success Modal -->
+      <app-confirmation-modal
+        *ngIf="showSuccessModal"
+        [isOpen]="true"
+        [title]="'Profil aktualisiert!'"
+        [message]="'Deine Änderungen wurden erfolgreich gespeichert.'"
+        [confirmText]="'OK'"
+        [showCancelButton]="false"
+        [isSuccess]="true"
+        (confirm)="onSuccessConfirm()">
+      </app-confirmation-modal>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,122 @@
+<div class="reviews-page">
+  <div class="reviews-content">
+    <div class="container">
+      <div class="page-layout">
+
+        <!-- Sidebar -->
+        <app-sidebar></app-sidebar>
+
+        <!-- Main Content -->
+        <div class="main-content">
+
+          <!-- Page Title + Back Button in einer Reihe -->
+          <div class="page-header-row">
+            <div class="page-title">
+              <h1>Bewertungen</h1>
+              <p class="subtitle">{{ driverName }}</p>
+            </div>
+            <a routerLink="/search" class="btn-back">← Zurück zur Suche</a>
+          </div>
+
+          <div class="reviews-layout">
+
+            <!-- Left: Overview -->
+            <aside class="reviews-sidebar">
+              <!-- Overall Rating -->
+              <div class="rating-overview">
+                <div class="rating-score">
+                  <strong class="rating-number">{{ overallRating }}</strong>
+                  <div class="rating-stars">{{ getStars(overallRating) }}</div>
+                  <p class="rating-count">{{ totalReviews }} Bewertungen</p>
+                </div>
+
+                <!-- Rating Breakdown -->
+                <div class="rating-breakdown">
+                  <div class="rating-bar" *ngFor="let star of [5, 4, 3, 2, 1]">
+                    <span class="star-label">{{ getStars(star) }}</span>
+                    <div class="bar-container">
+                      <div class="bar-fill" [style.width.%]="(getRatingBreakdown(star) / totalReviews) * 100"></div>
+                    </div>
+                    <span class="star-count">{{ getRatingBreakdown(star) }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Category Ratings -->
+              <div class="category-ratings">
+                <h3>Bewertung nach Kategorien</h3>
+                <div class="category-item">
+                  <span class="category-label">Pünktlichkeit</span>
+                  <strong class="category-value">{{ categoryRatings.punctuality }}</strong>
+                </div>
+                <div class="category-item">
+                  <span class="category-label">Sorgfalt</span>
+                  <strong class="category-value">{{ categoryRatings.care }}</strong>
+                </div>
+                <div class="category-item">
+                  <span class="category-label">Kommunikation</span>
+                  <strong class="category-value">{{ categoryRatings.communication }}</strong>
+                </div>
+                <div class="category-item">
+                  <span class="category-label">Freundlichkeit</span>
+                  <strong class="category-value">{{ categoryRatings.friendliness }}</strong>
+                </div>
+              </div>
+            </aside>
+
+            <!-- Right: Reviews List -->
+            <main class="reviews-main">
+              <!-- Filter Bar -->
+              <div class="filter-bar">
+                <select [(ngModel)]="filterRating" class="filter-select">
+                  <option value="all">Alle Bewertungen</option>
+                  <option value="5">5 Sterne</option>
+                  <option value="4">4 Sterne</option>
+                  <option value="3">3 Sterne</option>
+                  <option value="2">2 Sterne</option>
+                  <option value="1">1 Stern</option>
+                </select>
+
+                <select [(ngModel)]="sortBy" class="filter-select">
+                  <option value="newest">Neueste zuerst</option>
+                  <option value="oldest">Älteste zuerst</option>
+                  <option value="highest">Höchste Bewertung</option>
+                  <option value="lowest">Niedrigste Bewertung</option>
+                </select>
+              </div>
+
+              <!-- Reviews List -->
+              <div class="reviews-list">
+                <div class="review-card" *ngFor="let review of filteredReviews">
+                  <div class="review-header">
+                    <div class="reviewer-info">
+                      <img class="reviewer-avatar" [src]="review.reviewerAvatar" [alt]="review.reviewerName">
+                      <div>
+                        <strong class="reviewer-name">{{ review.reviewerName }}</strong>
+                        <div class="review-meta">{{ review.date }} • {{ review.route }}</div>
+                      </div>
+                    </div>
+                    <div class="review-rating">{{ getStars(review.rating) }}</div>
+                  </div>
+
+                  <p class="review-comment">{{ review.comment }}</p>
+
+                  <div class="review-tags" *ngIf="review.tags.length > 0">
+                    <span class="tag" *ngFor="let tag of review.tags">{{ tag }}</span>
+                  </div>
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-reviews" *ngIf="filteredReviews.length === 0">
+                  <div class="empty-icon">⭐</div>
+                  <p>Keine Bewertungen für diese Filter</p>
+                </div>
+              </div>
+            </main>
+
+          </div> <!-- Ende reviews-layout -->
+        </div> <!-- Ende main-content -->
+      </div> <!-- Ende page-layout -->
+    </div>
+  </div>
+</div>

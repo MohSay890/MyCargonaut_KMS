@@ -1,0 +1,329 @@
+<div class="offer-create-page">
+  <div class="container">
+    <div class="page-layout">
+
+      <!-- Sidebar -->
+      <app-sidebar></app-sidebar>
+
+      <!-- Main Content -->
+      <div class="main-content">
+
+        <!-- Page Title + Cancel Button -->
+        <div class="page-header-row">
+          <div class="page-title">
+            <h1>Neue Fahrt anbieten</h1>
+            <p class="subtitle">Erstelle ein neues Transport-Angebot</p>
+          </div>
+          <button class="btn-cancel" (click)="onCancel()">Abbrechen</button>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container">
+          <div class="progress-steps">
+            <div
+              *ngFor="let step of [1, 2, 3, 4]"
+              class="progress-step"
+              [class.active]="currentStep === step"
+              [class.completed]="currentStep > step"
+              (click)="goToStep(step)">
+              <div class="step-circle">
+                <span *ngIf="currentStep <= step">{{ step }}</span>
+                <span *ngIf="currentStep > step">✓</span>
+              </div>
+              <span class="step-label">
+                {{ step === 1 ? 'Route' : step === 2 ? 'Fahrzeug' : step === 3 ? 'Details' : 'Fertig' }}
+              </span>
+            </div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="getProgressPercentage()"></div>
+          </div>
+        </div>
+
+        <!-- Form Container -->
+        <div class="form-container">
+
+          <!-- Step 1: Route & Date -->
+          <div class="form-step" *ngIf="currentStep === 1">
+            <h2 class="step-title">📍 Route & Datum</h2>
+
+            <div class="form-group">
+              <label class="form-label">Von <span class="required">*</span></label>
+              <input
+                type="text"
+                [(ngModel)]="formData.from"
+                (ngModelChange)="onRouteChange()"
+                class="form-input"
+                placeholder="z.B. Berlin">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Nach <span class="required">*</span></label>
+              <input
+                type="text"
+                [(ngModel)]="formData.to"
+                (ngModelChange)="onRouteChange()"
+                class="form-input"
+                placeholder="z.B. Hamburg">
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Datum <span class="required">*</span></label>
+                <input
+                  type="date"
+                  [(ngModel)]="formData.date"
+                  class="form-input">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Uhrzeit <span class="required">*</span></label>
+                <input
+                  type="time"
+                  [(ngModel)]="formData.time"
+                  class="form-input">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Geschätzte Distanz</label>
+                <input
+                  type="text"
+                  [(ngModel)]="formData.distance"
+                  class="form-input"
+                  placeholder="z.B. 290 km">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Geschätzte Dauer</label>
+                <input
+                  type="text"
+                  [(ngModel)]="formData.duration"
+                  class="form-input"
+                  placeholder="z.B. ca. 3 Std.">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Abholadresse</label>
+              <input
+                type="text"
+                [(ngModel)]="formData.pickupLocation"
+                class="form-input"
+                placeholder="z.B. Berlin Mitte, 10115">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Lieferadresse</label>
+              <input
+                type="text"
+                [(ngModel)]="formData.dropoffLocation"
+                class="form-input"
+                placeholder="z.B. Hamburg Altona, 22765">
+            </div>
+          </div>
+
+          <!-- Step 2: Vehicle & Capacity -->
+          <div class="form-step" *ngIf="currentStep === 2">
+            <h2 class="step-title">🚗 Fahrzeug & Kapazität</h2>
+
+            <div class="form-group">
+              <label class="form-label">Wähle dein Fahrzeug <span class="required">*</span></label>
+              <div class="vehicles-grid">
+                <div
+                  *ngFor="let vehicle of vehicles"
+                  class="vehicle-card"
+                  [class.selected]="isVehicleSelected(vehicle.id)"
+                  (click)="selectVehicle(vehicle)">
+                  <div class="vehicle-icon">🚐</div>
+                  <div class="vehicle-info">
+                    <strong>{{ vehicle.type }}</strong>
+                    <p>{{ vehicle.model }}</p>
+                    <span class="vehicle-plate">{{ vehicle.plate }}</span>
+                  </div>
+                  <div class="vehicle-check" *ngIf="isVehicleSelected(vehicle.id)">✓</div>
+                </div>
+              </div>
+              <a routerLink="/vehicle-editor" class="btn-add-vehicle">+ Neues Fahrzeug hinzufügen</a>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Maximales Gewicht (kg) <span class="required">*</span></label>
+              <input
+                type="number"
+                [(ngModel)]="formData.maxWeight"
+                class="form-input"
+                placeholder="z.B. 100">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Abmessungen (L x B x H in cm) <span class="required">*</span></label>
+              <input
+                type="text"
+                [(ngModel)]="formData.dimensions"
+                class="form-input"
+                placeholder="z.B. 200 x 150 x 120">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Ladekapazität (m³)</label>
+              <input
+                type="text"
+                [(ngModel)]="formData.capacity"
+                class="form-input"
+                placeholder="z.B. 12 m³">
+            </div>
+          </div>
+
+          <!-- Step 3: Price & Details -->
+          <div class="form-step" *ngIf="currentStep === 3">
+            <h2 class="step-title">💰 Preis & Details</h2>
+
+            <div class="form-group">
+              <label class="form-label">Preis (€) <span class="required">*</span></label>
+              <div class="price-input-wrapper">
+                <input
+                  type="number"
+                  [(ngModel)]="formData.price"
+                  class="form-input price-input"
+                  placeholder="0">
+                <span class="price-suffix">€</span>
+              </div>
+              <p class="form-hint">Gesamtpreis für den Transport</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Beschreibung</label>
+              <textarea
+                [(ngModel)]="formData.description"
+                class="form-textarea"
+                rows="6"
+                placeholder="Beschreibe dein Angebot... z.B. welche Art von Gütern du transportierst, besondere Hinweise, etc."
+                maxlength="500"></textarea>
+              <p class="char-count">{{ formData.description.length }}/500 Zeichen</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Extras & Services</label>
+              <div class="tags-grid">
+                <button
+                  *ngFor="let tag of availableTags"
+                  class="tag-btn"
+                  [class.selected]="isTagSelected(tag)"
+                  (click)="toggleTag(tag)">
+                  {{ tag }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4: Summary -->
+          <div class="form-step" *ngIf="currentStep === 4">
+            <h2 class="step-title">✅ Zusammenfassung</h2>
+
+            <div class="summary-card">
+              <h3>Route & Datum</h3>
+              <div class="summary-item">
+                <span class="summary-label">Strecke:</span>
+                <strong>{{ formatRoute() }}</strong>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Datum & Zeit:</span>
+                <strong>{{ formatDateTime() }}</strong>
+              </div>
+              <div class="summary-item" *ngIf="formData.distance">
+                <span class="summary-label">Distanz:</span>
+                <strong>{{ formData.distance }}</strong>
+              </div>
+              <div class="summary-item" *ngIf="formData.duration">
+                <span class="summary-label">Dauer:</span>
+                <strong>{{ formData.duration }}</strong>
+              </div>
+            </div>
+
+            <div class="summary-card">
+              <h3>Fahrzeug & Kapazität</h3>
+              <div class="summary-item">
+                <span class="summary-label">Fahrzeug:</span>
+                <strong>{{ formData.vehicleType }} - {{ formData.vehicleModel }}</strong>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Max. Gewicht:</span>
+                <strong>{{ formData.maxWeight }} kg</strong>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Abmessungen:</span>
+                <strong>{{ formData.dimensions }}</strong>
+              </div>
+              <div class="summary-item" *ngIf="formData.capacity">
+                <span class="summary-label">Kapazität:</span>
+                <strong>{{ formData.capacity }}</strong>
+              </div>
+            </div>
+
+            <div class="summary-card">
+              <h3>Preis & Details</h3>
+              <div class="summary-item">
+                <span class="summary-label">Preis:</span>
+                <strong class="price-highlight">{{ formData.price }} €</strong>
+              </div>
+              <div class="summary-item" *ngIf="formData.description">
+                <span class="summary-label">Beschreibung:</span>
+                <p class="summary-description">{{ formData.description }}</p>
+              </div>
+              <div class="summary-item" *ngIf="formData.tags.length > 0">
+                <span class="summary-label">Extras:</span>
+                <div class="summary-tags">
+                  <span class="summary-tag" *ngFor="let tag of formData.tags">{{ tag }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="publish-note">
+              <p>📢 Dein Angebot wird nach dem Veröffentlichen sofort für andere Nutzer sichtbar.</p>
+            </div>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="form-navigation">
+            <button
+              *ngIf="currentStep > 1"
+              class="btn-nav btn-prev"
+              (click)="prevStep()">
+              ← Zurück
+            </button>
+
+            <button
+              *ngIf="currentStep < totalSteps"
+              class="btn-nav btn-next"
+              (click)="nextStep()">
+              Weiter →
+            </button>
+
+            <button
+              *ngIf="currentStep === totalSteps"
+              class="btn-nav btn-publish"
+              (click)="onPublish()">
+              🚀 Jetzt veröffentlichen
+            </button>
+          </div>
+
+        </div> <!-- form-container -->
+
+      </div> <!-- main-content -->
+    </div> <!-- page-layout -->
+  </div> <!-- container -->
+
+  <!-- Success Modal -->
+  <app-confirmation-modal
+    [isOpen]="showSuccessModal"
+    [isSuccess]="true"
+    [showCancelButton]="false"
+    title="Angebot veröffentlicht! 🎉"
+    message="Dein Transport-Angebot wurde erfolgreich erstellt und ist jetzt für andere Nutzer sichtbar."
+    confirmText="Zu Meinen Fahrten"
+    (confirm)="onSuccessConfirm()">
+  </app-confirmation-modal>
+
+</div>

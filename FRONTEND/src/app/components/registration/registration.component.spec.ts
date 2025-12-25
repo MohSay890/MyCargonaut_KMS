@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { RegistrationComponent } from './registration.component';
+import { ActivatedRoute } from '@angular/router';
+import { of } from 'rxjs';
 
 describe('RegistrationComponent', () => {
   let component: RegistrationComponent;
@@ -8,7 +9,14 @@ describe('RegistrationComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RegistrationComponent]
+      imports: [RegistrationComponent],
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            params: of ({}),
+            snapshot: { params: {} }
+          }}]
     })
     .compileComponents();
 

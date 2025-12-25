@@ -1,0 +1,258 @@
+/* Host - Modal Container */
+:host {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  display: block;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 2rem;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal Content */
+.modal-content {
+  background: white;
+  border-radius: 24px;
+  max-width: 450px;
+  width: 100%;
+  padding: 2.5rem;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  text-align: center;
+  animation: slideUp 0.3s ease;
+  position: relative;
+  z-index: 10001;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Close Button */
+.close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: var(--text-gray);
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  background: var(--bg-light);
+  color: var(--text-dark);
+}
+
+/* Modal Icon */
+.modal-icon {
+  width: 80px;
+  height: 80px;
+  background: var(--bg-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  margin: 0 auto 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.icon-symbol {
+  display: inline-block;
+}
+
+/* Icon Variants */
+.modal-icon.success {
+  background: #d1fae5;
+  color: #10b981;
+}
+
+.modal-icon.favorite {
+  background: #ffe4e6;
+  color: #ef4444;
+  animation: heartBeat 0.6s ease;
+}
+
+.modal-icon.danger {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.modal-icon.warning {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+
+.modal-icon.info {
+  background: #dbeafe;
+  color: #3b82f6;
+}
+
+@keyframes heartBeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  10%, 30% {
+    transform: scale(0.9);
+  }
+  20%, 40%, 60%, 80% {
+    transform: scale(1.1);
+  }
+  50%, 70% {
+    transform: scale(1.05);
+  }
+}
+
+/* Text */
+.modal-content h2 {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 1rem;
+}
+
+.modal-content p {
+  color: var(--text-gray);
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+/* Border Top Styling */
+.modal-content.success {
+  border-top: 4px solid #10b981;
+}
+
+.modal-content.favorite {
+  border-top: 4px solid #ef4444;
+}
+
+.modal-content.danger {
+  border-top: 4px solid #dc2626;
+}
+
+/* Actions */
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.btn-cancel,
+.btn-confirm {
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 120px;
+}
+
+.btn-cancel {
+  background: white;
+  color: var(--text-dark);
+  border: 2px solid var(--border);
+}
+
+.btn-cancel:hover {
+  background: var(--bg-light);
+}
+
+.btn-confirm {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-confirm:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+.btn-confirm.success {
+  background: #10b981;
+  color: white;
+}
+
+.btn-confirm.success:hover {
+  background: #059669;
+}
+
+.btn-confirm.favorite {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-confirm.favorite:hover {
+  background: #dc2626;
+}
+
+.btn-confirm.danger {
+  background: #dc2626;
+}
+
+.btn-confirm.danger:hover {
+  background: #b91c1c;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 1rem;
+  }
+
+  .modal-content {
+    padding: 2rem;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .btn-cancel,
+  .btn-confirm {
+    width: 100%;
+  }
+}

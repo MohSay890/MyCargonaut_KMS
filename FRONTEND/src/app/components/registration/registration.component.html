@@ -1,47 +1,83 @@
-<div class="registration-container">
+<div class="registration-page">
   <div class="registration-card">
-    <h1>Registrierung</h1>
-    <p class="subtitle">Erstelle dein MyCargonaut Konto</p>
+    <h1>Konto erstellen</h1>
+    <p class="subtitle">Jetzt kostenlos registrieren</p>
 
-    <form class="registration-form">
-      <!-- Name -->
+    <!-- Error Message -->
+    <div class="error-message" *ngIf="error">
+      {{ error }}
+    </div>
+
+    <form class="registration-form" (ngSubmit)="onSubmit()">
+      <!-- Vorname und Nachname -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="firstName">Vorname *</label>
+          <input type="text" id="firstName" [(ngModel)]="firstName" name="firstName" placeholder="Max" required>
+        </div>
+        <div class="form-group">
+          <label for="lastName">Nachname *</label>
+          <input type="text" id="lastName" [(ngModel)]="lastName" name="lastName" placeholder="Mustermann" required>
+        </div>
+      </div>
+
+      <!-- E-Mail -->
       <div class="form-group">
-        <label for="name">Name *</label>
-        <input
-          type="text"
-          id="name"
-          placeholder="Max Mustermann"
-          required
-        >
+        <label for="email">E-Mail *</label>
+        <input type="email" id="email" [(ngModel)]="email" name="email" placeholder="max@beispiel.de" required>
       </div>
 
-      <!-- Geburtsdatum -->
+      <!-- Telefon (optional) -->
       <div class="form-group">
-        <label for="dateOfBirth">Geburtsdatum *</label>
-        <input
-          type="date"
-          id="dateOfBirth"
-          required
-        >
+        <label for="phone">Telefon (optional)</label>
+        <input type="tel" id="phone" [(ngModel)]="phone" name="phone" placeholder="+49">
       </div>
 
-      <!-- Handynummer -->
+      <!-- Passwort -->
       <div class="form-group">
-        <label for="mobileNumber">Handynummer *</label>
-        <input
-          type="tel"
-          id="mobileNumber"
-          placeholder="+49 123 456789"
-          required
-        >
-        <small class="hint">Wird nur für Transportabwicklung verwendet</small>
+        <label for="password">Passwort *</label>
+        <input type="password" id="password" [(ngModel)]="password" name="password" placeholder="••••••••" required>
       </div>
 
-      <!-- Buttons -->
-      <div class="button-group">
-        <button type="submit" class="btn-primary">Registrieren</button>
-        <button type="button" class="btn-secondary">Abbrechen</button>
+      <!-- Passwort wiederholen -->
+      <div class="form-group">
+        <label for="passwordRepeat">Passwort wiederholen *</label>
+        <input type="password" id="passwordRepeat" [(ngModel)]="passwordRepeat" name="passwordRepeat" placeholder="••••••••" required>
       </div>
+
+      <!-- Passwort-Anforderungen -->
+      <div class="password-requirements">
+        <p>Passwort-Anforderungen:</p>
+        <ul>
+          <li>Mindestens 8 Zeichen</li>
+          <li>Ein Großbuchstabe</li>
+          <li>Eine Zahl</li>
+        </ul>
+      </div>
+
+      <!-- AGB Checkbox -->
+      <div class="checkbox-group">
+        <input type="checkbox" id="agb" [(ngModel)]="agbAccepted" name="agb" required>
+        <label for="agb">
+          Ich akzeptiere die <a href="#">AGB</a> und <a href="#">Datenschutzerklärung</a>
+        </label>
+      </div>
+
+      <!-- Newsletter Checkbox -->
+      <div class="checkbox-group">
+        <input type="checkbox" id="newsletter" [(ngModel)]="newsletterAccepted" name="newsletter">
+        <label for="newsletter">Newsletter abonnieren (optional)</label>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="btn-submit" [disabled]="loading">
+        {{ loading ? 'Wird registriert...' : 'Registrieren' }}
+      </button>
+
+      <!-- Login Link -->
+      <p class="login-link">
+        Schon ein Konto? <a routerLink="/login">Jetzt anmelden</a>
+      </p>
     </form>
   </div>
 </div>

@@ -1,61 +1,174 @@
-<div class="profile-container">
-  <div class="profile-card">
+<div class="profile-page">
+  <div class="container">
+    <div class="page-layout">
 
-    <!-- Header mit Avatar -->
-    <div class="profile-header">
-      <div class="avatar">
-        <img [src]="cargonaut?.profileImage || 'assets/default-avatar.png'"
-             [alt]="cargonaut?.name">
-      </div>
-      <h1>{{ cargonaut?.name }}</h1>
-      <p class="age">{{ calculateAge() }} Jahre</p>
+      <!-- Sidebar -->
+      <app-sidebar></app-sidebar>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Profile Header -->
+        <div class="profile-header">
+          <div>
+            <h1>Mein Profil</h1>
+            <p class="subtitle">Öffentliche Profilansicht</p>
+          </div>
+          <button class="btn-edit-profile" routerLink="/edit-profile">Profil bearbeiten</button>
+        </div>
+
+        <!-- Profile Card -->
+        <div class="profile-card">
+          <div class="profile-avatar-section">
+            <img [src]="currentUser?.profileImage || 'https://i.pravatar.cc/300?img=12'" alt="Profilbild">
+          </div>
+          <div class="profile-info">
+            <h2>{{ currentUser?.name || 'Max Mustermann' }}</h2>
+            <div class="profile-stats">
+              <div class="stat-item">
+                <span class="stat-icon">⭐</span>
+                <span class="stat-text">4.8 Durchschnittsbewertung (67 Bewertungen)</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-icon">📅</span>
+                <span class="stat-text">Mitglied seit Januar 2023</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-icon">✓</span>
+                <span class="stat-text">Ausweis verifiziert | Führerschein verifiziert | Telefon verifiziert</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-icon">🚗</span>
+                <span class="stat-text">45 erfolgreich abgeschlossene Fahrten</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value">12</div>
+            <div class="stat-label">Aktive Angebote</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">45</div>
+            <div class="stat-label">Abgeschlossene Fahrten</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">4.8</div>
+            <div class="stat-label">Durchschn. Bewertung</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">1.240€</div>
+            <div class="stat-label">Einnahmen</div>
+          </div>
+        </div>
+
+        <!-- About Section -->
+        <div class="about-section">
+          <h3>Über mich</h3>
+          <p>
+            Hallo! Ich bin Max und fahre regelmäßig zwischen verschiedenen Städten in Deutschland.
+            Ich biete zuverlässige Transporte an und habe bereits über 45 erfolgreiche Fahrten abgeschlossen.
+            Meine Spezialität sind größere Sendungen mit meinem Mercedes Sprinter. Ich lege großen Wert auf
+            Pünktlichkeit und sichere Transportabwicklung.
+          </p>
+        </div>
+
+        <!-- Contact Section -->
+        <div class="contact-section">
+          <h3>Kontaktinformationen</h3>
+          <div class="contact-grid">
+            <div class="contact-item">
+              <span class="contact-icon">📧</span>
+              <div>
+                <div class="contact-label">E-Mail</div>
+                <div class="contact-value">{{ currentUser?.email || 'max@beispiel.de' }}</div>
+              </div>
+            </div>
+            <div class="contact-item">
+              <span class="contact-icon">📱</span>
+              <div>
+                <div class="contact-label">Telefon</div>
+                <div class="contact-value">+49 123 456789</div>
+              </div>
+            </div>
+            <div class="contact-item">
+              <span class="contact-icon">📍</span>
+              <div>
+                <div class="contact-label">Standort</div>
+                <div class="contact-value">Berlin, Deutschland</div>
+              </div>
+            </div>
+            <div class="contact-item">
+              <span class="contact-icon">🌐</span>
+              <div>
+                <div class="contact-label">Sprachen</div>
+                <div class="contact-value">Deutsch, Englisch</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reviews Section -->
+        <div class="reviews-section">
+          <h3>Bewertungen</h3>
+
+          <div class="review-card">
+            <div class="review-header">
+              <div class="reviewer-info">
+                <img src="https://i.pravatar.cc/50?img=1" alt="Sarah K.">
+                <div>
+                  <div class="reviewer-name">Sarah K.</div>
+                  <div class="review-date">vor 2 Wochen</div>
+                </div>
+              </div>
+              <div class="review-rating">⭐⭐⭐⭐⭐</div>
+            </div>
+            <p class="review-text">
+              Sehr zuverlässiger Fahrer! Pünktlich, freundlich und meine Möbel sind sicher angekommen.
+              Würde ich jederzeit wieder buchen.
+            </p>
+          </div>
+
+          <div class="review-card">
+            <div class="review-header">
+              <div class="reviewer-info">
+                <img src="https://i.pravatar.cc/50?img=3" alt="Peter M.">
+                <div>
+                  <div class="reviewer-name">Peter M.</div>
+                  <div class="review-date">vor 1 Monat</div>
+                </div>
+              </div>
+              <div class="review-rating">⭐⭐⭐⭐⭐</div>
+            </div>
+            <p class="review-text">
+              Top Service! Alles perfekt gelaufen. Max war sehr professionell und hilfsbereit.
+              Absolute Empfehlung!
+            </p>
+          </div>
+
+          <div class="review-card">
+            <div class="review-header">
+              <div class="reviewer-info">
+                <img src="https://i.pravatar.cc/50?img=5" alt="Anna L.">
+                <div>
+                  <div class="reviewer-name">Anna L.</div>
+                  <div class="review-date">vor 2 Monaten</div>
+                </div>
+              </div>
+              <div class="review-rating">⭐⭐⭐⭐⭐</div>
+            </div>
+            <p class="review-text">
+              Hervorragend! Die Kommunikation war super und der Transport lief reibungslos.
+              Kann ich nur weiterempfehlen.
+            </p>
+          </div>
+
+          <button class="btn-more-reviews">Alle Bewertungen anzeigen</button>
+        </div>
+      </main>
+
     </div>
-
-    <!-- Bewertungen -->
-    <div class="rating-section">
-      <div class="stars">
-        <span *ngFor="let star of [1,2,3,4,5]"
-              [class.filled]="star <= averageRating">
-          ★
-        </span>
-      </div>
-      <p class="rating-text">
-        {{ cargonaut?.averageRating?.toFixed(1) }}
-        ({{ cargonaut?.totalRatings }} Bewertungen)
-      </p>
-    </div>
-
-    <!-- Statistiken -->
-    <div class="stats-section">
-      <div class="stat-item">
-        <div class="stat-icon">🚗</div>
-        <div class="stat-value">{{ cargonaut?.vehicles?.length || 0 }}</div>
-        <div class="stat-label">Fahrzeuge</div>
-      </div>
-
-      <div class="stat-item">
-        <div class="stat-icon">📦</div>
-        <div class="stat-value">{{ totalRides }}</div>
-        <div class="stat-label">Fahrten</div>
-      </div>
-
-      <div class="stat-item">
-        <div class="stat-icon">✓</div>
-        <div class="stat-value">{{ completedRides }}</div>
-        <div class="stat-label">Abgeschlossen</div>
-      </div>
-    </div>
-
-    <!-- Mitglied seit -->
-    <div class="member-since">
-      <p>Mitglied seit {{ formatDate(cargonaut?.createdAt) }}</p>
-    </div>
-
-    <!-- Action Buttons -->
-    <div class="action-buttons">
-      <button class="btn-primary">Profil bearbeiten</button>
-      <button class="btn-secondary">Fahrzeuge verwalten</button>
-    </div>
-
   </div>
 </div>

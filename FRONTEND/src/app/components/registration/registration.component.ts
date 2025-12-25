@@ -1,65 +1,84 @@
 import { Component } from '@angular/core';
-import { Cargonaut } from '../../models/cargonaut.model';
+import { CommonModule } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-registration',
-  standalone: true,        // ← NEU!
-  imports: [],             // ← NEU!
+  standalone: true,
+  imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './registration.component.html',
   styleUrls: ['./registration.component.css']
 })
 export class RegistrationComponent {
 
-  // Form data
-  newCargonaut: Partial<Cargonaut> = {
-    name: '',
-    dateOfBirth: undefined,
-    mobileNumber: '',
-    averageRating: 0,
-    totalRatings: 0,
-    vehicles: [],
-    createdAt: new Date()
-  };
+  // Form fields
+  firstName: string = '';
+  lastName: string = '';
+  email: string = '';
+  password: string = '';
+  passwordRepeat: string = '';
+  phone: string = '';
+  agbAccepted: boolean = false;
+  newsletterAccepted: boolean = false;
 
-  constructor() { }
+  // Error handling
+  error: string = '';
+  loading: boolean = false;
 
-  /**
-   * Handle form submission
-   */
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
+
   onSubmit(): void {
-    console.log('Registration submitted:', this.newCargonaut);
+    // Clear previous errors
+    this.error = '';
+    this.loading = true;
 
-    // TODO: Send data to backend
-    // TODO: Navigate to profile page
+    // Validation
+    if (!this.firstName || !this.lastName || !this.email || !this.password || !this.passwordRepeat) {
+      this.error = 'Bitte fülle alle Pflichtfelder aus.';
+      this.loading = false;
+      return;
+    }
 
-    alert('Registrierung erfolgreich! (TODO: Backend-Integration)');
-  }
+    if (this.password !== this.passwordRepeat) {
+      this.error = 'Die Passwörter stimmen nicht überein.';
+      this.loading = false;
+      return;
+    }
 
-  /**
-   * Handle cancel button
-   */
-  onCancel(): void {
-    // Reset form
-    this.newCargonaut = {
-      name: '',
-      dateOfBirth: undefined,
-      mobileNumber: '',
-      averageRating: 0,
-      totalRatings: 0,
-      vehicles: [],
-      createdAt: new Date()
+    if (this.password.length < 6) {
+      this.error = 'Das Passwort muss mindestens 6 Zeichen lang sein.';
+      this.loading = false;
+      return;
+    }
+
+    if (!this.agbAccepted) {
+      this.error = 'Bitte akzeptiere die Nutzungsbedingungen.';
+      this.loading = false;
+      return;
+    }
+
+    // Create user data
+    const userData = {
+      name: `${this.firstName} ${this.lastName}`,
+      email: this.email,
+      password: this.password,
+      phone: this.phone
     };
 
-    console.log('Registration cancelled');
-  }
+    const success = this.authService.register(userData);
 
-  /**
-   * Mask phone number for display (optional feature)
-   */
-  maskPhoneNumber(phoneNumber: string): string {
-    if (phoneNumber.length < 4) return phoneNumber;
-    const visible = phoneNumber.slice(-4);
-    const masked = '•'.repeat(phoneNumber.length - 4);
-    return masked + visible;
+    this.loading = false;
+
+    if (success) {
+      console.log('Registrierung erfolgreich');
+      this.router.navigate(['/dashboard']);
+    } else {
+      this.error = 'Registrierung fehlgeschlagen. Bitte versuche es erneut.';
+    }
   }
 }

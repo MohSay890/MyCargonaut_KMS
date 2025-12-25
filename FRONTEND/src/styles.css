@@ -1,1 +1,63 @@
-/* You can add global styles to this file, and also import other style files */
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Urbanist:wght@300;400;500;600;700;800&display=swap');
+
+/* CSS Variables - Design System */
+:root {
+  --primary: #005b52;
+  --primary-light: #007b6e;
+  --primary-dark: #004239;
+  --accent: #00a896;
+  --bg-light: #f8faf9;
+  --bg-white: #ffffff;
+  --text-dark: #1a1a1a;
+  --text-gray: #6b7280;
+  --text-light: #9ca3af;
+  --border: #e5e7eb;
+  --shadow: rgba(0, 91, 82, 0.1);
+  --shadow-lg: rgba(0, 91, 82, 0.15);
+}
+
+/* Reset & Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--bg-white);
+  color: var(--text-dark);
+  line-height: 1.6;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Urbanist', sans-serif;
+  font-weight: 700;
+}/* You can add global styles to this file, and also import other style files */
+
+/* ========================================
+   APP LAYOUT MIT FOOTER
+   ======================================== */
+
+/* Body und HTML auf volle Höhe */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* App Root Container */
+app-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Router Outlet Container */
+router-outlet + * {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
