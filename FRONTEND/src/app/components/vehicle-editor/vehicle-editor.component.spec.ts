@@ -9,7 +9,7 @@ describe('VehicleEditorComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [VehicleEditorComponent]
+      imports: [VehicleEditorComponent],
       providers: [
         {
           provide: ActivatedRoute,
