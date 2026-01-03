@@ -4,7 +4,7 @@
     <div class="header-content">
       <!-- Logo -->
       <a routerLink="/" class="logo">
-        <img src="/MyCargonaut.png" alt="MyCargonaut Logo" class="logo-img">
+        <img src="/MyCargonaut.png" alt="MyCargonaut Logo" class="logo-img" width="130" height="50" priority>
       </a>
 
       <!-- Navigation -->
@@ -33,7 +33,7 @@
         <!-- User Menu -->
         <div class="user-menu">
           <button class="user-menu-trigger" (click)="toggleUserMenu()">
-            <img [src]="currentUser?.avatar || 'https://i.pravatar.cc/40?img=1'" [alt]="currentUser?.name" class="user-avatar">
+            <img [src]="currentUser?.avatar || defaultAvatar" [alt]="currentUser?.name" class="user-avatar">
             <span class="user-name">{{ currentUser?.name }}</span>
             <span class="dropdown-arrow">▼</span>
           </button>

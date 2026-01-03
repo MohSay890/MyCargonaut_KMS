@@ -23,6 +23,7 @@ export class FavoritesComponent implements OnInit, OnDestroy {
   // Modal
   showDeleteModal: boolean = false;
   offerToDelete: FavoriteOffer | null = null;
+  showClearAllModal: boolean = false;
 
   private routerSubscription?: Subscription;
 
@@ -101,10 +102,17 @@ export class FavoritesComponent implements OnInit, OnDestroy {
   }
 
   onClearAll(): void {
-    if (confirm('Möchtest du wirklich alle Favoriten löschen?')) {
-      this.favoritesService.clearAll();
-      this.loadFavorites();
-    }
+    this.showClearAllModal = true;
+  }
+
+  onConfirmClearAll(): void {
+    this.favoritesService.clearAll();
+    this.loadFavorites();
+    this.showClearAllModal = false;
+  }
+
+  onCancelClearAll(): void {
+    this.showClearAllModal = false;
   }
 
   getStars(rating: number): string {

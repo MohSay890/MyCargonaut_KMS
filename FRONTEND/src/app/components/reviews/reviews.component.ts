@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SidebarComponent } from '../sidebar/sidebar.component';
-import { AuthService } from '../../services/auth.service';
 
 interface Review {
   id: string;
@@ -134,15 +133,15 @@ export class ReviewsComponent implements OnInit {
   ];
 
   constructor(
-    private route: ActivatedRoute,
-    private authService: AuthService
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
-    // Get current user name from AuthService
-    const currentUser = this.authService.getCurrentUser();
-    if (currentUser) {
-      this.driverName = currentUser.name;
+    // Get current user name from localStorage
+    const userStr = localStorage.getItem('currentUser');
+    if (userStr) {
+      const currentUser = JSON.parse(userStr);
+      this.driverName = currentUser.name || 'Unbekannter Benutzer';
     } else {
       this.driverName = 'Unbekannter Benutzer';
     }

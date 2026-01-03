@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router} from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { SidebarComponent } from '../sidebar/sidebar.component';
+import { UserProfileService } from '../../services/user-profile.service';
 
 interface Trip {
   id: string;
@@ -24,20 +26,21 @@ interface Notification {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, SidebarComponent],
+  imports: [CommonModule, SidebarComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
 
-  userName: string = 'Max';
+  userName: string = 'Benutzer';
+  isLoading: boolean = true;
 
   // Stats
   stats = {
-    activeOffers: 12,
-    completedTrips: 45,
-    averageRating: 4.8,
-    totalEarnings: 1240
+    activeOffers: 0,
+    completedTrips: 0,
+    averageRating: 0,
+    totalEarnings: 0
   };
 
   // Upcoming Trips
@@ -96,10 +99,68 @@ export class DashboardComponent implements OnInit {
     }
   ];
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private http: HttpClient,
+    private userProfileService: UserProfileService
+  ) {}
 
   ngOnInit(): void {
-    console.log('Dashboard loaded');
+    // Get user from localStorage
+    const storedUser = localStorage.getItem('currentUser');
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      // Set display name using vorname and nachname
+      if (user.vorname && user.nachname) {
+        this.userName = `${user.vorname} ${user.nachname}`;
+      } else {
+        this.userName = user.name || user.email?.split('@')[0] || 'Benutzer';
+      }
+
+      // Load real stats from backend
+      this.loadUserStats(user.email);
+      // Load earnings from payment API
+      this.loadEarnings(user.email);
+    } else {
+      this.isLoading = false;
+    }
+  }
+
+  loadUserStats(email: string): void {
+    this.isLoading = true;
+    this.userProfileService.getUserStats(email).subscribe({
+      next: (stats) => {
+        this.stats = {
+          activeOffers: stats.activeOffers,
+          completedTrips: stats.completedTrips,
+          averageRating: Number(stats.averageRating.toFixed(1)),
+          totalEarnings: this.stats.totalEarnings // Keep earnings from payment API
+        };
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading user stats:', error);
+        this.isLoading = false;
+      }
+    });
+  }
+
+  loadEarnings(email: string): void {
+    this.http.get<{
+      totalEarnings: number;
+      refundedAmount: number;
+      netEarnings: number;
+      completedPayments: number;
+      refundedPayments: number;
+    }>(`http://localhost:8080/api/payments/earnings?email=${encodeURIComponent(email)}`).subscribe({
+      next: (earnings) => {
+        this.stats.totalEarnings = Number(earnings.netEarnings.toFixed(2));
+      },
+      error: (error) => {
+        console.error('Error loading earnings:', error);
+        this.stats.totalEarnings = 0;
+      }
+    });
   }
 
   // Format date for display

@@ -7,22 +7,49 @@
 
       <!-- Main Content -->
       <main class="main-content">
+        <!-- Success Message -->
+        <div class="alert alert-success" *ngIf="successMessage">
+          <span class="alert-icon">✓</span>
+          {{ successMessage }}
+        </div>
+
+        <!-- Error Message -->
+        <div class="alert alert-error" *ngIf="errorMessage">
+          <span class="alert-icon">⚠</span>
+          {{ errorMessage }}
+        </div>
+
         <!-- Page Header -->
         <div class="page-header">
           <div>
             <h1>Meine Fahrzeuge</h1>
             <p class="subtitle">Verwalte deine Fahrzeuge für Transportangebote</p>
+            <div class="vehicle-stats" *ngIf="vehicles.length > 0">
+              <span class="stat">{{ vehicleStats.total }} Fahrzeuge</span>
+              <span class="stat-divider">|</span>
+              <span class="stat active">{{ vehicleStats.active }} aktiv</span>
+              <span class="stat-divider">|</span>
+              <span class="stat inactive">{{ vehicleStats.inactive }} inaktiv</span>
+            </div>
           </div>
           <button class="btn-add" (click)="onAddVehicle()">+ Neues Fahrzeug hinzufügen</button>
         </div>
 
+        <!-- Empty State (no vehicles) -->
+        <div class="empty-state" *ngIf="vehicles.length === 0">
+          <div class="empty-icon">🚗</div>
+          <h3>Noch keine Fahrzeuge</h3>
+          <p>Du hast noch keine Fahrzeuge hinzugefügt. Füge dein erstes Fahrzeug hinzu, um Transportangebote zu erstellen.</p>
+          <button class="btn-add-large" (click)="onAddVehicle()">+ Erstes Fahrzeug hinzufügen</button>
+        </div>
+
         <!-- Vehicle List -->
-        <div class="vehicle-list">
+        <div class="vehicle-list" *ngIf="vehicles.length > 0">
           <div class="vehicle-card" *ngFor="let vehicle of vehicles" [class.inactive]="!vehicle.isActive">
             <!-- Vehicle Image -->
             <div class="vehicle-image">
               <div class="image-placeholder">
-                FOTO
+                <span class="vehicle-icon">{{ vehicle.type === 'PKW' ? '🚗' : vehicle.type === 'Transporter' ? '🚐' : vehicle.type === 'Kastenwagen' ? '📦' : vehicle.type === 'LKW' ? '🚛' : '🚚' }}</span>
               </div>
             </div>
 
@@ -71,8 +98,11 @@
 
             <!-- Vehicle Actions -->
             <div class="vehicle-actions">
-              <button class="btn-edit" (click)="onEditVehicle(vehicle)">Bearbeiten</button>
-              <button class="btn-delete" (click)="onDeleteVehicle(vehicle)">Löschen</button>
+              <button class="btn-toggle" [class.active]="vehicle.isActive" (click)="onToggleActive(vehicle)">
+                {{ vehicle.isActive ? '⏸ Deaktivieren' : '▶ Aktivieren' }}
+              </button>
+              <button class="btn-edit" (click)="onEditVehicle(vehicle)">✏️ Bearbeiten</button>
+              <button class="btn-delete" (click)="onDeleteVehicle(vehicle)">🗑️ Löschen</button>
             </div>
           </div>
         </div>
@@ -84,6 +114,7 @@
             Füge deine Fahrzeuge hinzu, um sie bei Transportangeboten auszuwählen.
             Stelle sicher, dass alle Angaben korrekt und aktuell sind.
             Du kannst jederzeit Fahrzeuge bearbeiten oder deaktivieren.
+            <strong>Nur aktive Fahrzeuge</strong> können für neue Angebote verwendet werden.
           </p>
         </div>
       </main>

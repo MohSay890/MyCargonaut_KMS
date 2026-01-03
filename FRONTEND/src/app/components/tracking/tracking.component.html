@@ -8,189 +8,285 @@
       <!-- Main Content -->
       <div class="main-content">
 
-        <!-- Page Title + Back Button in einer Reihe -->
-        <div class="page-header-row">
-          <div class="page-title">
-            <h1>Live Tracking</h1>
-            <p class="subtitle">Verfolge deinen Transport in Echtzeit</p>
-          </div>
-          <a routerLink="/my-trips" class="btn-back">← Zurück zu meinen Fahrten</a>
+        <!-- Loading State -->
+        <div class="loading-state" *ngIf="isLoading">
+          <div class="spinner"></div>
+          <p>Tracking wird geladen...</p>
         </div>
 
-        <!-- Trip Info Header -->
-        <div class="trip-header">
-          <div class="trip-date">
-            <span class="date-day">{{ tripHeader.date }}</span>
-            <span class="date-month">{{ tripHeader.month }}</span>
-          </div>
-          <div class="trip-info">
-            <h2 class="trip-route">{{ tripHeader.route }}</h2>
-            <div class="trip-meta">
-              <span>Fahrer: {{ tripHeader.driver }}</span>
-              <span>|</span>
-              <span>{{ tripHeader.vehicle }}</span>
-              <span>|</span>
-              <span>Tracking-Nr: {{ tripHeader.trackingNr }}</span>
+        <ng-container *ngIf="!isLoading && session">
+          <!-- Page Title + Back Button -->
+          <div class="page-header-row">
+            <div class="page-title">
+              <h1>Live Tracking</h1>
+              <p class="subtitle">Verfolge deinen Transport in Echtzeit</p>
             </div>
-            <div class="trip-times">
-              <span>Abholung: {{ tripHeader.pickup }}</span>
-              <span>|</span>
-              <span>Voraussichtliche Ankunft: {{ tripHeader.estimatedArrival }}</span>
+            <div class="header-actions">
+              <button class="btn-notifications" (click)="onToggleNotifications()">
+                <span class="notif-icon">🔔</span>
+                <span class="notif-badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+              </button>
+              <a routerLink="/my-trips" class="btn-back">← Zurück zu meinen Fahrten</a>
             </div>
           </div>
-        </div>
 
-        <!-- Transport Status -->
-        <div class="status-section">
-          <h3>Transport-Status</h3>
-
-          <div class="status-timeline">
-            <div class="status-card"
-                 *ngFor="let status of statusUpdates"
-                 [class.current]="status.current"
-                 [style.border-left-color]="status.color">
-              <div class="status-indicator" [style.background]="status.color">
-                <span class="status-icon">{{ status.icon }}</span>
-              </div>
-              <div class="status-content">
-                <h4 class="status-title">{{ status.title }}</h4>
-                <p class="status-time">{{ status.time }}</p>
-                <p class="status-location">{{ status.location }}</p>
-                <p class="status-details" *ngIf="status.details">{{ status.details }}</p>
+          <!-- Notifications Panel -->
+          <div class="notifications-panel" *ngIf="showNotifications">
+            <div class="notif-header">
+              <h3>Benachrichtigungen</h3>
+              <button class="btn-clear" (click)="onClearNotifications()">Alle löschen</button>
+            </div>
+            <div class="notif-list" *ngIf="notifications.length > 0">
+              <div class="notif-item" *ngFor="let notif of notifications" [class.unread]="!notif.read">
+                <span class="notif-icon-item">{{ notif.icon }}</span>
+                <div class="notif-content">
+                  <strong>{{ notif.title }}</strong>
+                  <p>{{ notif.message }}</p>
+                  <span class="notif-time">{{ getTimeAgo(notif.timestamp) }}</span>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-
-        <!-- Live Karte -->
-        <div class="map-section">
-          <h3>Live-Karte</h3>
-          <div class="map-container">
-            <div class="map-placeholder">
-              <span class="map-icon">🗺️</span>
-              <p class="map-title">[LIVE KARTE]</p>
-              <p class="map-route">📍 Start: Berlin Mitte</p>
-              <p class="map-route">🚚 Aktuelle Position: A24, Richtung Hamburg</p>
-              <p class="map-route">📍 Ziel: Hamburg Altona</p>
+            <div class="notif-empty" *ngIf="notifications.length === 0">
+              <p>Keine Benachrichtigungen</p>
             </div>
           </div>
-        </div>
 
-        <!-- Live Position Card (when unterwegs) -->
-        <div class="live-position-card">
-          <div class="position-badge">
-            <span class="badge-icon">🚚</span>
-            <span>Unterwegs</span>
-          </div>
-          <div class="position-info">
-            <p class="position-update">Letzte Aktualisierung: Gerade eben</p>
-          </div>
-
-          <div class="position-location">
-            <span class="pin-icon">📍</span>
-            <strong>{{ currentPosition.location }}</strong>
-          </div>
-
-          <!-- Progress Bar -->
-          <div class="progress-section">
-            <div class="progress-labels">
-              <span>Hamburg</span>
-              <span>Berlin</span>
+          <!-- Trip Info Header -->
+          <div class="trip-header">
+            <div class="trip-date">
+              <span class="date-day">{{ session.startTime | date:'dd' }}</span>
+              <span class="date-month">{{ session.startTime | date:'MMM yyyy' }}</span>
             </div>
-            <div class="progress-bar-wrapper">
-              <div class="progress-bar">
-                <div class="progress-fill" [style.width.%]="currentPosition.progress"></div>
+            <div class="trip-info">
+              <h2 class="trip-route">{{ session.origin.city }} → {{ session.destination.city }}</h2>
+              <div class="trip-meta">
+                <span>Fahrer: {{ session.driverName }}</span>
+                <span>|</span>
+                <span>{{ session.vehicleType }}</span>
               </div>
-              <div class="progress-truck" [style.left.%]="currentPosition.progress">🚚</div>
+              <div class="trip-times">
+                <span>Start: {{ formatTime(session.startTime) }}</span>
+                <span>|</span>
+                <span>ETA: {{ formatTime(session.estimatedArrival) }}</span>
+              </div>
             </div>
-            <div class="progress-percent">{{ currentPosition.progress }}% absolviert</div>
-          </div>
-
-          <!-- ETA Stats -->
-          <div class="eta-stats">
-            <div class="eta-item">
-              <span class="eta-label">Voraussichtliche Ankunft</span>
-              <strong class="eta-value">{{ currentPosition.estimatedArrival }}</strong>
-            </div>
-            <div class="eta-item">
-              <span class="eta-label">Verbleibende Strecke</span>
-              <strong class="eta-value">{{ currentPosition.remainingDistance }}</strong>
-            </div>
-            <div class="eta-item">
-              <span class="eta-label">Geschätzte Zeit</span>
-              <strong class="eta-value">{{ currentPosition.remainingTime }}</strong>
-            </div>
-          </div>
-        </div>
-
-        <!-- Row 1: Contact & Actions nebeneinander -->
-        <div class="info-row">
-
-          <!-- Fahrer kontaktieren -->
-          <div class="contact-section">
-            <h3>Fahrer kontaktieren</h3>
-            <button class="btn-contact btn-call" (click)="onCallDriver()">
-              <span class="btn-icon">📞</span>
-              Anrufen
-            </button>
-            <button class="btn-contact btn-message" (click)="onSendMessage()">
-              <span class="btn-icon">💬</span>
-              Nachricht senden
-            </button>
-          </div>
-
-          <!-- Aktionen -->
-          <div class="actions-section">
-            <h3>Aktionen</h3>
-            <button class="btn-action" (click)="onEnableNotifications()">
-              <span class="action-icon">🔔</span>
-              Benachrichtigungen einstellen
-            </button>
-            <button class="btn-action" (click)="onShowDeliveryNote()">
-              <span class="action-icon">📄</span>
-              Lieferschein anzeigen
-            </button>
-          </div>
-
-        </div>
-
-        <!-- Row 2: Details & Cargo nebeneinander -->
-        <div class="info-row">
-
-          <!-- Lieferdetails -->
-          <div class="details-section">
-            <h3>Lieferdetails</h3>
-
-            <div class="detail-group">
-              <h4>Abholort</h4>
-              <p>{{ deliveryDetails.pickup.address }}</p>
-              <p>{{ deliveryDetails.pickup.city }}</p>
-              <p>Kontakt: {{ deliveryDetails.pickup.contact }}</p>
-              <p>Tel: {{ deliveryDetails.pickup.phone }}</p>
-            </div>
-
-            <div class="detail-group">
-              <h4>Zielort</h4>
-              <p>{{ deliveryDetails.delivery.address }}</p>
-              <p>{{ deliveryDetails.delivery.city }}</p>
-              <p>Kontakt: {{ deliveryDetails.delivery.contact }}</p>
-              <p>Tel: {{ deliveryDetails.delivery.phone }}</p>
+            <div class="trip-status-badge" [style.background]="session.status.color">
+              <span class="status-icon">{{ session.status.icon }}</span>
+              <span class="status-label">{{ session.status.label }}</span>
             </div>
           </div>
 
-          <!-- Ladung -->
-          <div class="cargo-section">
-            <h3>Ladung</h3>
-            <div class="cargo-info">
-              <p><strong>Gewicht:</strong> {{ cargoInfo.weight }}</p>
-              <p><strong>Abmessungen:</strong> {{ cargoInfo.dimensions }}</p>
-              <p><strong>Anzahl Pakete:</strong> {{ cargoInfo.packages }}</p>
-              <p><strong>Versicherung:</strong> {{ cargoInfo.insurance }}</p>
+          <!-- Simulation Controls -->
+          <div class="simulation-controls">
+            <div class="control-info">
+              <span class="control-icon">{{ isGPSActive ? '📍' : '🎮' }}</span>
+              <span *ngIf="!isGPSActive">Demo-Modus: Starte die Simulation, um Live-Updates zu sehen</span>
+              <span *ngIf="isGPSActive" class="gps-active-text">✅ GPS aktiv - Dein Standort wird in Echtzeit geteilt</span>
+            </div>
+            <div class="control-buttons">
+              <button
+                class="btn-gps-toggle"
+                [class.gps-active]="isGPSActive"
+                (click)="onToggleDriverGPS()">
+                <span *ngIf="!isGPSActive">📍 GPS-Tracking aktivieren</span>
+                <span *ngIf="isGPSActive">⏹️ GPS-Tracking stoppen</span>
+              </button>
+              <button
+                class="btn-simulation"
+                [class.running]="isSimulationRunning"
+                [disabled]="isGPSActive"
+                (click)="onToggleSimulation()">
+                <span *ngIf="!isSimulationRunning">▶️ Simulation starten</span>
+                <span *ngIf="isSimulationRunning">⏸️ Simulation pausieren</span>
+              </button>
+              <button class="btn-reset" [disabled]="isGPSActive" (click)="onResetSimulation()">
+                🔄 Zurücksetzen
+              </button>
             </div>
           </div>
 
-        </div>
+          <!-- Live Position Card -->
+          <div class="live-position-card" [class.delivered]="session.status.code === 'DELIVERED'">
+            <div class="position-header">
+              <div class="position-badge" [style.background]="session.status.color">
+                <span class="badge-icon">{{ session.status.icon }}</span>
+                <span>{{ session.status.label }}</span>
+              </div>
+              <div class="position-update">
+                <span class="pulse-dot" *ngIf="isSimulationRunning"></span>
+                Letzte Aktualisierung: {{ getTimeAgo(session.lastUpdate) }}
+              </div>
+            </div>
 
+            <div class="position-location" *ngIf="session.currentLocation">
+              <span class="pin-icon">📍</span>
+              <div class="location-details">
+                <strong>{{ session.currentLocation.city || 'Standort wird ermittelt...' }}</strong>
+                <span>{{ session.currentLocation.address || '' }}</span>
+              </div>
+            </div>
+
+            <!-- Speed Info -->
+            <div class="speed-info" *ngIf="session.status.code !== 'DELIVERED'">
+              <div class="speed-item">
+                <span class="speed-icon">{{ getSpeedIndicator() }}</span>
+                <span class="speed-value">{{ session.currentSpeed | number:'1.0-0' }} km/h</span>
+              </div>
+              <div class="speed-item">
+                <span class="speed-icon">🧭</span>
+                <span class="speed-value">Richtung {{ getHeadingDirection(session.heading) }}</span>
+              </div>
+              <div class="speed-item">
+                <span class="speed-icon">📊</span>
+                <span class="speed-value">{{ session.progress | number:'1.0-1' }}% abgeschlossen</span>
+              </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-section">
+              <div class="progress-labels">
+                <span>{{ session.origin.city }}</span>
+                <span>{{ session.destination.city }}</span>
+              </div>
+              <div class="progress-bar-wrapper">
+                <div class="progress-bar">
+                  <div class="progress-fill" [style.width.%]="session.progress" [style.background]="getProgressColor()"></div>
+                </div>
+                <div class="progress-truck" [style.left.%]="session.progress">
+                  {{ session.status.code === 'DELIVERED' ? '✅' : '🚚' }}
+                </div>
+              </div>
+              <div class="progress-percent">{{ session.progress | number:'1.0-1' }}% absolviert</div>
+            </div>
+
+            <!-- ETA Stats -->
+            <div class="eta-stats">
+              <div class="eta-item">
+                <span class="eta-icon">⏰</span>
+                <div class="eta-content">
+                  <span class="eta-label">Ankunft in</span>
+                  <strong class="eta-value" [ngClass]="getETAStatus().class">{{ getETAStatus().text }}</strong>
+                </div>
+              </div>
+              <div class="eta-item">
+                <span class="eta-icon">📏</span>
+                <div class="eta-content">
+                  <span class="eta-label">Verbleibend</span>
+                  <strong class="eta-value">{{ session.remainingDistance | number:'1.0-1' }} km</strong>
+                </div>
+              </div>
+              <div class="eta-item">
+                <span class="eta-icon">🛣️</span>
+                <div class="eta-content">
+                  <span class="eta-label">Gesamtstrecke</span>
+                  <strong class="eta-value">{{ session.totalDistance | number:'1.0-1' }} km</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status Timeline -->
+          <div class="status-section">
+            <h3>Transport-Status</h3>
+
+            <div class="status-timeline">
+              <div class="status-card"
+                   *ngFor="let status of statusTimeline"
+                   [class.current]="status.isActive"
+                   [class.completed]="status.isCompleted"
+                   [style.border-left-color]="status.color">
+                <div class="status-indicator" [style.background]="status.color">
+                  <span class="status-icon">{{ status.icon }}</span>
+                </div>
+                <div class="status-content">
+                  <h4 class="status-title">{{ status.isCompleted ? '✓ ' : '' }}{{ status.title }}</h4>
+                  <p class="status-time">{{ status.time }}</p>
+                  <p class="status-location">{{ status.location }}</p>
+                  <p class="status-details" *ngIf="status.details">{{ status.details }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Route Section -->
+          <div class="route-section">
+            <h3>Route</h3>
+            <div class="route-list">
+              <div class="route-item start">
+                <div class="route-marker">
+                  <span class="marker-icon">🏁</span>
+                  <div class="route-line"></div>
+                </div>
+                <div class="route-info">
+                  <strong>Start: {{ session.origin.city }}</strong>
+                  <span>{{ session.origin.address }}</span>
+                </div>
+              </div>
+
+              <div class="route-item current" *ngIf="session.currentLocation && session.status.code !== 'DELIVERED'">
+                <div class="route-marker">
+                  <span class="marker-icon">📍</span>
+                  <div class="route-line"></div>
+                </div>
+                <div class="route-info">
+                  <strong>Aktuelle Position</strong>
+                  <span>{{ session.currentLocation.city || 'Unterwegs...' }}</span>
+                </div>
+              </div>
+
+              <div class="route-item end" [class.reached]="session.status.code === 'DELIVERED'">
+                <div class="route-marker">
+                  <span class="marker-icon">{{ session.status.code === 'DELIVERED' ? '✅' : '🎯' }}</span>
+                </div>
+                <div class="route-info">
+                  <strong>Ziel: {{ session.destination.city }}</strong>
+                  <span>{{ session.destination.address }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact & Actions Row -->
+          <div class="info-row">
+            <!-- Fahrer kontaktieren -->
+            <div class="contact-section">
+              <h3>Fahrer kontaktieren</h3>
+              <div class="driver-card">
+                <div class="driver-avatar">{{ session.driverName.charAt(0) }}</div>
+                <div class="driver-info">
+                  <strong>{{ session.driverName }}</strong>
+                  <span>{{ session.vehicleType }}</span>
+                </div>
+              </div>
+              <button class="btn-contact btn-call" (click)="onCallDriver()">
+                <span class="btn-icon">📞</span>
+                Anrufen
+              </button>
+              <button class="btn-contact btn-message" (click)="onSendMessage()">
+                <span class="btn-icon">💬</span>
+                Nachricht senden
+              </button>
+            </div>
+
+            <!-- Delivery Details -->
+            <div class="details-section">
+              <h3>Lieferdetails</h3>
+
+              <div class="detail-group">
+                <h4>📦 Abholort</h4>
+                <p>{{ session.origin.address }}</p>
+                <p>{{ session.origin.city }}</p>
+              </div>
+
+              <div class="detail-group">
+                <h4>📍 Zielort</h4>
+                <p>{{ session.destination.address }}</p>
+                <p>{{ session.destination.city }}</p>
+              </div>
+            </div>
+          </div>
+
+        </ng-container>
       </div>
     </div>
   </div>

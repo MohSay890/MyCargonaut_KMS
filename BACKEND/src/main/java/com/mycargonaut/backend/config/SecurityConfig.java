@@ -45,6 +45,20 @@ public class SecurityConfig {
                 .requestMatchers("/", "/h2-console/**").permitAll()
                 // Erlaube Auth-Endpunkte (Login/Register) und Health-Check
                 .requestMatchers("/api/health", "/actuator/**", "/api/auth/**").permitAll()
+                // Erlaube Fahrten-Endpunkte (Suche und Anzeige) ohne Token
+                .requestMatchers("/api/fahrten/**").permitAll()
+                // Erlaube Anfragen-Endpunkte (Suche und Anzeige) ohne Token
+                .requestMatchers("/api/requests/**").permitAll()
+                // Erlaube Angebots-Endpunkte ohne Token
+                .requestMatchers("/api/request-offers/**").permitAll()
+                // Erlaube Fahrzeug-Endpunkte ohne Token (für Entwicklung)
+                .requestMatchers("/api/fahrzeuge/**").permitAll()
+                // Erlaube Profile-Endpunkte ohne Token (für Entwicklung)
+                .requestMatchers("/api/profile/**").permitAll()
+                // Erlaube Payment-Endpunkte ohne Token (für Entwicklung)
+                .requestMatchers("/api/payments/**").permitAll()
+                // Erlaube Tracking-Endpunkte ohne Token (für Entwicklung)
+                .requestMatchers("/api/tracking/**").permitAll()
                 // Alles andere erfordert ein gültiges JWT-Token
                 .anyRequest().authenticated()
             )

@@ -1,0 +1,293 @@
+<div class="driver-tracking-page">
+  <div class="page-layout">
+    <app-sidebar></app-sidebar>
+
+    <main class="main-content">
+      <!-- Page Header -->
+      <div class="page-header">
+        <div class="page-title">
+          <h1>📍 Standort teilen</h1>
+          <p class="subtitle">Teilen Sie Ihren Standort mit Ihren Kunden</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn-refresh" (click)="loadDriverSessions()">
+            <span class="btn-icon">🔄</span>
+            Aktualisieren
+          </button>
+        </div>
+      </div>
+
+      <!-- Location Status -->
+      <div class="location-status-card" [class.error]="locationError">
+        <div class="location-icon">
+          {{ locationError ? '⚠️' : '📍' }}
+        </div>
+        <div class="location-info">
+          @if (locationError) {
+            <strong>Standortfehler</strong>
+            <span>{{ locationError }}</span>
+          } @else if (currentLocation) {
+            <strong>Aktueller Standort</strong>
+            <span>{{ currentLocation.lat.toFixed(4) }}, {{ currentLocation.lng.toFixed(4) }}</span>
+          } @else {
+            <strong>Standort wird ermittelt...</strong>
+            <span>Bitte warten</span>
+          }
+        </div>
+        <button class="btn-locate" (click)="getCurrentLocation()">
+          <span>🎯</span>
+        </button>
+      </div>
+
+      <!-- Active Session Card -->
+      @if (activeSession) {
+        <div class="active-session-card">
+          <div class="session-header">
+            <div class="session-badge" [class]="getStatusClass(activeSession.status.code)">
+              <span class="badge-icon">{{ activeSession.status.icon }}</span>
+              {{ activeSession.status.label }}
+            </div>
+            <div class="tracking-code">
+              <span class="code-label">Tracking-Code:</span>
+              <span class="code-value">{{ activeSession.trackingCode }}</span>
+              <button class="btn-copy" (click)="copyTrackingCode()" title="Code kopieren">
+                📋
+              </button>
+            </div>
+          </div>
+
+          <div class="session-route">
+            <div class="route-point start">
+              <span class="point-icon">🟢</span>
+              <div class="point-info">
+                <strong>Start</strong>
+                <span>{{ activeSession.origin.city || 'Nicht festgelegt' }}</span>
+              </div>
+            </div>
+            <div class="route-line">
+              <div class="route-progress" [style.width.%]="activeSession.progress"></div>
+              <span class="truck-icon" [style.left.%]="activeSession.progress">🚚</span>
+            </div>
+            <div class="route-point end">
+              <span class="point-icon">🔴</span>
+              <div class="point-info">
+                <strong>Ziel</strong>
+                <span>{{ activeSession.destination.city || 'Nicht festgelegt' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="session-stats">
+            <div class="stat-item">
+              <span class="stat-icon">📊</span>
+              <div class="stat-content">
+                <span class="stat-value">{{ activeSession.progress | number:'1.0-0' }}%</span>
+                <span class="stat-label">Fortschritt</span>
+              </div>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">🚗</span>
+              <div class="stat-content">
+                <span class="stat-value">{{ activeSession.currentSpeed | number:'1.0-0' }} km/h</span>
+                <span class="stat-label">Geschwindigkeit</span>
+              </div>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">📏</span>
+              <div class="stat-content">
+                <span class="stat-value">{{ activeSession.remainingDistance | number:'1.0-0' }} km</span>
+                <span class="stat-label">Verbleibend</span>
+              </div>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">⏱️</span>
+              <div class="stat-content">
+                <span class="stat-value">{{ activeSession.estimatedMinutes }} Min.</span>
+                <span class="stat-label">ETA</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sharing Controls -->
+          <div class="sharing-controls">
+            <div class="gps-toggle">
+              <label class="toggle-label">
+                <input type="checkbox" [(ngModel)]="useRealGPS" [disabled]="isSharing">
+                <span class="toggle-text">Echtes GPS verwenden</span>
+              </label>
+            </div>
+
+            <div class="control-buttons">
+              @if (activeSession.status.code !== 'DELIVERED') {
+                <button
+                  class="btn-share"
+                  [class.active]="isSharing"
+                  (click)="toggleSharing()">
+                  <span class="btn-icon">{{ isSharing ? '⏸️' : '▶️' }}</span>
+                  {{ isSharing ? 'Teilen pausieren' : 'Standort teilen' }}
+                </button>
+
+                @if (isSharing) {
+                  <div class="sharing-indicator">
+                    <span class="pulse-dot"></span>
+                    <span>Live</span>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+
+          <!-- Status Update Buttons -->
+          <div class="status-actions">
+            <span class="actions-label">Status ändern:</span>
+            <div class="action-buttons">
+              @if (activeSession.status.code === 'WAITING') {
+                <button class="btn-status picked" (click)="updateStatus('PICKED_UP')">
+                  📦 Abgeholt
+                </button>
+              }
+              @if (activeSession.status.code === 'PICKED_UP') {
+                <button class="btn-status transit" (click)="updateStatus('IN_TRANSIT')">
+                  🚚 Unterwegs
+                </button>
+              }
+              @if (activeSession.status.code === 'IN_TRANSIT') {
+                <button class="btn-status near" (click)="updateStatus('NEAR_DESTINATION')">
+                  📍 Fast da
+                </button>
+              }
+              @if (activeSession.status.code === 'NEAR_DESTINATION' || activeSession.status.code === 'IN_TRANSIT') {
+                <button class="btn-status delivered" (click)="completeDelivery()">
+                  ✅ Zugestellt
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- View as Customer -->
+          <div class="customer-preview">
+            <button class="btn-preview" (click)="viewAsCustomer()">
+              <span class="btn-icon">👁️</span>
+              Als Kunde ansehen
+            </button>
+          </div>
+        </div>
+      } @else {
+        <!-- No Active Session -->
+        <div class="no-session-card">
+          <div class="empty-icon">📦</div>
+          <h3>Kein aktives Tracking</h3>
+          <p>Erstellen Sie ein neues Tracking für eine Ihrer Fahrten, um Ihren Standort zu teilen.</p>
+          <button class="btn-create" (click)="showCreateModal = true">
+            <span class="btn-icon">➕</span>
+            Neues Tracking erstellen
+          </button>
+        </div>
+      }
+
+      <!-- Previous Sessions -->
+      @if (trackingSessions.length > 0) {
+        <div class="sessions-section">
+          <h3>Ihre Tracking-Sessions</h3>
+          <div class="sessions-list">
+            @for (session of trackingSessions; track session.id) {
+              <div
+                class="session-item"
+                [class.active]="activeSession?.id === session.id"
+                [class.delivered]="session.status.code === 'DELIVERED'"
+                (click)="selectSession(session)">
+                <div class="session-status">
+                  <span class="status-icon">{{ session.status.icon }}</span>
+                </div>
+                <div class="session-details">
+                  <div class="session-route-text">
+                    {{ session.origin.city || '?' }} → {{ session.destination.city || '?' }}
+                  </div>
+                  <div class="session-meta">
+                    <span class="tracking-code-small">{{ session.trackingCode }}</span>
+                    <span class="session-time">{{ formatDate(session.lastUpdate) }}</span>
+                  </div>
+                </div>
+                <div class="session-progress">
+                  <div class="progress-bar-mini">
+                    <div class="progress-fill-mini" [style.width.%]="session.progress"></div>
+                  </div>
+                  <span class="progress-text">{{ session.progress | number:'1.0-0' }}%</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Instructions -->
+      <div class="instructions-card">
+        <h3>💡 So funktioniert's</h3>
+        <div class="instructions-list">
+          <div class="instruction-item">
+            <span class="step-number">1</span>
+            <div class="step-content">
+              <strong>Tracking erstellen</strong>
+              <p>Erstellen Sie ein Tracking für Ihre Fahrt und erhalten Sie einen Tracking-Code.</p>
+            </div>
+          </div>
+          <div class="instruction-item">
+            <span class="step-number">2</span>
+            <div class="step-content">
+              <strong>Code teilen</strong>
+              <p>Teilen Sie den Tracking-Code mit Ihrem Kunden.</p>
+            </div>
+          </div>
+          <div class="instruction-item">
+            <span class="step-number">3</span>
+            <div class="step-content">
+              <strong>Standort teilen</strong>
+              <p>Aktivieren Sie "Standort teilen" und Ihr Kunde kann Ihre Position in Echtzeit verfolgen.</p>
+            </div>
+          </div>
+          <div class="instruction-item">
+            <span class="step-number">4</span>
+            <div class="step-content">
+              <strong>Status aktualisieren</strong>
+              <p>Aktualisieren Sie den Status, wenn sich etwas ändert (Abgeholt, Unterwegs, Zugestellt).</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Create Tracking Modal -->
+@if (showCreateModal) {
+  <div class="modal-overlay" (click)="showCreateModal = false">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Neues Tracking erstellen</h3>
+        <button class="btn-close" (click)="showCreateModal = false">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>Geben Sie die Fahrt-ID ein, für die Sie ein Tracking erstellen möchten:</p>
+        <div class="input-group">
+          <label for="fahrtId">Fahrt-ID</label>
+          <input
+            type="number"
+            id="fahrtId"
+            [(ngModel)]="selectedFahrtId"
+            placeholder="z.B. 1"
+            min="1">
+        </div>
+        <p class="hint">Die Fahrt-ID finden Sie in Ihren Fahrten-Übersicht.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="showCreateModal = false">Abbrechen</button>
+        <button
+          class="btn-confirm"
+          [disabled]="!selectedFahrtId"
+          (click)="onCreateTracking(selectedFahrtId!)">
+          Tracking erstellen
+        </button>
+      </div>
+    </div>
+  </div>
+}

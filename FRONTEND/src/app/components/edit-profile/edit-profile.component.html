@@ -28,6 +28,8 @@
                 <span class="placeholder-icon">👤</span>
               </div>
               <div class="upload-actions">
+                <!-- Hidden file input -->
+                <input type="file" #fileInput accept="image/*" (change)="onFileSelected($event)" style="display: none;">
                 <button type="button" class="btn-upload" (click)="onUploadImage()">Bild hochladen</button>
                 <button type="button" class="btn-remove" *ngIf="formData.profileImage" (click)="onRemoveImage()">Bild löschen</button>
               </div>

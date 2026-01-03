@@ -1,0 +1,110 @@
+<div class="modal-overlay" *ngIf="show" (click)="onBackdropClick($event)">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>🚚 Transport anbieten</h2>
+      <button class="close-btn" (click)="closeModal()" type="button">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Request Details Summary -->
+      <div class="request-summary">
+        <h3>Transportanfrage</h3>
+        <div class="route-info">
+          <p><strong>Von:</strong> {{ request.startOrt }}</p>
+          <p><strong>Nach:</strong> {{ request.zielOrt }}</p>
+          <p><strong>Datum:</strong> {{ request.datum }}</p>
+        </div>
+        <div class="cargo-info">
+          <p><strong>Kategorie:</strong> {{ request.kategorie }}</p>
+          <p><strong>Gewicht:</strong> {{ request.gewicht }} kg</p>
+          <p *ngIf="request.abmessungen"><strong>Abmessungen:</strong> {{ request.abmessungen }}</p>
+        </div>
+        <div class="budget-info">
+          <p><strong>Nutzer-Budget:</strong> <span class="budget-amount">max. {{ request.maxPreis }}€</span></p>
+        </div>
+      </div>
+
+      <!-- Error/Success Messages -->
+      <div class="alert alert-error" *ngIf="error">{{ error }}</div>
+      <div class="alert alert-success" *ngIf="success">{{ success }}</div>
+
+      <!-- Offer Form -->
+      <form (ngSubmit)="onSubmit()" *ngIf="!success">
+        <div class="form-section">
+          <h3>Dein Angebot</h3>
+
+          <div class="form-group">
+            <label for="angebotspreis">
+              Angebotspreis (€) *
+              <span class="hint">Dein vorgeschlagener Preis für diesen Transport</span>
+            </label>
+            <input
+              type="number"
+              id="angebotspreis"
+              [(ngModel)]="offer.angebotspreis"
+              name="angebotspreis"
+              min="1"
+              [max]="request.maxPreis"
+              step="0.01"
+              required
+              placeholder="z.B. 45.00"
+            />
+            <small class="price-info">
+              ⚠️ Dein Angebot sollte unter {{ request.maxPreis }}€ liegen
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="nachricht">
+              Nachricht an den Nutzer
+              <span class="hint">Erkläre, warum du die beste Wahl bist</span>
+            </label>
+            <textarea
+              id="nachricht"
+              [(ngModel)]="offer.nachricht"
+              name="nachricht"
+              rows="4"
+              placeholder="z.B. Ich habe einen geräumigen Transporter und Erfahrung mit fragilen Gegenständen. Ich kann flexibel mit der Zeit sein..."
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Fahrzeuginformationen (Optional)</h3>
+
+          <div class="form-group">
+            <label for="fahrzeugtyp">Fahrzeugtyp</label>
+            <select id="fahrzeugtyp" [(ngModel)]="offer.fahrzeugtyp" name="fahrzeugtyp">
+              <option value="">Bitte wählen</option>
+              <option value="PKW">PKW</option>
+              <option value="Kombi">Kombi</option>
+              <option value="Transporter">Transporter</option>
+              <option value="LKW">LKW</option>
+              <option value="Sprinter">Sprinter</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="fahrzeugmarke">Fahrzeugmarke</label>
+            <input
+              type="text"
+              id="fahrzeugmarke"
+              [(ngModel)]="offer.fahrzeugmarke"
+              name="fahrzeugmarke"
+              placeholder="z.B. Mercedes, Ford, VW"
+            />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" (click)="closeModal()" [disabled]="isSubmitting">
+            Abbrechen
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="isSubmitting">
+            {{ isSubmitting ? 'Wird gesendet...' : '✓ Angebot absenden' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

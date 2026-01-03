@@ -1,0 +1,135 @@
+<div class="request-detail-container">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading">
+    <p>Lade Anfrage-Details...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error">
+    <p>{{ error }}</p>
+    <button (click)="goBack()" class="btn-back">Zurück zur Suche</button>
+  </div>
+
+  <!-- Request Details -->
+  <div *ngIf="request && !loading" class="content">
+    <!-- Header with Back Button -->
+    <div class="header">
+      <button (click)="goBack()" class="btn-back">← Zurück</button>
+      <h1>Anfrage-Details</h1>
+    </div>
+
+    <!-- Request Card -->
+    <div class="request-card">
+      <!-- Route Info -->
+      <div class="route-section">
+        <h2>{{ request.startOrt }} → {{ request.zielOrt }}</h2>
+        <div class="meta-info">
+          <span>📅 {{ request.datum }}</span>
+          <span *ngIf="request.uhrzeit">🕐 {{ request.uhrzeit }}</span>
+          <span>💰 Max. {{ request.maxPreis }} €</span>
+        </div>
+      </div>
+
+      <!-- Requester Info -->
+      <div class="requester-section">
+        <div class="requester-header">
+          <img [src]="request.erstellerAvatar" [alt]="request.erstellerName" class="avatar">
+          <div>
+            <h3>{{ request.erstellerName }}</h3>
+            <p class="email">{{ request.erstellerEmail }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cargo Details -->
+      <div class="cargo-section">
+        <h3>Fracht-Details</h3>
+        <div class="details-grid">
+          <div *ngIf="request.gewicht" class="detail-item">
+            <strong>Gewicht:</strong> {{ request.gewicht }} kg
+          </div>
+          <div *ngIf="request.abmessungen" class="detail-item">
+            <strong>Abmessungen:</strong> {{ request.abmessungen }}
+          </div>
+          <div *ngIf="request.kategorie" class="detail-item">
+            <strong>Kategorie:</strong> {{ request.kategorie }}
+          </div>
+          <div class="detail-item">
+            <strong>Status:</strong>
+            <span [class]="'status-badge status-' + (request.status || 'active').toLowerCase()">
+              {{ request.status || 'ACTIVE' }}
+            </span>
+          </div>
+        </div>
+        <div *ngIf="request.beschreibung" class="description">
+          <strong>Beschreibung:</strong>
+          <p>{{ request.beschreibung }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Offers Section -->
+    <div class="offers-section">
+      <h2>Angebote ({{ offers.length }})</h2>
+
+      <div *ngIf="offers.length === 0" class="no-offers">
+        <p>Noch keine Angebote für diese Anfrage.</p>
+      </div>
+
+      <div *ngIf="offers.length > 0" class="offers-list">
+        <div *ngFor="let offer of offers" class="offer-card">
+          <!-- Driver Info -->
+          <div class="offer-header">
+            <img [src]="offer.driverAvatar" [alt]="offer.driverName" class="driver-avatar">
+            <div class="driver-info">
+              <h3>{{ offer.driverName }}</h3>
+              <p class="driver-email">{{ offer.driverEmail }}</p>
+              <div *ngIf="offer.driverRating" class="rating">
+                ⭐ {{ offer.driverRating }}
+              </div>
+            </div>
+            <div class="offer-price">
+              <span class="price-label">Angebotspreis</span>
+              <span class="price-value">{{ offer.angebotspreis }} €</span>
+            </div>
+          </div>
+
+          <!-- Vehicle Info -->
+          <div *ngIf="offer.fahrzeugtyp || offer.fahrzeugmarke" class="vehicle-info">
+            <strong>🚗 Fahrzeug:</strong>
+            <span>{{ offer.fahrzeugmarke }} ({{ offer.fahrzeugtyp }})</span>
+          </div>
+
+          <!-- Message -->
+          <div *ngIf="offer.nachricht" class="offer-message">
+            <strong>Nachricht vom Fahrer:</strong>
+            <p>{{ offer.nachricht }}</p>
+          </div>
+
+          <!-- Status Badge -->
+          <div class="offer-status">
+            <span [class]="'status-badge status-' + offer.status.toLowerCase()">
+              {{ offer.status }}
+            </span>
+            <span class="offer-date">Erstellt: {{ offer.erstelltAm }}</span>
+          </div>
+
+          <!-- Actions (only for request owner and pending offers) -->
+          <div *ngIf="isRequestOwner() && offer.status === 'PENDING'" class="offer-actions">
+            <button (click)="acceptOffer(offer.id!)" class="btn-accept">
+              ✓ Annehmen
+            </button>
+            <button (click)="rejectOffer(offer.id!)" class="btn-reject">
+              ✗ Ablehnen
+            </button>
+          </div>
+
+          <!-- Accepted Message -->
+          <div *ngIf="offer.status === 'ACCEPTED'" class="accepted-message">
+            ✓ Dieses Angebot wurde angenommen
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

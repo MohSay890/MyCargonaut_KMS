@@ -264,6 +264,149 @@ app-sidebar {
   margin: 0;
 }
 
+/* Alerts */
+.alert {
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 500;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.alert-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.alert-success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.alert-error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #dc2626;
+}
+
+/* Vehicle Stats */
+.vehicle-stats {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.stat {
+  color: var(--text-gray);
+}
+
+.stat.active {
+  color: #10b981;
+}
+
+.stat.inactive {
+  color: #f59e0b;
+}
+
+.stat-divider {
+  color: var(--border);
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 16px;
+  margin-bottom: 2rem;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  color: var(--text-gray);
+  max-width: 400px;
+  margin: 0 auto 1.5rem;
+  line-height: 1.6;
+}
+
+.btn-add-large {
+  padding: 1rem 2.5rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-add-large:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+/* Toggle Button */
+.btn-toggle {
+  padding: 0.75rem 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 120px;
+  text-align: center;
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #f59e0b;
+}
+
+.btn-toggle:hover {
+  background: #fde68a;
+}
+
+.btn-toggle.active {
+  background: #d1fae5;
+  color: #065f46;
+  border-color: #10b981;
+}
+
+.btn-toggle.active:hover {
+  background: #a7f3d0;
+}
+
+/* Vehicle Icon */
+.vehicle-icon {
+  font-size: 3rem;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .vehicle-card {
@@ -276,6 +419,7 @@ app-sidebar {
 
   .vehicle-actions {
     flex-direction: row;
+    flex-wrap: wrap;
   }
 }
 
@@ -291,5 +435,9 @@ app-sidebar {
 
   .vehicle-details {
     grid-template-columns: 1fr;
+  }
+
+  .vehicle-stats {
+    flex-wrap: wrap;
   }
 }

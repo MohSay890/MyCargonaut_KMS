@@ -12,8 +12,13 @@
       <p class="subtitle">Willkommen zurück, {{ userName }}! Hier ist eine Übersicht deiner Aktivitäten</p>
     </div>
 
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading">
+      Daten werden geladen...
+    </div>
+
     <!-- Stats Grid -->
-    <div class="stats-grid">
+    <div *ngIf="!isLoading" class="stats-grid">
       <div class="stat-card">
         <div class="stat-value">{{ stats.activeOffers }}</div>
         <div class="stat-label">Aktive Angebote</div>
@@ -23,11 +28,11 @@
         <div class="stat-label">Abgeschlossene Fahrten</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value">{{ stats.averageRating }}</div>
+        <div class="stat-value">{{ stats.averageRating.toFixed(1) }}</div>
         <div class="stat-label">Durchschn. Bewertung</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value">{{ stats.totalEarnings }} €</div>
+        <div class="stat-value">{{ stats.totalEarnings }}€</div>
         <div class="stat-label">Einnahmen (Gesamt)</div>
       </div>
     </div>

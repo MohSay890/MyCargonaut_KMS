@@ -27,10 +27,36 @@
         <input type="email" id="email" [(ngModel)]="email" name="email" placeholder="max@beispiel.de" required>
       </div>
 
-      <!-- Telefon (optional) -->
+      <!-- E-Mail wiederholen -->
       <div class="form-group">
-        <label for="phone">Telefon (optional)</label>
-        <input type="tel" id="phone" [(ngModel)]="phone" name="phone" placeholder="+49">
+        <label for="emailRepeat">E-Mail wiederholen *</label>
+        <input type="email" id="emailRepeat" [(ngModel)]="emailRepeat" name="emailRepeat" placeholder="max@beispiel.de" required>
+        <span class="field-error" *ngIf="emailRepeat && email !== emailRepeat">E-Mail-Adressen stimmen nicht überein</span>
+      </div>
+
+      <!-- Telefon (required) -->
+      <div class="form-group">
+        <label for="phone">Telefon *</label>
+        <input type="tel" id="phone" [(ngModel)]="phone" name="phone" placeholder="+49" required>
+      </div>
+
+      <!-- Geburtsdatum -->
+      <div class="form-group">
+        <label for="birthdate">Geburtsdatum * <span class="field-hint">(18+ erforderlich)</span></label>
+        <input type="date" id="birthdate" [(ngModel)]="birthdate" name="birthdate" required>
+        <span class="field-error" *ngIf="birthdate && !isAtLeast18()">Du musst mindestens 18 Jahre alt sein</span>
+      </div>
+
+      <!-- Stadt und PLZ -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="postalCode">PLZ *</label>
+          <input type="text" id="postalCode" [(ngModel)]="postalCode" name="postalCode" placeholder="12345" required>
+        </div>
+        <div class="form-group">
+          <label for="city">Stadt *</label>
+          <input type="text" id="city" [(ngModel)]="city" name="city" placeholder="Berlin" required>
+        </div>
       </div>
 
       <!-- Passwort -->
@@ -49,11 +75,18 @@
       <div class="password-requirements">
         <p>Passwort-Anforderungen:</p>
         <ul>
-          <li>Mindestens 8 Zeichen</li>
-          <li>Ein Großbuchstabe</li>
-          <li>Eine Zahl</li>
+          <li [class.valid]="password.length >= 8" [class.invalid]="password && password.length < 8">
+            <span class="check-icon">{{ password.length >= 8 ? '✓' : '•' }}</span> Mindestens 8 Zeichen
+          </li>
+          <li [class.valid]="hasUppercase()" [class.invalid]="password && !hasUppercase()">
+            <span class="check-icon">{{ hasUppercase() ? '✓' : '•' }}</span> Ein Großbuchstabe
+          </li>
+          <li [class.valid]="hasNumber()" [class.invalid]="password && !hasNumber()">
+            <span class="check-icon">{{ hasNumber() ? '✓' : '•' }}</span> Eine Zahl
+          </li>
         </ul>
       </div>
+      <span class="field-error" *ngIf="passwordRepeat && password !== passwordRepeat">Passwörter stimmen nicht überein</span>
 
       <!-- AGB Checkbox -->
       <div class="checkbox-group">

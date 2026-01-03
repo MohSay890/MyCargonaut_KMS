@@ -1,31 +1,20 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { VehicleModalComponent } from '../vehicle-modal/vehicle-modal.component';
 import { ConfirmationModalComponent } from '../confirmation-modal/confirmation-modal.component';
-
-interface Vehicle {
-  id: string;
-  name: string;
-  type: string;
-  licensePlate: string;
-  year: number;
-  capacity: number;
-  maxWeight: number;
-  dimensions: string;
-  insurance: string;
-  isActive: boolean;
-}
+import { VehicleService, Vehicle } from '../../services/vehicle.service';
 
 @Component({
   selector: 'app-vehicle-editor',
   standalone: true,
-  imports: [CommonModule, RouterLink, SidebarComponent, VehicleModalComponent, ConfirmationModalComponent],
+  imports: [CommonModule, SidebarComponent, VehicleModalComponent, ConfirmationModalComponent],
   templateUrl: './vehicle-editor.component.html',
   styleUrls: ['./vehicle-editor.component.css']
 })
-export class VehicleEditorComponent implements OnInit {
+export class VehicleEditorComponent implements OnInit, OnDestroy {
 
   // Modal state
   isModalOpen = false;
@@ -35,48 +24,58 @@ export class VehicleEditorComponent implements OnInit {
   showDeleteModal = false;
   vehicleToDelete: Vehicle | null = null;
 
-  // Mock data
-  vehicles: Vehicle[] = [
-    {
-      id: '1',
-      name: 'Mercedes Sprinter',
-      type: 'Transporter',
-      licensePlate: 'B-XX 1234',
-      year: 2020,
-      capacity: 10.4,
-      maxWeight: 1200,
-      dimensions: '320 x 180 x 180 cm',
-      insurance: '✓ Vollkasko',
-      isActive: true
-    },
-    {
-      id: '2',
-      name: 'VW Passat Kombi',
-      type: 'PKW',
-      licensePlate: 'B-YY 5678',
-      year: 2019,
-      capacity: 1.7,
-      maxWeight: 500,
-      dimensions: '180 x 120 x 80 cm',
-      insurance: '✓ Teilkasko',
-      isActive: true
-    },
-    {
-      id: '3',
-      name: 'Ford Transit',
-      type: 'Transporter',
-      licensePlate: 'B-ZZ 9012',
-      year: 2018,
-      capacity: 8.4,
-      maxWeight: 1000,
-      dimensions: '290 x 170 x 170 cm',
-      insurance: '✓ Haftpflicht',
-      isActive: false
-    }
-  ];
+  // Error/Success messages
+  errorMessage: string | null = null;
+  successMessage: string | null = null;
+
+  // Vehicles from service
+  vehicles: Vehicle[] = [];
+
+  // Subscription cleanup
+  private vehiclesSub: Subscription | null = null;
+
+  constructor(
+    private vehicleService: VehicleService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
-    console.log('Vehicle Editor loaded with', this.vehicles.length, 'vehicles');
+    // Check if user is logged in
+    if (!localStorage.getItem('authToken')) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    // Subscribe to vehicles changes - only show active vehicles
+    this.vehiclesSub = this.vehicleService.vehicles$.subscribe(vehicles => {
+      // Filter out deleted (inactive) vehicles for better UX
+      this.vehicles = vehicles.filter(v => v.isActive !== false);
+      console.log('Active vehicles loaded:', this.vehicles.length);
+    });
+
+    // Initial load
+    this.vehicleService.loadVehiclesForCurrentUser();
+  }
+
+  ngOnDestroy(): void {
+    if (this.vehiclesSub) {
+      this.vehiclesSub.unsubscribe();
+    }
+  }
+
+  // Helper method to get vehicle counts
+  get vehicleStats() {
+    return this.vehicleService.getVehicleCount();
+  }
+
+  /**
+   * Clear messages after timeout
+   */
+  private clearMessagesAfterDelay(): void {
+    setTimeout(() => {
+      this.errorMessage = null;
+      this.successMessage = null;
+    }, 4000);
   }
 
   /**
@@ -108,13 +107,45 @@ export class VehicleEditorComponent implements OnInit {
   }
 
   /**
+   * Toggle vehicle active status
+   */
+  onToggleActive(vehicle: Vehicle): void {
+    console.log('Toggle active clicked:', vehicle);
+    if (!vehicle.id) {
+      this.errorMessage = 'Fahrzeug-ID nicht gefunden.';
+      this.clearMessagesAfterDelay();
+      return;
+    }
+
+    this.vehicleService.toggleVehicleActive(vehicle.id).subscribe(result => {
+      if (result.success) {
+        this.successMessage = result.isActive
+          ? `${vehicle.name} wurde aktiviert.`
+          : `${vehicle.name} wurde deaktiviert.`;
+        this.clearMessagesAfterDelay();
+      } else {
+        this.errorMessage = result.error || 'Fehler beim Ändern des Status.';
+        this.clearMessagesAfterDelay();
+      }
+    });
+  }
+
+  /**
    * Confirm deletion
    */
   onConfirmDelete(): void {
     console.log('Confirm delete');
     if (this.vehicleToDelete) {
-      this.vehicles = this.vehicles.filter(v => v.id !== this.vehicleToDelete!.id);
-      console.log('Vehicle deleted:', this.vehicleToDelete.id);
+      const vehicleName = this.vehicleToDelete.name;
+      this.vehicleService.deleteVehicle(this.vehicleToDelete.id!).subscribe(result => {
+        if (result.success) {
+          this.successMessage = `${vehicleName} wurde erfolgreich gelöscht.`;
+          this.clearMessagesAfterDelay();
+        } else {
+          this.errorMessage = result.error || 'Fehler beim Löschen.';
+          this.clearMessagesAfterDelay();
+        }
+      });
     }
     this.showDeleteModal = false;
     this.vehicleToDelete = null;
@@ -141,22 +172,33 @@ export class VehicleEditorComponent implements OnInit {
   /**
    * Save vehicle from modal
    */
-  onModalSave(vehicle: Vehicle): void {
-    console.log('Save vehicle:', vehicle);
+  onModalSave(vehicleData: any): void {
+    console.log('Save vehicle:', vehicleData);
+
     if (this.selectedVehicle) {
       // Edit mode - update existing vehicle
-      const index = this.vehicles.findIndex(v => v.id === vehicle.id);
-      if (index !== -1) {
-        this.vehicles[index] = vehicle;
-        console.log('Vehicle updated:', vehicle);
-      }
+      this.vehicleService.updateVehicle(this.selectedVehicle.id!, vehicleData).subscribe(result => {
+        if (result.success) {
+          this.successMessage = `${vehicleData.name} wurde erfolgreich aktualisiert.`;
+          this.clearMessagesAfterDelay();
+        } else {
+          this.errorMessage = result.error || 'Fehler beim Speichern.';
+          this.clearMessagesAfterDelay();
+        }
+        this.onModalClose();
+      });
     } else {
-      // Add mode - add new vehicle
-      vehicle.id = Date.now().toString(); // Generate simple ID
-      this.vehicles.push(vehicle);
-      console.log('Vehicle added:', vehicle);
+      // Add mode - create new vehicle
+      this.vehicleService.createVehicle(vehicleData).subscribe(result => {
+        if (result.success) {
+          this.successMessage = `${vehicleData.name} wurde erfolgreich hinzugefügt.`;
+          this.clearMessagesAfterDelay();
+        } else {
+          this.errorMessage = result.error || 'Fehler beim Erstellen.';
+          this.clearMessagesAfterDelay();
+        }
+        this.onModalClose();
+      });
     }
-
-    this.onModalClose();
   }
 }

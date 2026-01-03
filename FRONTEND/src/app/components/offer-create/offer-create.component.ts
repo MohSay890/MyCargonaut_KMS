@@ -1,19 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { ConfirmationModalComponent } from '../confirmation-modal/confirmation-modal.component';
 import { OfferService } from '../../services/offer.service';
-import { AuthService } from '../../services/auth.service';
-
-interface Vehicle {
-  id: string;
-  type: string;
-  model: string;
-  plate: string;
-  maxWeight: number;
-}
+import { VehicleService, Vehicle } from '../../services/vehicle.service';
 
 interface OfferFormData {
   // Step 1: Route & Date
@@ -21,6 +14,7 @@ interface OfferFormData {
   to: string;
   date: string;
   time: string;
+  category: string;
   distance: string;
   duration: string;
 
@@ -54,10 +48,13 @@ interface OfferFormData {
   templateUrl: './offer-create.component.html',
   styleUrls: ['./offer-create.component.css']
 })
-export class OfferCreateComponent implements OnInit {
+export class OfferCreateComponent implements OnInit, OnDestroy {
 
   currentStep: number = 1;
   totalSteps: number = 4;
+  isSubmitting: boolean = false;
+  isEditMode: boolean = false;
+  editOfferId: string | null = null;
 
   // Form Data
   formData: OfferFormData = {
@@ -65,6 +62,7 @@ export class OfferCreateComponent implements OnInit {
     to: '',
     date: '',
     time: '',
+    category: '',
     distance: '',
     duration: '',
     vehicleId: '',
@@ -85,12 +83,9 @@ export class OfferCreateComponent implements OnInit {
     }
   };
 
-  // Available vehicles (from user's vehicles)
-  vehicles: Vehicle[] = [
-    { id: '1', type: 'Transporter', model: 'Mercedes Sprinter', plate: 'B-AB 1234', maxWeight: 1000 },
-    { id: '2', type: 'PKW', model: 'VW Passat Kombi', plate: 'M-CD 5678', maxWeight: 500 },
-    { id: '3', type: 'Kastenwagen', model: 'Ford Transit', plate: 'K-EF 9012', maxWeight: 800 }
-  ];
+  // Available vehicles (from user's vehicles via VehicleService)
+  vehicles: Vehicle[] = [];
+  private vehiclesSub: Subscription | null = null;
 
   // Available tags
   availableTags: string[] = [
@@ -102,21 +97,81 @@ export class OfferCreateComponent implements OnInit {
     'Ladungssicherung'
   ];
 
-  // Modal
+  // Modals
   showSuccessModal: boolean = false;
+  showNoVehicleModal: boolean = false;
+  showValidationModal: boolean = false;
+  validationMessage: string = '';
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private offerService: OfferService,
-    private authService: AuthService
+    private vehicleService: VehicleService
   ) {}
 
   ngOnInit(): void {
-    // Set default date to tomorrow
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    this.formData.date = tomorrow.toISOString().split('T')[0];
-    this.formData.time = '08:00';
+    // Load user's active vehicles
+    this.vehiclesSub = this.vehicleService.vehicles$.subscribe(vehicles => {
+      // Only show active vehicles for offer creation
+      this.vehicles = vehicles.filter(v => v.isActive);
+      console.log('Loaded active vehicles for offer creation:', this.vehicles.length);
+    });
+    this.vehicleService.loadVehiclesForCurrentUser();
+
+    // Check if we're in edit mode (URL contains offer ID)
+    this.route.params.subscribe(params => {
+      if (params['id']) {
+        this.isEditMode = true;
+        this.editOfferId = params['id'];
+        this.loadOfferForEdit(params['id']);
+      } else {
+        // Set default date to tomorrow for new offers
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        this.formData.date = tomorrow.toISOString().split('T')[0];
+        this.formData.time = '08:00';
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.vehiclesSub) {
+      this.vehiclesSub.unsubscribe();
+    }
+  }
+
+  loadOfferForEdit(offerId: string): void {
+    this.offerService.getOfferById(offerId).subscribe({
+      next: (offer) => {
+        if (offer) {
+          // Populate form with existing offer data
+          this.formData.from = offer.from;
+          this.formData.to = offer.to;
+          // Convert German date format (DD.MM.YYYY) to ISO format (YYYY-MM-DD) for date input
+          this.formData.date = this.convertGermanDateToISO(offer.date);
+          this.formData.time = offer.time;
+          this.formData.category = offer.kategorie || '';
+          this.formData.distance = offer.distance || '';
+          this.formData.duration = offer.duration || '';
+          this.formData.vehicleType = offer.vehicleType || '';
+          this.formData.vehicleModel = offer.vehicleModel || '';
+          this.formData.maxWeight = offer.maxWeight || 0;
+          this.formData.dimensions = offer.dimensions || '';
+          this.formData.capacity = offer.capacity || '';
+          this.formData.price = offer.price;
+          this.formData.description = offer.description || '';
+          this.formData.tags = offer.tags || [];
+          this.formData.pickupLocation = offer.pickupLocation || '';
+          this.formData.dropoffLocation = offer.dropoffLocation || '';
+        }
+      },
+      error: (error) => {
+        console.error('Error loading offer for edit:', error);
+        alert('Fehler beim Laden der Fahrt. Bitte versuche es erneut.');
+        this.router.navigate(['/my-trips']);
+      }
+    });
   }
 
   // Navigation
@@ -147,22 +202,29 @@ export class OfferCreateComponent implements OnInit {
   validateStep(step: number): boolean {
     switch(step) {
       case 1:
-        if (!this.formData.from || !this.formData.to || !this.formData.date || !this.formData.time) {
-          alert('Bitte fülle alle Pflichtfelder aus (Von, Nach, Datum, Uhrzeit)');
+        if (!this.formData.from || !this.formData.to || !this.formData.date || !this.formData.time || !this.formData.category) {
+          this.validationMessage = 'Bitte fülle alle Pflichtfelder aus (Von, Nach, Datum, Uhrzeit, Kategorie)';
+          this.showValidationModal = true;
           return false;
         }
         return true;
 
       case 2:
+        if (this.vehicles.length === 0) {
+          this.showNoVehicleModal = true;
+          return false;
+        }
         if (!this.formData.vehicleId || !this.formData.maxWeight || !this.formData.dimensions) {
-          alert('Bitte wähle ein Fahrzeug und fülle alle Felder aus');
+          this.validationMessage = 'Bitte wähle ein Fahrzeug und fülle alle Felder aus';
+          this.showValidationModal = true;
           return false;
         }
         return true;
 
       case 3:
         if (!this.formData.price || this.formData.price <= 0) {
-          alert('Bitte gib einen gültigen Preis ein');
+          this.validationMessage = 'Bitte gib einen gültigen Preis ein';
+          this.showValidationModal = true;
           return false;
         }
         return true;
@@ -174,10 +236,12 @@ export class OfferCreateComponent implements OnInit {
 
   // Vehicle Selection
   selectVehicle(vehicle: Vehicle): void {
-    this.formData.vehicleId = vehicle.id;
-    this.formData.vehicleType = vehicle.type;
-    this.formData.vehicleModel = vehicle.model;
-    this.formData.maxWeight = vehicle.maxWeight;
+    this.formData.vehicleId = vehicle.id?.toString() || '';
+    this.formData.vehicleType = vehicle.type || '';
+    this.formData.vehicleModel = vehicle.name || '';
+    this.formData.maxWeight = vehicle.maxWeight || 0;
+    this.formData.dimensions = vehicle.dimensions || '';
+    this.formData.capacity = (vehicle.capacity || 0).toString() + ' m³';
   }
 
   isVehicleSelected(vehicleId: string): boolean {
@@ -209,16 +273,20 @@ export class OfferCreateComponent implements OnInit {
 
   // Submit
   onPublish(): void {
-    console.log('Publishing offer:', this.formData);
+    if (this.isSubmitting) return;
 
-    const currentUser = this.authService.getCurrentUser();
+    console.log(this.isEditMode ? 'Updating offer:' : 'Publishing offer:', this.formData);
+    this.isSubmitting = true;
 
-    // Create offer via OfferService
-    const newOffer = this.offerService.createOffer({
+    const userStr = localStorage.getItem('currentUser');
+    const currentUser = userStr ? JSON.parse(userStr) : null;
+
+    const offerData = {
       from: this.formData.from,
       to: this.formData.to,
       date: this.formData.date,
       time: this.formData.time,
+      category: this.formData.category,
       distance: this.formData.distance,
       duration: this.formData.duration,
       vehicleType: this.formData.vehicleType,
@@ -231,11 +299,37 @@ export class OfferCreateComponent implements OnInit {
       tags: this.formData.tags,
       pickupLocation: this.formData.pickupLocation,
       dropoffLocation: this.formData.dropoffLocation
-    }, currentUser);
+    };
 
-    console.log('Offer created successfully:', newOffer);
-
-    this.showSuccessModal = true;
+    if (this.isEditMode && this.editOfferId) {
+      // Update existing offer
+      this.offerService.updateOffer(this.editOfferId, offerData, currentUser).subscribe({
+        next: (updatedOffer) => {
+          console.log('Offer updated successfully:', updatedOffer);
+          this.isSubmitting = false;
+          this.showSuccessModal = true;
+        },
+        error: (error) => {
+          console.error('Error updating offer:', error);
+          this.isSubmitting = false;
+          alert('Fehler beim Aktualisieren des Angebots. Bitte versuche es erneut.');
+        }
+      });
+    } else {
+      // Create new offer
+      this.offerService.createOffer(offerData, currentUser).subscribe({
+        next: (newOffer) => {
+          console.log('Offer created successfully:', newOffer);
+          this.isSubmitting = false;
+          this.showSuccessModal = true;
+        },
+        error: (error) => {
+          console.error('Error creating offer:', error);
+          this.isSubmitting = false;
+          alert('Fehler beim Erstellen des Angebots. Bitte versuche es erneut.');
+        }
+      });
+    }
   }
 
   onSuccessConfirm(): void {
@@ -271,5 +365,38 @@ export class OfferCreateComponent implements OnInit {
   formatDateTime(): string {
     const date = new Date(this.formData.date);
     return `${date.toLocaleDateString('de-DE')}, ${this.formData.time} Uhr`;
+  }
+
+  // Convert German date format (DD.MM.YYYY) to ISO format (YYYY-MM-DD)
+  private convertGermanDateToISO(germanDate: string): string {
+    if (!germanDate) return '';
+    // Check if already in ISO format
+    if (germanDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      return germanDate;
+    }
+    // Convert from DD.MM.YYYY to YYYY-MM-DD
+    const parts = germanDate.split('.');
+    if (parts.length === 3) {
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+    return germanDate;
+  }
+
+  getCategoryLabel(): string {
+    const categoryMap: { [key: string]: string } = {
+      'möbel': 'Möbel',
+      'pakete': 'Pakete',
+      'umzug': 'Umzug'
+    };
+    return categoryMap[this.formData.category] || this.formData.category;
+  }
+
+  onNoVehicleModalConfirm(): void {
+    this.showNoVehicleModal = false;
+    this.router.navigate(['/vehicle-editor']);
+  }
+
+  onValidationModalClose(): void {
+    this.showValidationModal = false;
   }
 }

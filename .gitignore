@@ -1,0 +1,47 @@
+# IDE - IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# IDE - VS Code
+.vscode/
+*.code-workspace
+
+# IDE - Eclipse
+.project
+.classpath
+.settings/
+
+# Java / Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+hs_err_pid*
+
+# Node / Angular
+node_modules/
+dist/
+.angular/
+npm-debug.log
+yarn-error.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Environment files
+.env
+.env.local
+.env.*.local
+*.env
+
+# Logs
+logs/
+*.log

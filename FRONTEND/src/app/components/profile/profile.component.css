@@ -180,6 +180,10 @@ app-sidebar {
   color: var(--text-gray);
   line-height: 1.6;
   margin: 0;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
 }
 
 /* Contact Section */
@@ -313,6 +317,32 @@ app-sidebar {
 .btn-more-reviews:hover {
   background: var(--primary);
   color: white;
+}
+
+/* Loading State */
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
+/* No Reviews */
+.no-reviews {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-muted);
+  background: white;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+}
+
+.reviews-placeholder {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-muted);
+  background: #f8f9fa;
+  border-radius: 8px;
 }
 
 /* Responsive */

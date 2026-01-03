@@ -33,6 +33,44 @@
   border-bottom: 1px solid var(--border);
 }
 
+/* Alert Messages */
+.alert {
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin: 0 2rem;
+  margin-bottom: -1rem;
+  animation: slideDown 0.3s ease;
+}
+
+.alert-error {
+  background: #fee;
+  color: #c33;
+  border: 2px solid #fcc;
+}
+
+.alert-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal Header Title */
+
 .modal-header h2 {
   font-family: 'Urbanist', sans-serif;
   font-size: 1.75rem;

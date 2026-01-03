@@ -13,9 +13,15 @@ import { OfferDetailComponent } from './components/offer-detail/offer-detail.com
 import { MessagesComponent } from './components/messages/messages.component';
 import { ReviewsComponent } from './components/reviews/reviews.component';
 import { TrackingComponent } from './components/tracking/tracking.component';
+import { DriverTrackingComponent } from './components/driver-tracking/driver-tracking.component';
 import { ReviewCreateComponent } from './components/review-create/review-create.component';
 import { FavoritesComponent } from './components/favorites/favorites.component';
 import { OfferCreateComponent } from './components/offer-create/offer-create.component';
+import { CreateRequestComponent } from './components/create-request/create-request.component';
+import { RequestDetailComponent } from './components/request-detail/request-detail.component';
+import { PaymentHistoryComponent } from './components/payment-history/payment-history.component';
+import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
 import { AuthGuard } from './services/auth.guard';
 
 export const routes: Routes = [
@@ -23,6 +29,8 @@ export const routes: Routes = [
   { path: '', component: LandingComponent },
   { path: 'login', component: LoginComponent },
   { path: 'registration', component: RegistrationComponent },
+  { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'how-it-works', component: HowItWorksComponent },
   { path: 'search', component: SearchResultsComponent },
 
@@ -32,7 +40,15 @@ export const routes: Routes = [
     component: OfferCreateComponent,
     canActivate: [AuthGuard]
   },
+  {
+    path: 'offer/edit/:id',
+    component: OfferCreateComponent,
+    canActivate: [AuthGuard]
+  },
   { path: 'offer/:id', component: OfferDetailComponent },
+
+  // Request detail route
+  { path: 'request/:id', component: RequestDetailComponent },
 
   {
     path: 'review/create/:id',
@@ -72,10 +88,29 @@ export const routes: Routes = [
     component: MyTripsComponent,
     canActivate: [AuthGuard]
   },
+  // Tracking routes - order matters! More specific routes first
+  {
+    path: 'tracking/code/:code',
+    component: TrackingComponent
+  },
+  {
+    path: 'tracking/driver',
+    component: DriverTrackingComponent,
+    canActivate: [AuthGuard]
+  },
   {
     path: 'tracking/:id',
     component: TrackingComponent,
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'create-request',
+    component: CreateRequestComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'tracking',
+    component: TrackingComponent
   },
   {
     path: 'messages',
@@ -86,6 +121,16 @@ export const routes: Routes = [
     path: 'favorites',
     component: FavoritesComponent,
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'payments',
+    component: PaymentHistoryComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'payment-history',
+    redirectTo: 'payments',
+    pathMatch: 'full'
   },
 
   // Fallback
