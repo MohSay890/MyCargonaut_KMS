@@ -1,0 +1,156 @@
+feat: Implement transport request workflow with offer management system
+
+## Features Implemented ##
+
+### 1. Transport Request System
+- Created TransportRequest entity with full CRUD operations
+- Implemented TransportRequestController with 7 REST endpoints
+- Added request creation form with validation
+- Integrated request search and filtering in search results
+- Created detailed request view page with all cargo information
+
+### 2. Request Offer Management
+- Created RequestOffer entity for drivers to submit offers
+- Implemented RequestOfferController with offer CRUD and accept/reject logic
+- Built offer modal component for drivers to create offers
+- Added offer display in request detail page
+- Implemented offer acceptance workflow that creates Fahrt automatically
+
+### 3. Security & Authentication
+- Updated SecurityConfig to allow unauthenticated access to /api/requests/**
+- Updated SecurityConfig to allow unauthenticated access to /api/request-offers/**
+- Fixed 403 Forbidden errors by restarting backend with new configuration
+
+### 4. UI/UX Improvements
+- Created request-detail component with responsive design
+- Added offer modal with price validation against max budget
+- Improved search results to show both offers and requests
+- Fixed username display issue (vorname/nachname vs firstName/lastName)
+- Added proper navigation between search results and detail pages
+
+### 5. Code Quality
+- Simplified all JavaDoc-style comments to casual German comments
+- Made comments sound human-written instead of AI-generated
+- Improved code readability across backend and frontend
+
+## Technical Changes ##
+
+### Backend (Spring Boot)
+- New Entity: RequestOffer (id, requestId, driver info, angebotspreis, nachricht, vehicle details, status, timestamps)
+- New Repository: RequestOfferRepository with custom query methods
+- New Controller: RequestOfferController (7 endpoints)
+- Security: Added permitAll() for requests and offers endpoints
+- Database: PostgreSQL schema auto-updated via Hibernate
+
+### Frontend (Angular)
+- New Service: RequestOfferService with 7 API methods
+- New Component: RequestDetailComponent (TypeScript, HTML, CSS)
+- New Component: OfferModalComponent (integrated in search results)
+- Updated: CreateRequestComponent (fixed date format to ISO)
+- Updated: SearchResultsComponent (added offer modal integration)
+- Updated: app.routes.ts (added /request/:id route)
+
+## Main Problems Encountered ##
+
+### 1. Backend Not Available / Database Connection Issues
+- The backend could not connect to PostgreSQL due to port conflicts (local vs. Docker) and password mismatches
+- Solution: Changed Docker PostgreSQL to use port 5433 and updated application.properties and application-dev.properties to match
+
+### 2. Journeys Not Displayed in Meine Fahrten
+- New journeys were saved in the database but did not appear in the frontend
+- Cause: The frontend was filtering or only showing mock data, not real backend data
+
+### 3. Edit and Delete Journey Not Working
+- Edit was not implemented (just a placeholder alert)
+- Delete returned 404 errors because it tried to delete mock data or used the wrong ID
+
+### 4. Date Format Issues
+- The backend returned dates in ISO format, but the frontend expected German format, causing input errors
+
+### 5. Profile Picture and Name Sync Issues
+- Profile picture upload was not implemented
+- Name and avatar were inconsistent between the header and profile page
+
+### 6. Search Not Returning User's Own Journeys
+- When searching, journeys created by the user were not shown due to filter or price slider issues
+
+### 7. 403 Forbidden Errors on Request Creation
+- POST /api/requests returned 403 because SecurityConfig didn't permit unauthenticated access
+- Old backend instance was running with outdated security configuration
+- Date format mismatch (DD.MM.YYYY vs YYYY-MM-DD) caused 400 Bad Request errors
+
+## How We Fixed the Problems ##
+
+### 1. Database/Backend
+- Ensured only one PostgreSQL instance is running (Docker on 5433)
+- Updated backend config files to match Docker settings
+- Killed old Java processes and restarted backend with new SecurityConfig
+- Fixed date serialization to use ISO format (YYYY-MM-DD)
+
+### 2. Frontend Data Handling
+- Removed mock data filtering for journeys; now always loads from backend
+- Fixed mapping between backend and frontend models
+- Ensured delete and edit actions use real backend IDs and endpoints
+- Fixed username field mapping (vorname/nachname instead of firstName/lastName)
+
+### 3. Date Handling
+- Added conversion between ISO and German date formats for form compatibility
+- Fixed create-request component to send ISO dates to backend
+
+### 4. Profile Handling
+- Implemented image upload and removal
+- Unified avatar field across all components
+- Made header and profile page always show the latest user info
+
+### 5. Search Improvements
+- Increased price slider max to avoid filtering out valid journeys
+- Added show all journeys option to search, so users can see all Fahrten, including their own
+- Added all types of Vehicles so users can find the suitable offer with the suitable Vehicle
+- Integrated filtering by additional services that offered from the driver
+
+### 6. Security & Error Resolution
+- Added /api/requests/** and /api/request-offers/** to permitAll() in SecurityConfig
+- Properly restarted backend to apply configuration changes
+- Fixed type mismatches (string vs number) in request detail component
+
+## Files Changed ##
+
+### Backend (Java/Spring Boot)
+- RequestOffer.java (new entity)
+- RequestOfferRepository.java (new repository)
+- RequestOfferController.java (new controller)
+- SecurityConfig.java (updated with new endpoints)
+- TransportRequestController.java (existing, verified endpoints)
+
+### Frontend (Angular/TypeScript)
+- request-offer.service.ts (new service)
+- request-detail.component.ts (new component)
+- request-detail.component.html (new template)
+- request-detail.component.css (new styles)
+- offer-modal.component.ts (new modal)
+- offer-modal.component.html (new template)
+- offer-modal.component.css (new styles)
+- create-request.component.ts (fixed date format & username)
+- search-results.component.ts (added modal integration)
+- search-results.component.html (added modal template)
+- app.routes.ts (added request detail route)
+- profile.component.html (fixed optional chaining warning)
+
+## Testing Performed ##
+
+- Created transport requests with various cargo details
+- Verified request appears in search results
+- Tested offer creation modal with price validation
+- Verified offers display correctly in request detail page
+- Tested offer acceptance creates Fahrt automatically
+- Confirmed username displays correctly for German users
+- Tested navigation between search and detail pages
+- Verified security allows unauthenticated request creation
+- Confirmed database persistence for all operations
+
+## Database Schema Updates ##
+
+- Created table: request_offers
+- Columns: id (PK), request_id, driver_name, driver_email, driver_avatar, driver_rating, angebotspreis, nachricht, fahrzeugtyp, fahrzeugmarke, status, erstellt_am, beantwortet_am
+- Foreign key: request_id -> transport_request.id
+- Auto-created via Hibernate DDL

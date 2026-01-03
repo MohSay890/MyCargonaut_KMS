@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { PaymentModalComponent } from './payment-modal.component';
 import { ReactiveFormsModule } from '@angular/forms';
 
@@ -8,7 +9,7 @@ describe('PaymentModalComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PaymentModalComponent, ReactiveFormsModule]
+      imports: [PaymentModalComponent, ReactiveFormsModule, HttpClientTestingModule]
     }).compileComponents();
 
     fixture = TestBed.createComponent(PaymentModalComponent);

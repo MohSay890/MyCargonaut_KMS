@@ -1,9 +1,10 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { PaymentService, PaymentMethod, PaymentTransaction, PaymentRequest, PaymentResult } from './payment.service';
 
 describe('PaymentService', () => {
   let service: PaymentService;
+  let httpMock: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -11,10 +12,21 @@ describe('PaymentService', () => {
       providers: [PaymentService]
     });
     service = TestBed.inject(PaymentService);
+    httpMock = TestBed.inject(HttpTestingController);
     localStorage.clear();
+
+    // Set up mock user for payment processing tests
+    const mockUser = {
+      id: 1,
+      email: 'test@example.com',
+      vorname: 'Max',
+      nachname: 'Mustermann'
+    };
+    localStorage.setItem('currentUser', JSON.stringify(mockUser));
   });
 
   afterEach(() => {
+    httpMock.verify(); // Verify no outstanding HTTP requests
     localStorage.clear();
   });
 
@@ -82,8 +94,12 @@ describe('PaymentService', () => {
 
   describe('validateExpiryDate', () => {
     it('should validate correct expiry dates', () => {
-      expect(service.validateExpiryDate('12/25')).toBe(true);
-      expect(service.validateExpiryDate('06/30')).toBe(true);
+      // Use guaranteed future dates
+      const today = new Date();
+      const futureYear = (today.getFullYear() + 2) % 100; // 2 years from now
+      const futureDate = `12/${futureYear.toString().padStart(2, '0')}`;
+      expect(service.validateExpiryDate(futureDate)).toBe(true);
+      expect(service.validateExpiryDate('12/99')).toBe(true);
     });
 
     it('should reject invalid expiry dates', () => {
@@ -124,7 +140,7 @@ describe('PaymentService', () => {
         amount: 50.00,
         cardNumber: '4532015112830366',
         cardHolder: 'Max Mustermann',
-        expiryDate: '12/25',
+        expiryDate: '12/30',
         cvv: '123',
         saveCard: true,
         route: 'Berlin → Munich',
@@ -137,6 +153,17 @@ describe('PaymentService', () => {
         expect(result.message).toContain('Zahlung erfolgreich');
         done();
       });
+
+      // Mock HTTP responses
+      setTimeout(() => {
+        const createReq = httpMock.expectOne('http://localhost:8080/api/payments');
+        expect(createReq.request.method).toBe('POST');
+        createReq.flush({ id: 1, status: 'PENDING' });
+
+        const processReq = httpMock.expectOne('http://localhost:8080/api/payments/1/process');
+        expect(processReq.request.method).toBe('POST');
+        processReq.flush({ id: 1, status: 'COMPLETED', transactionReference: 'TXN-123' });
+      }, 2100); // After the 2s delay in processPayment
     });
 
     it('should handle payment failure for invalid card', (done) => {
@@ -145,7 +172,7 @@ describe('PaymentService', () => {
         amount: 50.00,
         cardNumber: '1234567890123456',
         cardHolder: 'Max Mustermann',
-        expiryDate: '12/25',
+        expiryDate: '12/30',
         cvv: '123',
         saveCard: false,
         route: 'Berlin → Munich',
@@ -165,7 +192,7 @@ describe('PaymentService', () => {
         amount: 50.00,
         cardNumber: '4532015112830366',
         cardHolder: 'Max Mustermann',
-        expiryDate: '12/25',
+        expiryDate: '12/30',
         cvv: '123',
         saveCard: true,
         route: 'Berlin → Munich',
@@ -179,6 +206,15 @@ describe('PaymentService', () => {
           done();
         });
       });
+
+      // Mock HTTP responses
+      setTimeout(() => {
+        const createReq = httpMock.expectOne('http://localhost:8080/api/payments');
+        createReq.flush({ id: 1, status: 'PENDING' });
+
+        const processReq = httpMock.expectOne('http://localhost:8080/api/payments/1/process');
+        processReq.flush({ id: 1, status: 'COMPLETED', transactionReference: 'TXN-123' });
+      }, 2100);
     });
   });
 
@@ -190,7 +226,7 @@ describe('PaymentService', () => {
         cardNumber: '0366',
         cardBrand: 'visa',
         cardHolder: 'Max Mustermann',
-        expiryDate: '12/25',
+        expiryDate: '12/30',
         isDefault: true,
         createdAt: new Date()
       };

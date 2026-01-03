@@ -81,7 +81,9 @@ class AuthControllerTest {
         // Then
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody().toString().contains("Cargonaut registriert mit ID: 1"));
+        assertNotNull(response.getBody());
+        // Response body is a RegisterResponse record with id, message, email
+        assertTrue(response.getBody().toString().contains("Cargonaut erfolgreich registriert"));
         verify(userService).registerUser(any(RegisterRequest.class));
     }
 

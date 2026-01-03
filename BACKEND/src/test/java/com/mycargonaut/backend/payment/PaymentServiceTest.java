@@ -47,6 +47,7 @@ class PaymentServiceTest {
         testFahrt.setId(1L);
         testFahrt.setStartOrt("Berlin");
         testFahrt.setZielOrt("Munich");
+        testFahrt.setFahrer(testUser); // Set driver to satisfy validation
 
         // Setup test payment
         testPayment = new Payment();

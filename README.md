@@ -1,6 +1,6 @@
 # MyCargonaut_KMS
 
-Knowledge Management System for MyCargonaut - A full-stack application with Spring Boot backend and Angular frontend.
+MyCargonaut - A platform for sharing transport capacity. Users can offer or request transport services for goods and cargo. Full-stack application with Spring Boot backend and Angular frontend.
 
 ## Project Structure
 
@@ -12,13 +12,14 @@ MyCargonaut_KMS/
 │   ├── src/
 │   ├── pom.xml
 │   └── README.md           # Backend-specific documentation
-├── FRONTEND/               # Angular (Node.js 18+)
+├── FRONTEND/               # Angular 19 (Node.js 18+)
 │   ├── src/
 │   ├── package.json
 │   └── README.md           # Frontend-specific documentation
-|── DESIGN/                 # Angular (Node.js 18+)
+├── DESIGN/                 # UI/UX Design Assets
 │   ├── mockups/            # HTML/CSS mockups
 │   └── wireframes/         # High-fidelity wireframe sketches
+├── UML_Diagrams/           # System architecture diagrams
 ├── docker-compose.yml      # PostgreSQL database setup
 └── README.md               # This file
 ```
@@ -29,7 +30,9 @@ Before development, we established the visual structure of the application. You 
 - **Wireframes**: Low-fidelity sketches outlining the layout.
   - 📂 Location: [`DESIGN/wireframes/`](./DESIGN/wireframes/)
 - **Mockups**: High-fidelity static designs using HTML & CSS.
-  - 📂 Location: [`DESIGN/mockup/`](./DESIGN/mockup/)
+  - 📂 Location: [`DESIGN/mockups/`](./DESIGN/mockups/)
+- **UML Diagrams**: System architecture and class diagrams.
+  - 📂 Location: [`UML_Diagrams/`](./UML_Diagrams/)
 
 
 ## Prerequisites
@@ -59,15 +62,18 @@ Start the PostgreSQL database using Docker Compose:
 docker-compose up -d
 ```
 
-This will start PostgreSQL on `localhost:5432` with:
+This will start PostgreSQL on `localhost:5433` (mapped from container port 5432) with:
 - Database: `mycargonaut`
 - Username: `admin`
 - Password: `password`
+- Container name: `mycargonaut_db`
 
 Verify the database is running:
 ```bash
 docker ps
 ```
+
+You should see `mycargonaut_db` container running.
 
 ### 3️⃣ Set Up the Backend
 
@@ -119,21 +125,38 @@ The frontend will start on **http://localhost:4200**
 
 ## Quick Start Summary
 
-After cloning, run these commands in order:
+After cloning, you need **3 separate terminals** to run the application:
 
+### Terminal 1: Database (Docker)
 ```bash
-# Terminal 1: Start database
+# From project root
 docker-compose up -d
 
-# Terminal 2: Start backend
+# Verify it's running
+docker ps
+```
+
+### Terminal 2: Backend (Spring Boot)
+```bash
+# From project root
 cd BACKEND
+mvn clean install
 mvn spring-boot:run
 
-# Terminal 3: Start frontend
+# Backend will start on http://localhost:8080
+```
+
+### Terminal 3: Frontend (Angular)
+```bash
+# From project root
 cd FRONTEND
 npm install
 npm start
+
+# Frontend will start on http://localhost:4200
 ```
+
+**Access the application**: Open your browser and navigate to **http://localhost:4200**
 
 ## Development Workflow
 
@@ -158,9 +181,14 @@ npm start
 - **Build Tool**: Maven
 
 ### Frontend
-- **Framework**: Angular
+- **Framework**: Angular 19
 - **Language**: TypeScript
 - **Package Manager**: npm
+- **Key Features**: 
+  - Real-time GPS tracking
+  - Payment processing with 15% platform commission
+  - Rating & review system
+  - Transport offer/request search with filters
 
 ## Common Issues & Solutions
 
@@ -169,8 +197,14 @@ npm start
 - Restart database: `docker-compose restart`
 
 ### Backend Port Already in Use (8080)
-- Find and kill the process: `lsof -i :8080` (Mac/Linux) or `netstat -ano | findstr :8080` (Windows)
+- Windows: `netstat -ano | findstr :8080` then `taskkill /F /PID <PID>`
+- Mac/Linux: `lsof -i :8080` then `kill -9 <PID>`
 - Or change port in `BACKEND/src/main/resources/application.properties`
+
+### Database Port Already in Use (5433)
+- Stop the container: `docker-compose down`
+- Change port in `docker-compose.yml` (modify `5433:5432` line)
+- Update `BACKEND/src/main/resources/application.properties` accordingly
 
 ### Frontend Port Already in Use (4200)
 - Angular will automatically suggest port 4201
