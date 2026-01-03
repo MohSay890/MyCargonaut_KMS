@@ -114,7 +114,7 @@ npm install
 
 Start the Angular development server:
 ```bash
-npm start
+ng serve
 ```
 
 The frontend will start on **http://localhost:4200**
