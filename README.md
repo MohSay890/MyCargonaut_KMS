@@ -151,7 +151,7 @@ mvn spring-boot:run
 # From project root
 cd FRONTEND
 npm install
-npm start
+ng serve
 
 # Frontend will start on http://localhost:4200
 ```
