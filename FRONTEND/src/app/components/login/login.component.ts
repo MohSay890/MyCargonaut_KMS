@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../services/auth.service';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-login',
@@ -20,7 +20,7 @@ export class LoginComponent {
   loading: boolean = false;
 
   constructor(
-    private authService: AuthService,
+    private http: HttpClient,
     private router: Router
   ) {}
 
@@ -34,16 +34,45 @@ export class LoginComponent {
       return;
     }
 
-    const success = this.authService.login(this.email, this.password);
-
-    this.loading = false;
-
-    if (success) {
-      console.log('Login erfolgreich');
-      this.router.navigate(['/dashboard']);
-    } else {
-      this.error = 'Ungültige E-Mail oder Passwort.';
-    }
+    // Call backend API
+    this.http.post<{
+      token: string;
+      id: number;
+      email: string;
+      vorname: string;
+      nachname: string;
+      handynummer?: string;
+      stadt?: string;
+      plz?: string;
+      registriert?: string;
+    }>('http://localhost:8080/api/auth/login', {
+      primaryEmail: this.email,
+      password: this.password
+    }).subscribe({
+      next: (response) => {
+        this.loading = false;
+        console.log('Login erfolgreich:', response);
+        // Store token
+        localStorage.setItem('authToken', response.token);
+        // Store full user data from backend
+        localStorage.setItem('currentUser', JSON.stringify({
+          id: response.id,
+          email: response.email,
+          vorname: response.vorname,
+          nachname: response.nachname,
+          handynummer: response.handynummer,
+          stadt: response.stadt,
+          plz: response.plz,
+          registriert: response.registriert
+        }));
+        this.router.navigate(['/dashboard']);
+      },
+      error: (err) => {
+        this.loading = false;
+        this.error = typeof err.error === 'string' ? err.error : (err.message || 'Login fehlgeschlagen.');
+        console.error('Login error:', err);
+      }
+    });
   }
 
   onForgotPassword(): void {

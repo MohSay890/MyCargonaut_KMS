@@ -1,0 +1,212 @@
+<div class="modal-backdrop" *ngIf="isOpen" (click)="onBackdropClick($event)">
+  <div class="modal-container">
+    <!-- Header -->
+    <div class="modal-header">
+      <div class="header-content">
+        <div class="payment-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+            <line x1="1" y1="10" x2="23" y2="10"></line>
+          </svg>
+        </div>
+        <h2>Sichere Zahlung</h2>
+      </div>
+      <button class="close-btn" (click)="onClose()" [disabled]="isProcessing">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Amount Display -->
+    <div class="amount-display">
+      <div class="amount-breakdown">
+        <div class="breakdown-row">
+          <span class="breakdown-label">Transportpreis</span>
+          <span class="breakdown-value">{{ amount | number:'1.2-2' }} €</span>
+        </div>
+        <div class="breakdown-row fee-row">
+          <span class="breakdown-label">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            Plattformgebühr (15%)
+          </span>
+          <span class="breakdown-value">-{{ getPlatformFee() | number:'1.2-2' }} €</span>
+        </div>
+        <div class="breakdown-divider"></div>
+        <div class="breakdown-row total-row">
+          <span class="breakdown-label">Fahrer erhält</span>
+          <span class="breakdown-value driver-amount">{{ getDriverAmount() | number:'1.2-2' }} €</span>
+        </div>
+      </div>
+      <div class="payment-total">
+        <span class="amount-label">Du zahlst</span>
+        <span class="amount-value">{{ amount | number:'1.2-2' }} €</span>
+      </div>
+    </div>
+
+    <!-- Route Info -->
+    <div class="route-info" *ngIf="route">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="10" r="3"></circle>
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"></path>
+      </svg>
+      <span>{{ route }}</span>
+    </div>
+
+    <!-- Credit Card Preview -->
+    <div class="card-preview" [class.visa]="cardBrand === 'visa'" [class.mastercard]="cardBrand === 'mastercard'" [class.amex]="cardBrand === 'amex'">
+      <div class="card-chip"></div>
+      <div class="card-number">{{ formattedCardNumber || '**** **** **** ****' }}</div>
+      <div class="card-details">
+        <div class="card-holder">
+          <span class="label">Karteninhaber</span>
+          <span class="value">{{ paymentForm.get('cardHolder')?.value || 'IHR NAME' }}</span>
+        </div>
+        <div class="card-expiry">
+          <span class="label">Gültig bis</span>
+          <span class="value">{{ paymentForm.get('expiryDate')?.value || 'MM/YY' }}</span>
+        </div>
+      </div>
+      <div class="card-brand" *ngIf="cardBrand">{{ getCardBrandIcon() }}</div>
+    </div>
+
+    <!-- Payment Form -->
+    <form [formGroup]="paymentForm" (ngSubmit)="onSubmit()" class="payment-form">
+      <!-- Error Message -->
+      <div class="error-alert" *ngIf="errorMessage">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span>{{ errorMessage }}</span>
+      </div>
+
+      <!-- Card Number -->
+      <div class="form-group">
+        <label for="cardNumber">Kartennummer</label>
+        <div class="input-wrapper" [class.invalid]="isFieldInvalid('cardNumber')">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+            <line x1="1" y1="10" x2="23" y2="10"></line>
+          </svg>
+          <input
+            type="text"
+            id="cardNumber"
+            formControlName="cardNumber"
+            (input)="formatCardNumberInput($event)"
+            placeholder="1234 5678 9012 3456"
+            maxlength="19"
+            autocomplete="cc-number"
+            [readonly]="isProcessing"
+          >
+        </div>
+        <span class="error-text" *ngIf="isFieldInvalid('cardNumber')">{{ getFieldError('cardNumber') }}</span>
+      </div>
+
+      <!-- Card Holder -->
+      <div class="form-group">
+        <label for="cardHolder">Karteninhaber</label>
+        <div class="input-wrapper" [class.invalid]="isFieldInvalid('cardHolder')">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <input
+            type="text"
+            id="cardHolder"
+            formControlName="cardHolder"
+            placeholder="Max Mustermann"
+            autocomplete="cc-name"
+            [readonly]="isProcessing"
+          >
+        </div>
+        <span class="error-text" *ngIf="isFieldInvalid('cardHolder')">{{ getFieldError('cardHolder') }}</span>
+      </div>
+
+      <!-- Expiry and CVV Row -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="expiryDate">Gültig bis</label>
+          <div class="input-wrapper" [class.invalid]="isFieldInvalid('expiryDate')">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <input
+              type="text"
+              id="expiryDate"
+              formControlName="expiryDate"
+              (input)="formatExpiryInput($event)"
+              placeholder="MM/YY"
+              maxlength="5"
+              autocomplete="cc-exp"
+              [readonly]="isProcessing"
+            >
+          </div>
+          <span class="error-text" *ngIf="isFieldInvalid('expiryDate')">{{ getFieldError('expiryDate') }}</span>
+        </div>
+
+        <div class="form-group">
+          <label for="cvv">CVV</label>
+          <div class="input-wrapper" [class.invalid]="isFieldInvalid('cvv')">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <input
+              type="text"
+              id="cvv"
+              formControlName="cvv"
+              (input)="formatCVVInput($event)"
+              placeholder="123"
+              [maxlength]="cardBrand === 'amex' ? 4 : 3"
+              autocomplete="cc-csc"
+              [readonly]="isProcessing"
+            >
+          </div>
+          <span class="error-text" *ngIf="isFieldInvalid('cvv')">{{ getFieldError('cvv') }}</span>
+        </div>
+      </div>
+
+      <!-- Save Card Checkbox -->
+      <div class="checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="saveCard" [disabled]="isProcessing">
+          <span class="checkmark"></span>
+          <span>Karte für zukünftige Zahlungen speichern</span>
+        </label>
+      </div>
+
+      <!-- Security Notice -->
+      <div class="security-notice">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          <path d="M9 12l2 2 4-4"></path>
+        </svg>
+        <span>Ihre Zahlungsdaten werden sicher und verschlüsselt übertragen (Demo-Modus)</span>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="onClose()" [disabled]="isProcessing">
+          Abbrechen
+        </button>
+        <button type="submit" class="btn-pay" [disabled]="isProcessing || paymentForm.invalid">
+          <span *ngIf="!isProcessing">{{ amount | number:'1.2-2' }} € bezahlen</span>
+          <span *ngIf="isProcessing" class="processing">
+            <span class="spinner"></span>
+            Wird verarbeitet...
+          </span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,154 @@
+<div class="create-request-page">
+  <div class="container">
+    <div class="header">
+      <h1>📦 Transportanfrage erstellen</h1>
+      <p class="subtitle">Beschreibe, was du transportieren lassen möchtest</p>
+    </div>
+
+    <div class="form-container">
+      <form (ngSubmit)="onSubmit()" #requestForm="ngForm">
+        
+        <!-- Error/Success Messages -->
+        <div class="alert alert-error" *ngIf="error">
+          ⚠️ {{ error }}
+        </div>
+        <div class="alert alert-success" *ngIf="success">
+          ✅ {{ success }}
+        </div>
+
+        <!-- Route Section -->
+        <div class="form-section">
+          <h2>🗺️ Route</h2>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="startOrt">Startort *</label>
+              <input 
+                type="text" 
+                id="startOrt" 
+                name="startOrt"
+                [(ngModel)]="startOrt"
+                placeholder="z.B. Berlin"
+                required>
+            </div>
+            <div class="form-group">
+              <label for="zielOrt">Zielort *</label>
+              <input 
+                type="text" 
+                id="zielOrt" 
+                name="zielOrt"
+                [(ngModel)]="zielOrt"
+                placeholder="z.B. München"
+                required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="datum">Datum *</label>
+              <input 
+                type="date" 
+                id="datum" 
+                name="datum"
+                [(ngModel)]="datum"
+                [min]="getTodayDate()"
+                required>
+            </div>
+            <div class="form-group">
+              <label for="uhrzeit">Uhrzeit (optional)</label>
+              <input 
+                type="time" 
+                id="uhrzeit" 
+                name="uhrzeit"
+                [(ngModel)]="uhrzeit">
+            </div>
+          </div>
+        </div>
+
+        <!-- Transport Details Section -->
+        <div class="form-section">
+          <h2>📦 Transportdetails</h2>
+          <div class="form-group">
+            <label for="kategorie">Kategorie</label>
+            <select 
+              id="kategorie" 
+              name="kategorie"
+              [(ngModel)]="kategorie">
+              <option value="">Bitte wählen</option>
+              <option value="möbel">Möbel</option>
+              <option value="pakete">Pakete</option>
+              <option value="umzug">Umzug</option>
+              <option value="sonstiges">Sonstiges</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="gewicht">Gewicht (kg, optional)</label>
+              <input 
+                type="number" 
+                id="gewicht" 
+                name="gewicht"
+                [(ngModel)]="gewicht"
+                min="0"
+                placeholder="z.B. 50">
+            </div>
+            <div class="form-group">
+              <label for="abmessungen">Abmessungen (optional)</label>
+              <input 
+                type="text" 
+                id="abmessungen" 
+                name="abmessungen"
+                [(ngModel)]="abmessungen"
+                placeholder="z.B. 120x80x60 cm">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="beschreibung">Beschreibung (optional)</label>
+            <textarea 
+              id="beschreibung" 
+              name="beschreibung"
+              [(ngModel)]="beschreibung"
+              rows="4"
+              placeholder="Beschreibe, was transportiert werden soll..."></textarea>
+          </div>
+        </div>
+
+        <!-- Price Section -->
+        <div class="form-section">
+          <h2>💰 Preis</h2>
+          <div class="form-group">
+            <label for="maxPreis">Maximaler Preis (€) *</label>
+            <input 
+              type="number" 
+              id="maxPreis" 
+              name="maxPreis"
+              [(ngModel)]="maxPreis"
+              min="1"
+              placeholder="z.B. 150"
+              required>
+            <small class="form-hint">Dieser Preis ist dein Maximum, das du bereit bist zu zahlen</small>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button 
+            type="button" 
+            class="btn btn-secondary"
+            (click)="onCancel()"
+            [disabled]="loading">
+            Abbrechen
+          </button>
+          <button 
+            type="submit" 
+            class="btn btn-primary"
+            [disabled]="loading || !requestForm.valid">
+            <span *ngIf="!loading">Anfrage erstellen</span>
+            <span *ngIf="loading">Wird erstellt...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

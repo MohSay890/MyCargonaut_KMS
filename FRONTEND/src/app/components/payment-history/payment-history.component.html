@@ -1,0 +1,249 @@
+<div class="payment-history-page">
+  <app-sidebar></app-sidebar>
+
+  <main class="main-content">
+    <div class="container">
+      <!-- Header -->
+      <div class="page-header">
+        <div class="header-content">
+          <button class="btn-back" (click)="onBackToDashboard()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+          </button>
+          <div class="header-text">
+            <h1>Zahlungsverlauf</h1>
+            <p>Übersicht aller deiner Transaktionen</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon total">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Gesamtausgaben</span>
+            <strong class="stat-value">{{ formatAmount(totalSpent) }} €</strong>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon completed">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Abgeschlossen</span>
+            <strong class="stat-value">{{ completedCount }}</strong>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon refunded">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="1 4 1 10 7 10"></polyline>
+              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Erstattet</span>
+            <strong class="stat-value">{{ refundedCount }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div class="loading-state" *ngIf="isLoading">
+        <div class="spinner"></div>
+        <p>Transaktionen werden geladen...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="!isLoading && transactions.length === 0">
+        <div class="empty-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+            <line x1="1" y1="10" x2="23" y2="10"></line>
+          </svg>
+        </div>
+        <h3>Keine Transaktionen</h3>
+        <p>Du hast noch keine Zahlungen getätigt.</p>
+        <a routerLink="/search" class="btn-primary">Transport suchen</a>
+      </div>
+
+      <!-- Transactions List -->
+      <div class="transactions-section" *ngIf="!isLoading && transactions.length > 0">
+        <h2>Alle Transaktionen</h2>
+
+        <div class="transactions-list">
+          <div class="transaction-card" *ngFor="let transaction of transactions" (click)="onViewDetails(transaction)">
+            <div class="transaction-icon" [ngClass]="getStatusClass(transaction.status)">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                <line x1="1" y1="10" x2="23" y2="10"></line>
+              </svg>
+            </div>
+
+            <div class="transaction-info">
+              <div class="transaction-header">
+                <h4>{{ transaction.route }}</h4>
+                <span class="transaction-amount" [ngClass]="transaction.status === 'refunded' ? 'refunded' : ''">
+                  {{ transaction.status === 'refunded' ? '-' : '' }}{{ formatAmount(transaction.amount) }} €
+                </span>
+              </div>
+              <div class="transaction-details">
+                <span class="driver-name">{{ transaction.driverName }}</span>
+                <span class="separator">•</span>
+                <span class="date">{{ formatDate(transaction.createdAt) }}</span>
+                <span class="separator">•</span>
+                <span class="card-info">{{ getCardBrandIcon(transaction.paymentMethod.cardBrand) }} •••• {{ transaction.paymentMethod.cardNumber }}</span>
+              </div>
+              <div class="transaction-footer">
+                <span class="status-badge" [ngClass]="getStatusClass(transaction.status)">
+                  {{ getStatusText(transaction.status) }}
+                </span>
+                <span class="transaction-id">{{ transaction.id }}</span>
+              </div>
+            </div>
+
+            <div class="transaction-action">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Transaction Detail Modal -->
+<div class="modal-backdrop" *ngIf="showDetailModal" (click)="onCloseDetailModal()">
+  <div class="modal-container detail-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Transaktionsdetails</h2>
+      <button class="btn-close" (click)="onCloseDetailModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body" *ngIf="selectedTransaction">
+      <div class="detail-amount">
+        <span class="amount-label">Betrag</span>
+        <span class="amount-value" [ngClass]="selectedTransaction.status === 'refunded' ? 'refunded' : ''">
+          {{ selectedTransaction.status === 'refunded' ? '-' : '' }}{{ formatAmount(selectedTransaction.amount) }} €
+        </span>
+      </div>
+
+      <div class="detail-status">
+        <span class="status-badge large" [ngClass]="getStatusClass(selectedTransaction.status)">
+          {{ getStatusText(selectedTransaction.status) }}
+        </span>
+      </div>
+
+      <div class="detail-section">
+        <h4>Fahrtdetails</h4>
+        <div class="detail-row">
+          <span class="label">Route</span>
+          <span class="value">{{ selectedTransaction.route }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Fahrer</span>
+          <span class="value">{{ selectedTransaction.driverName }}</span>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h4>Zahlungsdetails</h4>
+        <div class="detail-row">
+          <span class="label">Zahlungsmethode</span>
+          <span class="value">{{ getCardBrandIcon(selectedTransaction.paymentMethod.cardBrand) }} •••• {{ selectedTransaction.paymentMethod.cardNumber }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Karteninhaber</span>
+          <span class="value">{{ selectedTransaction.paymentMethod.cardHolder }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Datum</span>
+          <span class="value">{{ formatDate(selectedTransaction.createdAt) }} um {{ formatTime(selectedTransaction.createdAt) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Transaktions-ID</span>
+          <span class="value code">{{ selectedTransaction.id }}</span>
+        </div>
+      </div>
+
+      <div class="detail-section" *ngIf="selectedTransaction.status === 'refunded' && selectedTransaction.refundedAt">
+        <h4>Rückerstattung</h4>
+        <div class="detail-row">
+          <span class="label">Erstattet am</span>
+          <span class="value">{{ formatDate(selectedTransaction.refundedAt) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button
+        class="btn-refund"
+        *ngIf="selectedTransaction?.status === 'completed'"
+        (click)="onRequestRefund(selectedTransaction!)">
+        Rückerstattung anfragen
+      </button>
+      <button class="btn-close-modal" (click)="onCloseDetailModal()">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Refund Confirmation Modal -->
+<div class="modal-backdrop" *ngIf="showRefundModal" (click)="onCloseRefundModal()">
+  <div class="modal-container refund-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header warning">
+      <div class="header-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
+      <h2>Rückerstattung anfragen</h2>
+    </div>
+
+    <div class="modal-body">
+      <p class="refund-message" *ngIf="!refundMessage">
+        Möchtest du wirklich eine Rückerstattung für <strong>{{ formatAmount(selectedTransaction?.amount || 0) }} €</strong> anfragen?
+        Der Betrag wird innerhalb von 3-5 Werktagen auf deine Karte zurückerstattet.
+      </p>
+
+      <div class="refund-result" *ngIf="refundMessage" [ngClass]="isProcessingRefund ? '' : 'success'">
+        <svg *ngIf="!isProcessingRefund" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <p>{{ refundMessage }}</p>
+      </div>
+    </div>
+
+    <div class="modal-footer" *ngIf="!refundMessage">
+      <button class="btn-cancel" (click)="onCloseRefundModal()" [disabled]="isProcessingRefund">Abbrechen</button>
+      <button class="btn-confirm-refund" (click)="onConfirmRefund()" [disabled]="isProcessingRefund">
+        <span *ngIf="!isProcessingRefund">Ja, Rückerstattung anfragen</span>
+        <span *ngIf="isProcessingRefund" class="processing">
+          <span class="spinner-small"></span>
+          Wird verarbeitet...
+        </span>
+      </button>
+    </div>
+  </div>
+</div>

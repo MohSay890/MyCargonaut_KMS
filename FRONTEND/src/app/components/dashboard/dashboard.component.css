@@ -51,6 +51,14 @@ app-sidebar {
   margin: 0;
 }
 
+/* Loading State */
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
 /* Stats Grid */
 .stats-grid {
   display: grid;

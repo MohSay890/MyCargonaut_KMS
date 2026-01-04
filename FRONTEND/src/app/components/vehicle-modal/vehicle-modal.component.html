@@ -5,6 +5,12 @@
       <button class="btn-close" (click)="onClose()">✕</button>
     </div>
 
+    <!-- Error Message -->
+    <div class="alert alert-error" *ngIf="errorMessage">
+      <span class="alert-icon">⚠</span>
+      {{ errorMessage }}
+    </div>
+
     <form class="modal-body" (ngSubmit)="onSubmit()">
       <!-- Brand & Model -->
       <div class="form-row">

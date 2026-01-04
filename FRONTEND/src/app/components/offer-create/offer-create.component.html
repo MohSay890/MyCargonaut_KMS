@@ -85,6 +85,16 @@
               </div>
             </div>
 
+            <div class="form-group">
+              <label class="form-label">Kategorie <span class="required">*</span></label>
+              <select [(ngModel)]="formData.category" class="form-input">
+                <option value="">Bitte wählen</option>
+                <option value="möbel">Möbel</option>
+                <option value="pakete">Pakete</option>
+                <option value="umzug">Umzug</option>
+              </select>
+            </div>
+
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Geschätzte Distanz</label>
@@ -130,22 +140,32 @@
 
             <div class="form-group">
               <label class="form-label">Wähle dein Fahrzeug <span class="required">*</span></label>
-              <div class="vehicles-grid">
+
+              <!-- Empty state when no vehicles -->
+              <div class="no-vehicles-message" *ngIf="vehicles.length === 0">
+                <div class="no-vehicles-icon">🚗</div>
+                <p>Du hast noch keine aktiven Fahrzeuge.</p>
+                <p class="hint">Füge zuerst ein Fahrzeug hinzu, um ein Angebot zu erstellen.</p>
+                <a routerLink="/vehicle-editor" class="btn-add-vehicle-primary">+ Fahrzeug hinzufügen</a>
+              </div>
+
+              <!-- Vehicles grid -->
+              <div class="vehicles-grid" *ngIf="vehicles.length > 0">
                 <div
                   *ngFor="let vehicle of vehicles"
                   class="vehicle-card"
-                  [class.selected]="isVehicleSelected(vehicle.id)"
-                  (click)="selectVehicle(vehicle)">
-                  <div class="vehicle-icon">🚐</div>
-                  <div class="vehicle-info">
-                    <strong>{{ vehicle.type }}</strong>
-                    <p>{{ vehicle.model }}</p>
-                    <span class="vehicle-plate">{{ vehicle.plate }}</span>
-                  </div>
-                  <div class="vehicle-check" *ngIf="isVehicleSelected(vehicle.id)">✓</div>
+                [class.selected]="isVehicleSelected((vehicle.id || 0).toString())"
+                (click)="selectVehicle(vehicle)">
+                <div class="vehicle-icon">{{ vehicle.type === 'PKW' ? '🚗' : vehicle.type === 'Transporter' ? '🚐' : vehicle.type === 'Kastenwagen' ? '📦' : vehicle.type === 'LKW' ? '🚛' : '🚚' }}</div>
+                <div class="vehicle-info">
+                  <strong>{{ vehicle.type }}</strong>
+                  <p>{{ vehicle.name }}</p>
+                  <span class="vehicle-plate">{{ vehicle.licensePlate }}</span>
+                </div>
+                <div class="vehicle-check" *ngIf="isVehicleSelected((vehicle.id || 0).toString())">✓</div>
                 </div>
               </div>
-              <a routerLink="/vehicle-editor" class="btn-add-vehicle">+ Neues Fahrzeug hinzufügen</a>
+              <a routerLink="/vehicle-editor" class="btn-add-vehicle" *ngIf="vehicles.length > 0">+ Neues Fahrzeug hinzufügen</a>
             </div>
 
             <div class="form-group">
@@ -232,6 +252,10 @@
                 <span class="summary-label">Datum & Zeit:</span>
                 <strong>{{ formatDateTime() }}</strong>
               </div>
+              <div class="summary-item" *ngIf="formData.category">
+                <span class="summary-label">Kategorie:</span>
+                <strong>{{ getCategoryLabel() }}</strong>
+              </div>
               <div class="summary-item" *ngIf="formData.distance">
                 <span class="summary-label">Distanz:</span>
                 <strong>{{ formData.distance }}</strong>
@@ -268,7 +292,7 @@
                 <span class="summary-label">Preis:</span>
                 <strong class="price-highlight">{{ formData.price }} €</strong>
               </div>
-              <div class="summary-item" *ngIf="formData.description">
+              <div class="summary-item description-item" *ngIf="formData.description">
                 <span class="summary-label">Beschreibung:</span>
                 <p class="summary-description">{{ formData.description }}</p>
               </div>
@@ -324,6 +348,28 @@
     message="Dein Transport-Angebot wurde erfolgreich erstellt und ist jetzt für andere Nutzer sichtbar."
     confirmText="Zu Meinen Fahrten"
     (confirm)="onSuccessConfirm()">
+  </app-confirmation-modal>
+
+  <!-- No Vehicle Modal -->
+  <app-confirmation-modal
+    [isOpen]="showNoVehicleModal"
+    [isSuccess]="false"
+    [showCancelButton]="false"
+    title="Kein Fahrzeug verfügbar 🚗"
+    message="Du musst mindestens ein aktives Fahrzeug hinzufügen, um ein Transport-Angebot zu erstellen."
+    confirmText="Fahrzeug hinzufügen"
+    (confirm)="onNoVehicleModalConfirm()">
+  </app-confirmation-modal>
+
+  <!-- Validation Modal -->
+  <app-confirmation-modal
+    [isOpen]="showValidationModal"
+    [isSuccess]="false"
+    [showCancelButton]="false"
+    title="Fehlende Angaben ⚠️"
+    [message]="validationMessage"
+    confirmText="OK"
+    (confirm)="onValidationModalClose()">
   </app-confirmation-modal>
 
 </div>

@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { ConfirmationModalComponent } from '../confirmation-modal/confirmation-modal.component';
-import { AuthService } from '../../services/auth.service';
+import { UserProfileService } from '../../services/user-profile.service';
+
+const DEFAULT_AVATAR = 'https://i.pravatar.cc/300?img=68';
 
 @Component({
   selector: 'app-edit-profile',
@@ -15,8 +17,13 @@ import { AuthService } from '../../services/auth.service';
 })
 export class EditProfileComponent implements OnInit {
 
+  // File input reference
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+
   // Success Modal
   showSuccessModal = false;
+  isLoading = true;
+  isSaving = false;
 
   formData = {
     firstName: '',
@@ -30,7 +37,7 @@ export class EditProfileComponent implements OnInit {
     country: 'Deutschland',
     languages: '',
     bio: '',
-    profileImage: 'https://i.pravatar.cc/300?img=12',
+    profileImage: DEFAULT_AVATAR,
     profilePublic: true,
     phoneVisible: true,
     reviewsVisible: true,
@@ -39,41 +46,100 @@ export class EditProfileComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private authService: AuthService
+    private userProfileService: UserProfileService
   ) {}
 
   ngOnInit(): void {
-    // Load current user data
-    const currentUser = this.authService.getCurrentUser();
-    if (currentUser) {
-      // Split name into first and last name
-      const nameParts = currentUser.name.split(' ');
-      this.formData.firstName = nameParts[0] || '';
-      this.formData.lastName = nameParts.slice(1).join(' ') || '';
+    this.loadUserProfile();
+  }
 
-      this.formData.email = currentUser.email;
-      this.formData.profileImage = currentUser.profileImage || 'https://i.pravatar.cc/300?img=12';
-
-      // Load other fields with default data
-      this.formData.phone = '+49 123 456789';
-      this.formData.city = 'Berlin';
-      this.formData.zipCode = '10115';
-      this.formData.country = 'Deutschland';
-      this.formData.languages = 'Deutsch, Englisch';
-      this.formData.bio = 'Hallo! Ich bin Max und fahre regelmäßig zwischen verschiedenen Städten in Deutschland. Ich biete zuverlässigen Transport für verschiedene Gegenstände an.';
+  loadUserProfile(): void {
+    const userStr = localStorage.getItem('currentUser');
+    if (!userStr) {
+      this.isLoading = false;
+      return;
     }
+
+    const currentUser = JSON.parse(userStr);
+    const email = currentUser.email;
+
+    // Load full profile from backend
+    this.userProfileService.getUserProfile(email).subscribe({
+      next: (profile) => {
+        this.formData.firstName = profile.vorname || '';
+        this.formData.lastName = profile.nachname || '';
+        this.formData.email = profile.email;
+        this.formData.phone = profile.handynummer || '';
+        this.formData.city = profile.stadt || '';
+        this.formData.zipCode = profile.plz || '';
+        this.formData.languages = profile.sprachen || 'Deutsch';
+        this.formData.bio = profile.bio || '';
+        this.formData.profileImage = profile.profilbild || DEFAULT_AVATAR;
+        
+        // Set verification flags
+        this.formData.emailVerified = profile.ausweisVerifiziert;
+        this.formData.phoneVerified = profile.telefonVerifiziert;
+        
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading profile:', err);
+        this.isLoading = false;
+        // Fall back to localStorage data
+        this.loadFromLocalStorage(currentUser);
+      }
+    });
+  }
+
+  loadFromLocalStorage(currentUser: any): void {
+    const nameParts = currentUser.name?.split(' ') || [];
+    this.formData.firstName = nameParts[0] || '';
+    this.formData.lastName = nameParts.slice(1).join(' ') || '';
+    this.formData.email = currentUser.email || '';
+    this.formData.profileImage = currentUser.avatar || DEFAULT_AVATAR;
+    this.formData.phone = currentUser.phone || '';
+    this.formData.city = currentUser.city || '';
+    this.formData.zipCode = currentUser.zipCode || '';
+    this.formData.languages = currentUser.languages || 'Deutsch';
+    this.formData.bio = currentUser.bio || '';
   }
 
   onUploadImage(): void {
-    console.log('Upload image clicked');
-    // TODO: Implement image upload
-    alert('Bild hochladen - Diese Funktion wird noch implementiert');
+    // Trigger the hidden file input
+    this.fileInput.nativeElement.click();
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Bitte wähle eine Bilddatei aus (JPG, PNG, GIF)');
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Das Bild darf maximal 5MB groß sein');
+        return;
+      }
+
+      // Read file as base64 data URL
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.formData.profileImage = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    }
   }
 
   onRemoveImage(): void {
     if (confirm('Möchtest du dein Profilbild wirklich löschen?')) {
-      this.formData.profileImage = '';
-      console.log('Profile image removed');
+      // Set to default avatar instead of empty string
+      this.formData.profileImage = DEFAULT_AVATAR;
+      console.log('Profile image reset to default');
     }
   }
 
@@ -82,24 +148,51 @@ export class EditProfileComponent implements OnInit {
   }
 
   onSaveProfile(): void {
+    if (this.isSaving) return;
+    
     console.log('Save profile:', this.formData);
+    this.isSaving = true;
 
-    // Combine first and last name
-    const fullName = `${this.formData.firstName} ${this.formData.lastName}`.trim();
+    // Prepare update request
+    const updateRequest = {
+      vorname: this.formData.firstName,
+      nachname: this.formData.lastName,
+      handynummer: this.formData.phone,
+      stadt: this.formData.city,
+      plz: this.formData.zipCode,
+      bio: this.formData.bio,
+      profilbild: this.formData.profileImage || DEFAULT_AVATAR,
+      sprachen: this.formData.languages
+    };
 
-    // Update user in AuthService
-    const currentUser = this.authService.getCurrentUser();
-    if (currentUser) {
-      currentUser.name = fullName;
-      currentUser.email = this.formData.email;
-      currentUser.profileImage = this.formData.profileImage;
+    // Send to backend
+    this.userProfileService.updateUserProfile(this.formData.email, updateRequest).subscribe({
+      next: (updated) => {
+        console.log('Profile updated successfully:', updated);
+        
+        // Update localStorage
+        const fullName = `${updated.vorname} ${updated.nachname}`.trim();
+        const updatedUser = {
+          name: fullName,
+          email: updated.email,
+          avatar: updated.profilbild || DEFAULT_AVATAR,
+          phone: updated.handynummer,
+          city: updated.stadt,
+          zipCode: updated.plz,
+          languages: updated.sprachen,
+          bio: updated.bio
+        };
+        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
 
-      // Update in localStorage
-      localStorage.setItem('currentUser', JSON.stringify(currentUser));
-    }
-
-    // Show success modal
-    this.showSuccessModal = true;
+        this.isSaving = false;
+        this.showSuccessModal = true;
+      },
+      error: (err) => {
+        console.error('Error updating profile:', err);
+        this.isSaving = false;
+        alert('Fehler beim Speichern des Profils. Bitte versuche es erneut.');
+      }
+    });
   }
 
   onSuccessConfirm(): void {

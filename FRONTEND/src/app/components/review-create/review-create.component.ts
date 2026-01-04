@@ -1,16 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { ConfirmationModalComponent } from '../confirmation-modal/confirmation-modal.component';
 import { ReviewService } from '../../services/review.service';
-import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-review-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, SidebarComponent, ConfirmationModalComponent],
+  imports: [CommonModule, FormsModule, SidebarComponent, ConfirmationModalComponent],
   templateUrl: './review-create.component.html',
   styleUrls: ['./review-create.component.css']
 })
@@ -50,8 +49,7 @@ export class ReviewCreateComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private reviewService: ReviewService,
-    private authService: AuthService
+    private reviewService: ReviewService
   ) {}
 
   ngOnInit(): void {
@@ -121,7 +119,8 @@ export class ReviewCreateComponent implements OnInit {
       return;
     }
 
-    const currentUser = this.authService.getCurrentUser();
+    const userStr = localStorage.getItem('currentUser');
+    const currentUser = userStr ? JSON.parse(userStr) : null;
     const reviewerName = currentUser ? currentUser.name : 'Anonymer Nutzer';
     const reviewerAvatar = currentUser?.avatar || 'https://i.pravatar.cc/150?img=1';
 

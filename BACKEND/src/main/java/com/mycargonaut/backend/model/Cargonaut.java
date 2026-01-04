@@ -20,6 +20,22 @@ public class Cargonaut {
     private String stadt;
     private String plz;
 
+    // Password reset fields
+    private String resetToken;
+    private LocalDate resetTokenExpiry;
+    
+    // Profile fields
+    @Column(columnDefinition = "TEXT")
+    private String bio;              // About me section
+    private LocalDate registriert;   // Registration date (member since)
+    private boolean ausweisVerifiziert = false;
+    private boolean fuehrerscheinVerifiziert = false;
+    private boolean telefonVerifiziert = false;
+    
+    @Column(columnDefinition = "TEXT")
+    private String profilbild;       // Avatar/profile picture URL or base64
+    private String sprachen;         // Languages (e.g., "Deutsch, Englisch")
+
     @OneToMany(mappedBy = "besitzer")
     private List<Fahrzeug> fahrzeuge;
 }

@@ -1,0 +1,79 @@
+<div class="payments-container">
+  <app-sidebar></app-sidebar>
+
+  <div class="main-content">
+    <div class="payments-header">
+      <h1>Zahlungsverlauf</h1>
+      <p class="subtitle">Übersicht aller deiner Transaktionen</p>
+    </div>
+
+    <!-- Filter -->
+    <div class="filter-section">
+      <label for="statusFilter">Status filtern:</label>
+      <select id="statusFilter" [(ngModel)]="selectedStatus" class="filter-select">
+        <option value="all">Alle</option>
+        <option value="completed">Abgeschlossen</option>
+        <option value="pending">Ausstehend</option>
+        <option value="processing">In Bearbeitung</option>
+        <option value="failed">Fehlgeschlagen</option>
+        <option value="refunded">Erstattet</option>
+      </select>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Lade Zahlungen...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && filteredPayments.length === 0" class="empty-state">
+      <div class="empty-icon">💳</div>
+      <h2>Keine Zahlungen gefunden</h2>
+      <p *ngIf="selectedStatus === 'all'">Du hast noch keine Zahlungen getätigt.</p>
+      <p *ngIf="selectedStatus !== 'all'">Keine Zahlungen mit dem Status "{{ getStatusText(selectedStatus) }}".</p>
+    </div>
+
+    <!-- Payments Table -->
+    <div *ngIf="!isLoading && filteredPayments.length > 0" class="payments-table-container">
+      <table class="payments-table">
+        <thead>
+          <tr>
+            <th>Datum</th>
+            <th>Route</th>
+            <th>Empfänger</th>
+            <th>Betrag</th>
+            <th>Zahlungsmethode</th>
+            <th>Status</th>
+            <th>Referenz</th>
+            <th>Aktionen</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let payment of filteredPayments">
+            <td>{{ formatDate(payment.createdAt) }}</td>
+            <td class="route-cell">{{ payment.route }}</td>
+            <td>{{ payment.recipientName || '-' }}</td>
+            <td class="amount-cell">{{ formatAmount(payment.amount, payment.currency) }}</td>
+            <td>{{ getPaymentMethodText(payment.paymentMethod) }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(payment.status)">
+                {{ getStatusText(payment.status) }}
+              </span>
+            </td>
+            <td class="reference-cell">{{ payment.transactionReference || '-' }}</td>
+            <td class="actions-cell">
+              <button 
+                *ngIf="canRequestRefund(payment)"
+                class="btn-refund"
+                (click)="requestRefund(payment)">
+                Rückerstattung
+              </button>
+              <span *ngIf="!canRequestRefund(payment)" class="no-action">-</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

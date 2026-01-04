@@ -13,6 +13,7 @@ public record RegisterRequest(
     String secondaryEmail,
     String password,
     LocalDate dateOfBirth,
-    String stadt, // Laut UML-Analyse-Ebene
+    String phone,  // Telefonnummer
+    String stadt,  // Laut UML-Analyse-Ebene
     String plz     // Laut UML-Analyse-Ebene
 ) {}

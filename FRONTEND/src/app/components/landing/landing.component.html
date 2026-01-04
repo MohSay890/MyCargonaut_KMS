@@ -9,29 +9,29 @@
       <div class="search-fields">
         <div class="search-field">
           <label>Von (Ort)</label>
-          <input type="text" placeholder="Berlin">
+          <input type="text" placeholder="Berlin" [(ngModel)]="searchFrom">
         </div>
         <div class="search-field">
           <label>Nach (Ort)</label>
-          <input type="text" placeholder="Hamburg">
+          <input type="text" placeholder="Hamburg" [(ngModel)]="searchTo">
         </div>
       </div>
       <div class="search-fields">
         <div class="search-field">
           <label>Datum</label>
-          <input type="date">
+          <input type="date" [(ngModel)]="searchDate">
         </div>
         <div class="search-field">
           <label>Kategorie</label>
-          <select>
-            <option>Alle Kategorien</option>
-            <option>Möbel</option>
-            <option>Pakete</option>
-            <option>Umzug</option>
+          <select [(ngModel)]="searchCategory">
+            <option value="">Alle Kategorien</option>
+            <option value="möbel">Möbel</option>
+            <option value="pakete">Pakete</option>
+            <option value="umzug">Umzug</option>
           </select>
         </div>
       </div>
-      <button class="btn-search">Jetzt suchen</button>
+      <button class="btn-search" (click)="onSearch()">Jetzt suchen</button>
     </div>
   </div>
 </section>

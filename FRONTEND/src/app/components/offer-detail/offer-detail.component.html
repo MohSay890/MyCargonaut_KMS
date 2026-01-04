@@ -40,6 +40,10 @@
           <section class="detail-section">
             <h2>Transport-Details</h2>
             <div class="detail-grid">
+              <div class="detail-card" *ngIf="offer.kategorie">
+                <span class="detail-label">Kategorie</span>
+                <strong class="detail-value">{{ offer.kategorie }}</strong>
+              </div>
               <div class="detail-card">
                 <span class="detail-label">Max. Gewicht</span>
                 <strong class="detail-value">{{ offer.maxWeight }} kg</strong>
@@ -75,9 +79,57 @@
                 <strong class="location-value">{{ offer.dropoffLocation }}</strong>
               </div>
             </div>
-            <div class="map-placeholder">
-              <span class="map-icon">🗺️</span>
-              <p>Karte: {{ offer.from }} → {{ offer.to }}</p>
+          </section>
+
+          <!-- Live Tracking Widget -->
+          <section class="detail-section tracking-widget" *ngIf="hasTracking && trackingSession">
+            <div class="tracking-header">
+              <h2>📍 Live-Tracking</h2>
+              <span class="tracking-badge" [style.background-color]="getStatusColor(trackingSession.status.code)">
+                {{ trackingSession.status.icon }} {{ trackingSession.status.label }}
+              </span>
+            </div>
+
+            <div class="tracking-info">
+              <div class="tracking-progress">
+                <div class="progress-bar-container">
+                  <div class="progress-bar-fill" [style.width.%]="trackingSession.progress"></div>
+                </div>
+                <span class="progress-text">{{ trackingSession.progress | number:'1.0-0' }}% abgeschlossen</span>
+              </div>
+
+              <div class="tracking-stats">
+                <div class="stat-item">
+                  <span class="stat-label">Tracking-Code</span>
+                  <strong class="stat-value">{{ trackingSession.trackingCode }}</strong>
+                </div>
+                <div class="stat-item" *ngIf="trackingSession.currentLocation">
+                  <span class="stat-label">Aktueller Standort</span>
+                  <strong class="stat-value">{{ trackingSession.currentLocation.city || 'Wird aktualisiert...' }}</strong>
+                </div>
+                <div class="stat-item" *ngIf="trackingSession.estimatedMinutes">
+                  <span class="stat-label">Verbleibende Zeit</span>
+                  <strong class="stat-value">ca. {{ trackingSession.estimatedMinutes }} Min.</strong>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Verbleibende Distanz</span>
+                  <strong class="stat-value">{{ trackingSession.remainingDistance | number:'1.1-1' }} km</strong>
+                </div>
+              </div>
+
+              <button class="btn-tracking" (click)="onViewTracking()">
+                🔴 Live-Tracking öffnen
+              </button>
+            </div>
+          </section>
+
+          <!-- Tracking Placeholder (when no tracking yet) -->
+          <section class="detail-section tracking-placeholder" *ngIf="!hasTracking && !isLoadingTracking && hasAlreadyPaid">
+            <div class="placeholder-content">
+              <span class="placeholder-icon">📦</span>
+              <h3>Tracking wird vorbereitet</h3>
+              <p>Das Live-Tracking für diese Fahrt wird automatisch aktiviert, sobald der Fahrer die Reise startet.</p>
+              <p class="info-text">Sie werden benachrichtigt, wenn das Tracking verfügbar ist.</p>
             </div>
           </section>
 
@@ -157,12 +209,32 @@
             </div>
 
             <!-- Action Buttons -->
-            <button class="btn-book" (click)="onBookNow()">Jetzt anfragen</button>
-            <button class="btn-message" (click)="onSendMessage()">Nachricht senden</button>
-            <button class="btn-save" [class.saved]="isSaved" (click)="onToggleFavorite()">
+            <button class="btn-book" (click)="onBookNow()" *ngIf="!isOwnOffer && !hasAlreadyPaid">Jetzt anfragen</button>
+            <div class="info-message info-own-offer" *ngIf="isOwnOffer">
+              <span class="info-icon">ℹ️</span>
+              Dies ist dein eigenes Angebot
+            </div>
+            <div class="info-message info-already-paid" *ngIf="!isOwnOffer && hasAlreadyPaid">
+              <span class="info-icon">✓</span>
+              Du hast bereits für diese Fahrt bezahlt
+            </div>
+            <button class="btn-message" (click)="onSendMessage()" *ngIf="!isOwnOffer">Nachricht senden</button>
+            <button class="btn-save" [class.saved]="isSaved" (click)="onToggleFavorite()" *ngIf="!isOwnOffer">
               <span class="heart-icon">{{ isSaved ? '♥' : '♡' }}</span>
               {{ isSaved ? 'Gespeichert' : 'Merken' }}
             </button>
+
+            <!-- Tracking Code Display -->
+            <div class="tracking-code-card" *ngIf="hasTracking && trackingSession">
+              <div class="tracking-code-header">
+                <span class="tracking-icon">📍</span>
+                <span class="tracking-label">Tracking-Code</span>
+              </div>
+              <div class="tracking-code-value">{{ trackingSession.trackingCode }}</div>
+              <button class="btn-track-small" (click)="onViewTracking()">
+                Live verfolgen
+              </button>
+            </div>
 
             <!-- Additional Info -->
             <div class="additional-info">
@@ -185,20 +257,32 @@
   <app-confirmation-modal
     [isOpen]="showBookingModal"
     title="Anfrage bestätigen"
-    message="Möchtest du diese Fahrt wirklich anfragen? Der Fahrer wird benachrichtigt und kann deine Anfrage annehmen."
-    confirmText="Ja, anfragen"
+    message="Möchtest du diese Fahrt wirklich anfragen? Nach der Bestätigung wirst du zur Zahlung weitergeleitet."
+    confirmText="Weiter zur Zahlung"
     cancelText="Abbrechen"
     (confirm)="onConfirmBooking()"
     (cancel)="onCancelBooking()">
   </app-confirmation-modal>
+
+  <!-- Payment Modal -->
+  <app-payment-modal
+    [isOpen]="showPaymentModal"
+    [amount]="offer.price || 0"
+    [offerId]="offerId"
+    [route]="offer.route || ''"
+    [driverName]="offer.driverName || ''"
+    (close)="onPaymentClose()"
+    (paymentSuccess)="onPaymentSuccess($event)"
+    (paymentError)="onPaymentError($event)">
+  </app-payment-modal>
 
   <!-- Success Modal -->
   <app-confirmation-modal
     [isOpen]="showSuccessModal"
     [isSuccess]="true"
     [showCancelButton]="false"
-    title="Anfrage gesendet!"
-    message="Deine Anfrage wurde erfolgreich an den Fahrer gesendet. Du wirst benachrichtigt, sobald der Fahrer antwortet."
+    title="Zahlung erfolgreich!"
+    message="Deine Buchung wurde erfolgreich abgeschlossen! Scrolle nach unten, um das Live-Tracking Widget zu sehen. Du wirst benachrichtigt, sobald der Fahrer die Fahrt startet."
     confirmText="OK"
     (confirm)="onSuccessConfirm()">
   </app-confirmation-modal>

@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { ConfirmationModalComponent } from '../confirmation-modal/confirmation-modal.component';
 import { ReviewService } from '../../services/review.service';
-import { OfferService } from '../../services/offer.service';
+import { OfferService, TransportOffer } from '../../services/offer.service';
 
 interface Trip {
   id: string;
@@ -26,7 +26,7 @@ interface Trip {
 @Component({
   selector: 'app-my-trips',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, SidebarComponent, ConfirmationModalComponent],
+  imports: [CommonModule, FormsModule, SidebarComponent, ConfirmationModalComponent],
   templateUrl: './my-trips.component.html',
   styleUrls: ['./my-trips.component.css']
 })
@@ -35,41 +35,19 @@ export class MyTripsComponent implements OnInit {
   activeTab: 'offers' | 'booked' | 'completed' = 'offers';
   statusFilter: string = 'all';
   sortBy: string = 'date';
+  isLoading: boolean = false;
+  isDeleting: boolean = false;
 
   // Modal
   showDeleteModal: boolean = false;
   tripToDelete: Trip | null = null;
 
+  // Only keep mock data for booked/completed trips (demo purposes)
+  // Real offers will be loaded from backend
   trips: Trip[] = [
+    // BOOKED TRIPS (mock data for demo - these are trips the user booked from others)
     {
-      id: '1',
-      route: 'Berlin → Hamburg',
-      date: new Date(2026, 0, 15),
-      time: '08:00 Uhr',
-      vehicle: 'Transporter',
-      maxWeight: 100,
-      dimensions: '200x150x120 cm',
-      price: 65,
-      requests: 2,
-      status: 'active',
-      type: 'offer'
-    },
-    {
-      id: '2',
-      route: 'München → Stuttgart',
-      date: new Date(2026, 0, 18),
-      time: '14:00 Uhr',
-      vehicle: 'PKW',
-      maxWeight: 50,
-      dimensions: '120x80x60 cm',
-      price: 45,
-      requests: 1,
-      customer: 'Sarah K.',
-      status: 'request',
-      type: 'offer'
-    },
-    {
-      id: '3',
+      id: 'mock_booked_1',
       route: 'Köln → Frankfurt',
       date: new Date(2026, 0, 20),
       time: '10:00 Uhr',
@@ -83,60 +61,7 @@ export class MyTripsComponent implements OnInit {
       type: 'booked'
     },
     {
-      id: '4',
-      route: 'Hamburg → Berlin',
-      date: new Date(2026, 0, 23),
-      time: '09:00 Uhr',
-      vehicle: 'Transporter',
-      maxWeight: 100,
-      dimensions: '200x150x120 cm',
-      price: 65,
-      requests: 0,
-      status: 'active',
-      type: 'offer'
-    },
-    {
-      id: '5',
-      route: 'Dortmund → Düsseldorf',
-      date: new Date(2026, 0, 25),
-      time: '16:00 Uhr',
-      vehicle: 'Kastenwagen',
-      maxWeight: 80,
-      dimensions: '180x120x100 cm',
-      price: 50,
-      requests: 3,
-      status: 'active',
-      type: 'offer'
-    },
-    {
-      id: '6',
-      route: 'Frankfurt → Berlin',
-      date: new Date(2026, 0, 28),
-      time: '07:00 Uhr',
-      vehicle: 'Sprinter',
-      maxWeight: 200,
-      dimensions: '300x200x180 cm',
-      price: 120,
-      requests: 1,
-      customer: 'Anna M.',
-      status: 'request',
-      type: 'offer'
-    },
-    {
-      id: '7',
-      route: 'Nürnberg → München',
-      date: new Date(2026, 1, 2),
-      time: '13:00 Uhr',
-      vehicle: 'PKW',
-      maxWeight: 40,
-      dimensions: '100x80x60 cm',
-      price: 35,
-      requests: 0,
-      status: 'active',
-      type: 'offer'
-    },
-    {
-      id: '8',
+      id: 'mock_booked_2',
       route: 'Leipzig → Dresden',
       date: new Date(2026, 1, 5),
       time: '11:00 Uhr',
@@ -150,20 +75,7 @@ export class MyTripsComponent implements OnInit {
       type: 'booked'
     },
     {
-      id: '9',
-      route: 'Bremen → Hamburg',
-      date: new Date(2026, 1, 8),
-      time: '15:30 Uhr',
-      vehicle: 'Kastenwagen',
-      maxWeight: 70,
-      dimensions: '160x110x90 cm',
-      price: 45,
-      requests: 2,
-      status: 'active',
-      type: 'offer'
-    },
-    {
-      id: '10',
+      id: 'mock_booked_3',
       route: 'Hannover → Berlin',
       date: new Date(2026, 1, 12),
       time: '09:30 Uhr',
@@ -176,8 +88,9 @@ export class MyTripsComponent implements OnInit {
       status: 'confirmed',
       type: 'booked'
     },
+    // COMPLETED TRIPS (mock data for demo)
     {
-      id: '11',
+      id: 'mock_completed_1',
       route: 'Stuttgart → München',
       date: new Date(2025, 11, 10),
       time: '11:00 Uhr',
@@ -192,7 +105,7 @@ export class MyTripsComponent implements OnInit {
       hasReview: false
     },
     {
-      id: '12',
+      id: 'mock_completed_2',
       route: 'Frankfurt → Köln',
       date: new Date(2025, 11, 5),
       time: '15:00 Uhr',
@@ -207,7 +120,7 @@ export class MyTripsComponent implements OnInit {
       hasReview: true
     },
     {
-      id: '13',
+      id: 'mock_completed_3',
       route: 'Berlin → München',
       date: new Date(2025, 10, 28),
       time: '08:00 Uhr',
@@ -222,7 +135,7 @@ export class MyTripsComponent implements OnInit {
       hasReview: false
     },
     {
-      id: '14',
+      id: 'mock_completed_4',
       route: 'Hamburg → Frankfurt',
       date: new Date(2025, 10, 20),
       time: '10:30 Uhr',
@@ -237,7 +150,7 @@ export class MyTripsComponent implements OnInit {
       hasReview: false
     },
     {
-      id: '15',
+      id: 'mock_completed_5',
       route: 'Köln → Berlin',
       date: new Date(2025, 10, 15),
       time: '07:30 Uhr',
@@ -271,29 +184,54 @@ export class MyTripsComponent implements OnInit {
   }
 
   loadMyOffers(): void {
-    const myOffers = this.offerService.getMyOffers();
-    console.log('Loading my offers:', myOffers.length);
+    this.isLoading = true;
 
-    // Convert TransportOffer to Trip format and add to trips array
-    myOffers.forEach(offer => {
-      // Check if already exists (avoid duplicates)
-      const exists = this.trips.some(t => t.id === offer.id);
-      if (!exists) {
-        const trip: Trip = {
-          id: offer.id,
-          route: offer.route,
-          date: this.parseGermanDate(offer.date),
-          time: offer.time,
-          vehicle: offer.vehicleType,
-          maxWeight: offer.maxWeight,
-          dimensions: offer.dimensions,
-          price: offer.price,
-          requests: 0,
-          status: 'active',
-          type: 'offer',
-          hasReview: false
-        };
-        this.trips.push(trip);
+    // Get current user's email to filter offers from localStorage
+    const userStr = localStorage.getItem('currentUser');
+    const currentUser = userStr ? JSON.parse(userStr) : null;
+    const userEmail = currentUser?.email;
+
+    if (!userEmail) {
+      console.warn('No user email found, cannot load user-specific offers');
+      this.isLoading = false;
+      return;
+    }
+
+    // Load ONLY the current user's offers from backend
+    this.offerService.getMyOffers(userEmail).subscribe({
+      next: (offers) => {
+        console.log('Loading MY offers from backend:', offers.length, 'for user:', userEmail);
+
+        // Convert TransportOffer to Trip format and add to trips array
+        offers.forEach(offer => {
+          // Check if already exists (avoid duplicates)
+          const exists = this.trips.some(t => t.id === offer.id);
+          if (!exists) {
+            const trip: Trip = {
+              id: offer.id,
+              route: offer.route,
+              date: this.parseGermanDate(offer.date),
+              time: offer.time || '08:00 Uhr',
+              vehicle: offer.vehicleType || 'Transporter',
+              maxWeight: offer.maxWeight || 100,
+              dimensions: offer.dimensions || '200x150x120 cm',
+              price: offer.price,
+              requests: 0,
+              status: 'active',
+              type: 'offer',
+              hasReview: false
+            };
+            // Add new offers at the beginning
+            this.trips.unshift(trip);
+            console.log('Added MY offer from backend:', trip.route, 'ID:', trip.id);
+          }
+        });
+
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading offers:', error);
+        this.isLoading = false;
       }
     });
   }
@@ -386,7 +324,13 @@ export class MyTripsComponent implements OnInit {
 
   onEdit(trip: Trip): void {
     console.log('Edit trip:', trip);
-    alert('Bearbeiten - Diese Funktion wird noch implementiert');
+    // Only allow editing real backend trips (not mock data)
+    if (trip.id.startsWith('mock_')) {
+      alert('Demo-Daten können nicht bearbeitet werden.');
+      return;
+    }
+    // Navigate to edit page with trip ID
+    this.router.navigate(['/offer/edit', trip.id]);
   }
 
   onDelete(trip: Trip): void {
@@ -398,23 +342,61 @@ export class MyTripsComponent implements OnInit {
   onConfirmDelete(): void {
     console.log('Confirm delete');
     if (this.tripToDelete) {
-      // Delete from OfferService if it's a user's offer
-      this.offerService.deleteOffer(this.tripToDelete.id);
+      this.isDeleting = true;
 
-      // Remove from trips array
-      const index = this.trips.findIndex(t => t.id === this.tripToDelete!.id);
-      if (index > -1) {
-        this.trips.splice(index, 1);
-
-        // Update hasReview for remaining trips
-        this.trips = this.trips.map(trip => ({
-          ...trip,
-          hasReview: this.reviewService.hasReview(trip.id)
-        }));
+      // Check if this is mock data (starts with 'mock_')
+      if (this.tripToDelete.id.startsWith('mock_')) {
+        // For mock data, just remove from local array (no backend call)
+        const index = this.trips.findIndex(t => t.id === this.tripToDelete!.id);
+        if (index > -1) {
+          this.trips.splice(index, 1);
+        }
+        this.isDeleting = false;
+        this.showDeleteModal = false;
+        this.tripToDelete = null;
+        return;
       }
+
+      // Get current user email for authorization from localStorage
+      const userStr = localStorage.getItem('currentUser');
+      const currentUser = userStr ? JSON.parse(userStr) : null;
+      const userEmail = currentUser?.email;
+
+      console.log('DELETE TRIP - Current user:', currentUser);
+      console.log('DELETE TRIP - User email to send:', userEmail);
+      console.log('DELETE TRIP - Trip to delete:', this.tripToDelete);
+
+      // Delete from backend via OfferService (real data only, with authorization)
+      this.offerService.deleteOffer(this.tripToDelete.id, userEmail).subscribe({
+        next: (success) => {
+          if (success) {
+            // Remove from trips array
+            const index = this.trips.findIndex(t => t.id === this.tripToDelete!.id);
+            if (index > -1) {
+              this.trips.splice(index, 1);
+
+              // Update hasReview for remaining trips
+              this.trips = this.trips.map(trip => ({
+                ...trip,
+                hasReview: this.reviewService.hasReview(trip.id)
+              }));
+            }
+          } else {
+            alert('Sie können nur Ihre eigenen Angebote löschen.');
+          }
+          this.isDeleting = false;
+          this.showDeleteModal = false;
+          this.tripToDelete = null;
+        },
+        error: (error) => {
+          console.error('Error deleting offer:', error);
+          this.isDeleting = false;
+          this.showDeleteModal = false;
+          this.tripToDelete = null;
+          alert('Fehler beim Löschen. Bitte versuche es erneut.');
+        }
+      });
     }
-    this.showDeleteModal = false;
-    this.tripToDelete = null;
   }
 
   onCancelDelete(): void {

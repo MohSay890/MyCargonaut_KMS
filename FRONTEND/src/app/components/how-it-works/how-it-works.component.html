@@ -2,295 +2,447 @@
   <!-- Hero Section -->
   <section class="hero-section">
     <div class="container">
-      <h1>So funktioniert's</h1>
+      <div class="hero-badge">Interaktive Demo</div>
+      <h1>So funktioniert MyCargonaut</h1>
       <p class="hero-subtitle">
-        In 4 einfachen Schritten zum erfolgreichen Transport<br>
-        Egal ob du Transporte suchst oder anbietest – wir machen es dir einfach!
+        Erlebe die Plattform in einer interaktiven Demo.<br>
+        Klicke dich durch die Schritte und entdecke alle Funktionen!
       </p>
+      <div class="hero-cta">
+        <button class="btn-start-demo" (click)="startDemo()">
+          <span class="play-icon">&#9658;</span> Demo starten
+        </button>
+      </div>
     </div>
   </section>
 
-  <!-- Tabs -->
-  <div class="tabs-container">
+  <!-- Role Selection -->
+  <div class="role-selector">
     <div class="container">
-      <div class="tabs">
-        <button
-          class="tab"
+      <p class="role-question">Ich möchte...</p>
+      <div class="role-cards">
+        <div
+          class="role-card"
           [class.active]="activeTab === 'sender'"
-          (click)="activeTab = 'sender'">
-          Für Versender
-        </button>
-        <button
-          class="tab"
+          (click)="selectRole('sender')">
+          <div class="role-icon sender-icon"></div>
+          <h3>Etwas verschicken</h3>
+          <p>Finde einen Fahrer fuer deinen Transport</p>
+          <div class="role-check" *ngIf="activeTab === 'sender'">&#10003;</div>
+        </div>
+        <div
+          class="role-card"
           [class.active]="activeTab === 'driver'"
-          (click)="activeTab = 'driver'">
-          Für Fahrer
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Steps for Sender -->
-  <div *ngIf="activeTab === 'sender'">
-    <section class="section-header">
-      <div class="container">
-        <h2>Für Versender</h2>
-        <p>Du möchtest etwas transportieren lassen? So geht's:</p>
-      </div>
-    </section>
-
-    <div class="steps-container">
-      <div class="container">
-        <!-- Step 1 -->
-        <div class="step">
-          <div class="step-number">
-            <span>1</span>
-          </div>
-          <div class="step-content">
-            <h3>Transport suchen</h3>
-            <ul class="step-list">
-              <li>Gib Start- und Zielort ein</li>
-              <li>Wähle das gewünschte Datum</li>
-              <li>Filtere nach Fahrzeugtyp, Preis und Bewertungen</li>
-              <li>Durchsuche passende Angebote von verifizierten Fahrern</li>
-            </ul>
-            <p class="step-tip"><strong>Tipp:</strong> Je flexibler du beim Datum bist, desto mehr Optionen findest du!</p>
-          </div>
-          <div class="step-image">
-            <div class="illustration illustration-search">
-              <div class="map-icon">
-                <div class="pin pin-start">A</div>
-                <div class="route-line"></div>
-                <div class="pin pin-end">B</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 2 -->
-        <div class="step alternate">
-          <div class="step-number">
-            <span>2</span>
-          </div>
-          <div class="step-content">
-            <h3>Fahrer auswählen & buchen</h3>
-            <ul class="step-list">
-              <li>Vergleiche Profile, Bewertungen und Preise</li>
-              <li>Prüfe die Fahrzeugdetails und Verfügbarkeit</li>
-              <li>Stelle Fragen über die Nachrichtenfunktion</li>
-              <li>Buche mit einem Klick – sichere Zahlung inklusive</li>
-            </ul>
-            <p class="step-tip"><strong>Wichtig:</strong> Alle Fahrer sind verifiziert und versichert!</p>
-          </div>
-          <div class="step-image">
-            <div class="illustration illustration-profile">
-              <div class="profile-card">
-                <div class="profile-avatar"></div>
-                <div class="rating-stars">⭐⭐⭐⭐⭐</div>
-                <div class="profile-line"></div>
-                <div class="profile-line short"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 3 -->
-        <div class="step">
-          <div class="step-number">
-            <span>3</span>
-          </div>
-          <div class="step-content">
-            <h3>Transport verfolgen</h3>
-            <ul class="step-list">
-              <li>Erhalte Bestätigung mit allen Details</li>
-              <li>Verfolge deinen Transport in Echtzeit auf der Karte</li>
-              <li>Bleibe per SMS/E-Mail über den Status informiert</li>
-              <li>Kontaktiere den Fahrer jederzeit direkt</li>
-            </ul>
-            <p class="step-tip"><strong>Sicherheit:</strong> Transportversicherung ist immer inklusive!</p>
-          </div>
-          <div class="step-image">
-            <div class="illustration illustration-tracking">
-              <div class="gps-icon">
-                <div class="gps-circle"></div>
-                <div class="gps-circle pulse"></div>
-                <div class="truck-icon">🚚</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 4 -->
-        <div class="step alternate">
-          <div class="step-number">
-            <span>4</span>
-          </div>
-          <div class="step-content">
-            <h3>Bewerten & fertig</h3>
-            <ul class="step-list">
-              <li>Bestätige die erfolgreiche Zustellung</li>
-              <li>Bewerte deine Erfahrung mit dem Fahrer</li>
-              <li>Zahlung wird automatisch freigegeben</li>
-              <li>Nutze die Plattform beim nächsten Mal wieder!</li>
-            </ul>
-            <p class="step-tip"><strong>Fair:</strong> Bewertungen helfen der Community, die besten Fahrer zu finden!</p>
-          </div>
-          <div class="step-image">
-            <div class="illustration illustration-review">
-              <div class="review-card">
-                <div class="stars-big">⭐⭐⭐⭐⭐</div>
-                <div class="checkmark">✓</div>
-              </div>
-            </div>
-          </div>
+          (click)="selectRole('driver')">
+          <div class="role-icon driver-icon"></div>
+          <h3>Transporte anbieten</h3>
+          <p>Verdiene Geld mit deinen Fahrten</p>
+          <div class="role-check" *ngIf="activeTab === 'driver'">&#10003;</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Steps for Driver -->
-  <div *ngIf="activeTab === 'driver'">
-    <section class="section-header">
-      <div class="container">
-        <h2>Für Fahrer</h2>
-        <p>Du möchtest Transporte anbieten und Geld verdienen? So geht's:</p>
-      </div>
-    </section>
-
-    <div class="steps-container">
-      <div class="container">
-        <!-- Driver Step 1 -->
-        <div class="step">
-          <div class="step-number">
-            <span>1</span>
-          </div>
-          <div class="step-content">
-            <h3>Registrieren & verifizieren</h3>
-            <ul class="step-list">
-              <li>Erstelle dein Fahrerprofil mit Foto</li>
-              <li>Verifiziere deinen Ausweis und Führerschein</li>
-              <li>Füge dein(e) Fahrzeug(e) hinzu mit Fotos</li>
-              <li>Gib deine bevorzugten Routen und Zeiten an</li>
-            </ul>
-            <p class="step-tip"><strong>Schnell:</strong> Die Verifizierung dauert nur 24 Stunden!</p>
-          </div>
-          <div class="step-image">
-            <div class="illustration illustration-verify">
-              <div class="verify-card">
-                <div class="id-card"></div>
-                <div class="checkmark-large">✓</div>
-              </div>
+  <!-- Interactive Demo Section -->
+  <section class="demo-section">
+    <div class="container">
+      <!-- Progress Bar -->
+      <div class="demo-progress">
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="(currentStep / totalSteps) * 100"></div>
+        </div>
+        <div class="progress-steps">
+          <div
+            *ngFor="let step of getCurrentSteps(); let i = index"
+            class="progress-step"
+            [class.active]="currentStep === i + 1"
+            [class.completed]="currentStep > i + 1"
+            (click)="goToStep(i + 1)">
+            <div class="step-dot">
+              <span *ngIf="currentStep <= i + 1">{{ i + 1 }}</span>
+              <span *ngIf="currentStep > i + 1">&#10003;</span>
             </div>
+            <span class="step-label">{{ step.shortTitle }}</span>
           </div>
         </div>
+      </div>
 
-        <!-- Driver Step 2 -->
-        <div class="step alternate">
-          <div class="step-number">
-            <span>2</span>
-          </div>
-          <div class="step-content">
-            <h3>Fahrt anbieten</h3>
-            <ul class="step-list">
-              <li>Erstelle Angebote für deine geplanten Fahrten</li>
-              <li>Lege Preis, Kapazität und Bedingungen fest</li>
-              <li>Erhalte automatisch Benachrichtigungen bei Anfragen</li>
-              <li>Akzeptiere passende Buchungen mit einem Klick</li>
-            </ul>
-            <p class="step-tip"><strong>Flexibel:</strong> Du kannst Angebote auch für regelmäßige Fahrten erstellen!</p>
-          </div>
-          <div class="step-image">
-            <div class="illustration illustration-offer">
-              <div class="offer-card">
-                <div class="route-visual">
-                  <div class="dot"></div>
-                  <div class="line-dotted"></div>
-                  <div class="dot"></div>
+      <!-- Demo Screen -->
+      <div class="demo-screen">
+        <!-- Phone Mockup -->
+        <div class="phone-mockup">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <!-- Dynamic Demo Content for Sender -->
+            <div class="demo-content" *ngIf="activeTab === 'sender'">
+              <!-- Sender Step 1: Search -->
+              <div class="screen-content" *ngIf="currentStep === 1" @fadeIn>
+                <div class="app-header-demo">
+                  <span class="back-btn">&#8592;</span>
+                  <span>Transport suchen</span>
+                  <span class="menu-btn">&#9776;</span>
                 </div>
-                <div class="price-tag">€</div>
+                <div class="search-demo">
+                  <div class="input-group">
+                    <label>Von</label>
+                    <div class="input-field" [class.typing]="demoTyping === 'from'">
+                      <span class="location-icon">&#128205;</span>
+                      <span class="typed-text">{{ demoFromCity }}</span>
+                      <span class="cursor" *ngIf="demoTyping === 'from'">|</span>
+                    </div>
+                  </div>
+                  <div class="input-group">
+                    <label>Nach</label>
+                    <div class="input-field" [class.typing]="demoTyping === 'to'">
+                      <span class="location-icon">&#128205;</span>
+                      <span class="typed-text">{{ demoToCity }}</span>
+                      <span class="cursor" *ngIf="demoTyping === 'to'">|</span>
+                    </div>
+                  </div>
+                  <div class="input-group">
+                    <label>Datum</label>
+                    <div class="input-field">
+                      <span class="calendar-icon">&#128197;</span>
+                      <span>{{ demoDate }}</span>
+                    </div>
+                  </div>
+                  <button class="demo-search-btn" [class.active]="searchReady">
+                    Suchen
+                  </button>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
 
-        <!-- Driver Step 3 -->
-        <div class="step">
-          <div class="step-number">
-            <span>3</span>
-          </div>
-          <div class="step-content">
-            <h3>Transport durchführen</h3>
-            <ul class="step-list">
-              <li>Hole die Ladung zum vereinbarten Zeitpunkt ab</li>
-              <li>Transportiere sorgfältig zum Zielort</li>
-              <li>Halte den Versender per App auf dem Laufenden</li>
-              <li>Bestätige die Zustellung mit Foto/Unterschrift</li>
-            </ul>
-            <p class="step-tip"><strong>Sicher:</strong> Du bist über die Plattform vollständig versichert!</p>
-          </div>
-          <div class="step-image">
-            <div class="illustration illustration-deliver">
-              <div class="delivery-icon">
-                <div class="box-icon">📦</div>
-                <div class="arrow-icon">→</div>
+              <!-- Sender Step 2: Select Driver -->
+              <div class="screen-content" *ngIf="currentStep === 2" @fadeIn>
+                <div class="app-header-demo">
+                  <span class="back-btn">&#8592;</span>
+                  <span>3 Angebote gefunden</span>
+                  <span class="filter-btn">&#9881;</span>
+                </div>
+                <div class="results-demo">
+                  <div
+                    class="result-card"
+                    *ngFor="let offer of demoOffers; let i = index"
+                    [class.selected]="selectedOffer === i"
+                    [class.highlight]="highlightOffer === i"
+                    (click)="selectOffer(i)">
+                    <div class="driver-avatar">{{ offer.avatar }}</div>
+                    <div class="offer-info">
+                      <div class="driver-name">{{ offer.name }}</div>
+                      <div class="driver-rating">&#11088; {{ offer.rating }}</div>
+                      <div class="offer-route">{{ offer.route }}</div>
+                    </div>
+                    <div class="offer-price">{{ offer.price }} EUR</div>
+                    <div class="select-check" *ngIf="selectedOffer === i">&#10003;</div>
+                  </div>
+                </div>
+                <button class="demo-book-btn" [class.active]="selectedOffer !== null">
+                  Jetzt buchen
+                </button>
               </div>
-            </div>
-          </div>
-        </div>
 
-        <!-- Driver Step 4 -->
-        <div class="step alternate">
-          <div class="step-number">
-            <span>4</span>
-          </div>
-          <div class="step-content">
-            <h3>Geld verdienen</h3>
-            <ul class="step-list">
-              <li>Erhalte deine Zahlung automatisch auf dein Konto</li>
-              <li>Sammle positive Bewertungen für mehr Buchungen</li>
-              <li>Verdiene zusätzliches Geld bei deinen regulären Fahrten</li>
-              <li>Werde Teil unserer wachsenden Fahrer-Community!</li>
-            </ul>
-            <p class="step-tip"><strong>Transparent:</strong> Keine versteckten Gebühren – nur 15% Provision!</p>
-          </div>
-          <div class="step-image">
-            <div class="illustration illustration-money">
-              <div class="money-card">
-                <div class="coins">
-                  <div class="coin">€</div>
-                  <div class="coin">€</div>
-                  <div class="coin">€</div>
+              <!-- Sender Step 3: Track -->
+              <div class="screen-content" *ngIf="currentStep === 3" @fadeIn>
+                <div class="app-header-demo">
+                  <span class="back-btn">&#8592;</span>
+                  <span>Live Tracking</span>
+                  <span class="info-btn">&#8505;</span>
+                </div>
+                <div class="tracking-demo">
+                  <div class="map-container">
+                    <div class="map-placeholder">
+                      <div class="route-line-animated"></div>
+                      <div class="truck-marker" [style.left.%]="truckPosition">&#128666;</div>
+                      <div class="start-marker">A</div>
+                      <div class="end-marker">B</div>
+                    </div>
+                  </div>
+                  <div class="tracking-info">
+                    <div class="tracking-status">
+                      <div class="status-icon pulsing">&#128205;</div>
+                      <div class="status-text">
+                        <strong>Unterwegs</strong>
+                        <span>Geschaetzte Ankunft: 14:30</span>
+                      </div>
+                    </div>
+                    <div class="tracking-timeline">
+                      <div class="timeline-item completed">
+                        <div class="timeline-dot">&#10003;</div>
+                        <span>Abgeholt um 10:15</span>
+                      </div>
+                      <div class="timeline-item active">
+                        <div class="timeline-dot pulsing"></div>
+                        <span>Auf der Autobahn A3</span>
+                      </div>
+                      <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <span>Zustellung</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sender Step 4: Review -->
+              <div class="screen-content" *ngIf="currentStep === 4" @fadeIn>
+                <div class="app-header-demo">
+                  <span class="back-btn">&#8592;</span>
+                  <span>Bewertung</span>
+                  <span></span>
+                </div>
+                <div class="review-demo">
+                  <div class="success-animation">
+                    <div class="checkmark-circle" [class.animate]="showSuccessAnimation">
+                      <span>&#10003;</span>
+                    </div>
+                    <h3>Erfolgreich zugestellt!</h3>
+                  </div>
+                  <div class="rating-section">
+                    <p>Wie war deine Erfahrung?</p>
+                    <div class="star-rating">
+                      <span
+                        *ngFor="let star of [1,2,3,4,5]"
+                        class="star"
+                        [class.active]="demoRating >= star"
+                        (click)="setRating(star)">
+                        {{ demoRating >= star ? '&#11088;' : '&#9734;' }}
+                      </span>
+                    </div>
+                    <textarea class="review-input" placeholder="Schreibe einen Kommentar..." readonly>Super schneller Transport! Sehr zufrieden!</textarea>
+                    <button class="demo-submit-btn" [class.active]="demoRating > 0">
+                      Bewertung abschicken
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
+
+            <!-- Driver Demo Content -->
+            <div class="demo-content" *ngIf="activeTab === 'driver'">
+              <!-- Driver Step 1: Register -->
+              <div class="screen-content" *ngIf="currentStep === 1" @fadeIn>
+                <div class="app-header-demo">
+                  <span class="back-btn">&#8592;</span>
+                  <span>Fahrer werden</span>
+                  <span></span>
+                </div>
+                <div class="register-demo">
+                  <div class="profile-upload">
+                    <div class="avatar-placeholder" [class.uploaded]="profileUploaded">
+                      <span *ngIf="!profileUploaded">&#128247;</span>
+                      <span *ngIf="profileUploaded">&#128100;</span>
+                    </div>
+                    <span class="upload-text">Foto hochladen</span>
+                  </div>
+                  <div class="verify-items">
+                    <div class="verify-item" [class.verified]="verifySteps.id">
+                      <span class="verify-icon">{{ verifySteps.id ? '&#10003;' : '&#128179;' }}</span>
+                      <span>Ausweis verifizieren</span>
+                    </div>
+                    <div class="verify-item" [class.verified]="verifySteps.license">
+                      <span class="verify-icon">{{ verifySteps.license ? '&#10003;' : '&#128663;' }}</span>
+                      <span>Fuehrerschein hochladen</span>
+                    </div>
+                    <div class="verify-item" [class.verified]="verifySteps.vehicle">
+                      <span class="verify-icon">{{ verifySteps.vehicle ? '&#10003;' : '&#128656;' }}</span>
+                      <span>Fahrzeug hinzufuegen</span>
+                    </div>
+                  </div>
+                  <div class="verify-progress-container">
+                    <div class="verify-progress-bar" [style.width.%]="verifyProgress"></div>
+                  </div>
+                  <span class="verify-text">{{ verifyProgress }}% abgeschlossen</span>
+                </div>
+              </div>
+
+              <!-- Driver Step 2: Create Offer -->
+              <div class="screen-content" *ngIf="currentStep === 2" @fadeIn>
+                <div class="app-header-demo">
+                  <span class="back-btn">&#8592;</span>
+                  <span>Neue Fahrt anbieten</span>
+                  <span></span>
+                </div>
+                <div class="create-offer-demo">
+                  <div class="route-input">
+                    <div class="route-dots">
+                      <div class="dot start"></div>
+                      <div class="dot-line"></div>
+                      <div class="dot end"></div>
+                    </div>
+                    <div class="route-fields">
+                      <div class="input-field small">Berlin</div>
+                      <div class="input-field small">Muenchen</div>
+                    </div>
+                  </div>
+                  <div class="offer-details">
+                    <div class="detail-row">
+                      <span>&#128197; Datum</span>
+                      <span class="detail-value">15. Jan 2025</span>
+                    </div>
+                    <div class="detail-row">
+                      <span>&#128176; Preis</span>
+                      <div class="price-slider">
+                        <input type="range" min="20" max="200" [value]="demoPrice" (input)="updateDemoPrice($event)">
+                        <span class="price-value">{{ demoPrice }} EUR</span>
+                      </div>
+                    </div>
+                    <div class="detail-row">
+                      <span>&#128230; Kapazitaet</span>
+                      <span class="detail-value">500 kg</span>
+                    </div>
+                  </div>
+                  <button class="demo-publish-btn">
+                    &#10024; Angebot veroeffentlichen
+                  </button>
+                </div>
+              </div>
+
+              <!-- Driver Step 3: Accept & Deliver -->
+              <div class="screen-content" *ngIf="currentStep === 3" @fadeIn>
+                <div class="app-header-demo">
+                  <span class="back-btn">&#8592;</span>
+                  <span>Neue Buchung!</span>
+                  <span>&#128276;</span>
+                </div>
+                <div class="booking-demo">
+                  <div class="notification-card" [class.bounce]="showNotification">
+                    <div class="notif-icon">&#128236;</div>
+                    <div class="notif-content">
+                      <strong>Neue Anfrage</strong>
+                      <p>Lisa M. möchte 3 Kartons nach München transportieren</p>
+                    </div>
+                  </div>
+                  <div class="booking-actions">
+                    <button class="btn-decline">&#10005; Ablehnen</button>
+                    <button class="btn-accept" [class.pulse]="showNotification">&#10003; Annehmen</button>
+                  </div>
+                  <div class="delivery-checklist">
+                    <h4>Transport-Checkliste</h4>
+                    <div class="checklist-item" [class.checked]="deliverySteps.pickup">
+                      <span class="check-box">{{ deliverySteps.pickup ? '&#10003;' : '' }}</span>
+                      <span>Abholung bestaetigen</span>
+                    </div>
+                    <div class="checklist-item" [class.checked]="deliverySteps.transit">
+                      <span class="check-box">{{ deliverySteps.transit ? '&#10003;' : '' }}</span>
+                      <span>Unterwegs</span>
+                    </div>
+                    <div class="checklist-item" [class.checked]="deliverySteps.delivered">
+                      <span class="check-box">{{ deliverySteps.delivered ? '&#10003;' : '' }}</span>
+                      <span>Zustellung mit Foto</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Driver Step 4: Get Paid -->
+              <div class="screen-content" *ngIf="currentStep === 4" @fadeIn>
+                <div class="app-header-demo">
+                  <span class="back-btn">&#8592;</span>
+                  <span>Verdienst</span>
+                  <span></span>
+                </div>
+                <div class="earnings-demo">
+                  <div class="earnings-card">
+                    <div class="earnings-icon">&#128176;</div>
+                    <div class="earnings-amount" [class.counting]="countingMoney">
+                      {{ displayedEarnings }} EUR
+                    </div>
+                    <span class="earnings-label">Dein Verdienst</span>
+                  </div>
+                  <div class="earnings-breakdown">
+                    <div class="breakdown-row">
+                      <span>Transportpreis</span>
+                      <span>85,00 EUR</span>
+                    </div>
+                    <div class="breakdown-row">
+                      <span>Plattformgebuehr (15%)</span>
+                      <span class="negative">-12,75 EUR</span>
+                    </div>
+                    <div class="breakdown-row total">
+                      <span>Auszahlung</span>
+                      <span class="positive">72,25 EUR</span>
+                    </div>
+                  </div>
+                  <div class="payout-info">
+                    <span class="payout-icon">&#127974;</span>
+                    <span>Wird in 1-2 Werktagen ueberwiesen</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step Info Panel -->
+        <div class="step-info-panel">
+          <div class="step-badge">Schritt {{ currentStep }} von {{ totalSteps }}</div>
+          <h2>{{ getCurrentStepData().title }}</h2>
+          <ul class="feature-list">
+            <li *ngFor="let feature of getCurrentStepData().features" @listItem>
+              <span class="feature-icon">&#10003;</span>
+              {{ feature }}
+            </li>
+          </ul>
+          <div class="tip-box" *ngIf="getCurrentStepData().tip">
+            <span class="tip-icon">&#128161;</span>
+            <span>{{ getCurrentStepData().tip }}</span>
+          </div>
+          <div class="step-navigation">
+            <button class="btn-prev" (click)="prevStep()" [disabled]="currentStep === 1">
+              &#8592; Zurueck
+            </button>
+            <button class="btn-next" (click)="nextStep()" *ngIf="currentStep < totalSteps">
+              Weiter &#8594;
+            </button>
+            <button class="btn-finish" (click)="finishDemo()" *ngIf="currentStep === totalSteps">
+              &#127881; Demo abschliessen
+            </button>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="stats-section">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-number" [class.animate]="animateStats">{{ animatedUsers }}+</div>
+          <div class="stat-label">Zufriedene Nutzer</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" [class.animate]="animateStats">{{ animatedTransports }}+</div>
+          <div class="stat-label">Erfolgreiche Transporte</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" [class.animate]="animateStats">{{ animatedCities }}+</div>
+          <div class="stat-label">Staedte verbunden</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" [class.animate]="animateStats">4.8 &#11088;</div>
+          <div class="stat-label">Durchschnittsbewertung</div>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- FAQ Section -->
   <section class="faq-section">
     <div class="container">
-      <h2>Häufig gestellte Fragen</h2>
-      <p class="section-subtitle">Hier findest du Antworten auf die wichtigsten Fragen</p>
-
-      <div class="faq-grid">
-        <!-- Sender FAQs -->
-        <div class="faq-column">
-          <h3>Für Versender</h3>
-          <div class="faq-item" *ngFor="let faq of senderFaqs">
-            <h4>{{ faq.question }}</h4>
-            <p>{{ faq.answer }}</p>
+      <h2>Haeufig gestellte Fragen</h2>
+      <div class="faq-list">
+        <div
+          class="faq-item"
+          *ngFor="let faq of faqs; let i = index"
+          [class.open]="openFaq === i"
+          (click)="toggleFaq(i)">
+          <div class="faq-question">
+            <span>{{ faq.question }}</span>
+            <span class="faq-toggle">{{ openFaq === i ? '&#8722;' : '+' }}</span>
           </div>
-        </div>
-
-        <!-- Driver FAQs -->
-        <div class="faq-column">
-          <h3>Für Fahrer</h3>
-          <div class="faq-item" *ngFor="let faq of driverFaqs">
-            <h4>{{ faq.question }}</h4>
-            <p>{{ faq.answer }}</p>
+          <div class="faq-answer" *ngIf="openFaq === i" @expandCollapse>
+            {{ faq.answer }}
           </div>
         </div>
       </div>
@@ -300,14 +452,17 @@
   <!-- CTA Section -->
   <section class="cta-section">
     <div class="container">
-      <h2>Bereit loszulegen?</h2>
-      <div class="cta-buttons">
-        <button class="btn-cta secondary" (click)="onSearchTransport()">
-          Transport suchen
-        </button>
-        <button class="btn-cta primary" (click)="onRegisterDriver()">
-          Als Fahrer registrieren
-        </button>
+      <div class="cta-content">
+        <h2>Bereit loszulegen?</h2>
+        <p>Werde Teil der MyCargonaut-Community und erlebe nachhaltige Transporte!</p>
+        <div class="cta-buttons">
+          <a routerLink="/search" class="btn-cta secondary">
+            Transport suchen
+          </a>
+          <a routerLink="/register" class="btn-cta primary">
+            Jetzt registrieren
+          </a>
+        </div>
       </div>
     </div>
   </section>
