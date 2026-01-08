@@ -64,6 +64,9 @@ public class UserProfileService {
     /**
      * Get user statistics
      */
+/**
+     * Get user statistics
+     */
     public UserProfileStatsResponse getUserStats(String email) {
         Cargonaut user = cargonautRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Benutzer nicht gefunden"));
@@ -85,14 +88,15 @@ public class UserProfileService {
                 .map(Fahrt::getPreis)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Get average rating (for simplicity, we'll use global average)
-        // In production, you'd want to track reviews per user
-        Double avgRating = bewertungRepository.findAverageRating();
+        // KORREKTUR: Übergabe der Nutzer-ID (user.getId()), um den Durchschnitt für diesen User zu berechnen
+        Double avgRating = bewertungRepository.findAverageRating(user.getId());
         double averageRating = avgRating != null ? avgRating : 0.0;
 
-        // Get total reviews count
-        Long reviewCount = bewertungRepository.countAllReviews();
-        int totalReviews = reviewCount != null ? reviewCount.intValue() : 0;
+        // KORREKTUR: Übergabe der Nutzer-ID (user.getId()), um die Anzahl der Bewertungen dieses Users zu zählen
+        Long reviewCount = bewertungRepository.countAllReviews(user.getId());
+
+        // KORREKTUR: intValue() ohne Argumente aufrufen
+        int totalReviews = (reviewCount != null) ? reviewCount.intValue() : 0;
 
         return new UserProfileStatsResponse(
                 activeOffers,
@@ -125,28 +129,28 @@ public class UserProfileService {
         if (request.stadt() != null) user.setStadt(request.stadt());
         if (request.plz() != null) user.setPlz(request.plz());
         if (request.bio() != null) user.setBio(request.bio());
-        
+
         // Update name in all existing Fahrten if name changed
         if (nameChanged) {
             String fullName = user.getVorname() + " " + user.getNachname();
             List<Fahrt> userFahrten = fahrtRepository.findAll().stream()
                     .filter(fahrt -> email.equals(fahrt.getErstellerEmail()))
                     .toList();
-            
+
             for (Fahrt fahrt : userFahrten) {
                 fahrt.setErstellerName(fullName);
                 fahrtRepository.save(fahrt);
             }
         }
-        
+
         if (request.profilbild() != null) {
             user.setProfilbild(request.profilbild());
-            
+
             // Update avatar in all existing Fahrten created by this user
             List<Fahrt> userFahrten = fahrtRepository.findAll().stream()
                     .filter(fahrt -> email.equals(fahrt.getErstellerEmail()))
                     .toList();
-            
+
             for (Fahrt fahrt : userFahrten) {
                 fahrt.setErstellerAvatar(request.profilbild());
                 fahrtRepository.save(fahrt);

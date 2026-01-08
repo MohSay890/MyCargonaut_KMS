@@ -22,15 +22,15 @@ public class FahrtService {
 
     public List<Fahrt> findePassendeFahrten(String start, String ziel, LocalDate datum, Double maxPreis, String kategorie, Double minRating) {
         List<Fahrt> fahrten = fahrtRepository.searchFahrten(
-            start, 
-            ziel, 
+            start,
+            ziel,
             datum != null ? datum : LocalDate.now()
         );
 
         return fahrten.stream()
                 .filter(f -> maxPreis == null || f.getPreis().compareTo(BigDecimal.valueOf(maxPreis)) <= 0)
                 .filter(f -> f.getFreiePlaetze() > 0)
-                .filter(f -> kategorie == null || kategorie.isEmpty() || 
+                .filter(f -> kategorie == null || kategorie.isEmpty() ||
                             (f.getKategorie() != null && f.getKategorie().equalsIgnoreCase(kategorie)))
                 .filter(f -> minRating == null || getDriverRating(f) >= minRating)
                 .collect(Collectors.toList());
@@ -42,10 +42,14 @@ public class FahrtService {
      * In production, this would query actual reviews for the driver.
      */
     private double getDriverRating(Fahrt fahrt) {
-        // If we have a driver assigned, we could calculate their actual rating
-        // For now, return average rating or a default
-        Double avgRating = bewertungRepository.findAverageRating();
-        return avgRating != null ? avgRating : 4.5;
+            // Sicherstellen, dass ein Fahrer (Ersteller) vorhanden ist, um die ID abzufragen
+            if (fahrt.getFahrer() != null) {
+                // Übergabe der ID an das Repository, um den spezifischen Durchschnitt zu berechnen
+                Double avgRating = bewertungRepository.findAverageRating(fahrt.getFahrer().getId());
+                return avgRating != null ? avgRating : 0.0;
+            }
+            // Falls kein Fahrer zugeordnet ist (Standardwert 0.0 für neue Profile)
+            return 0.0;
     }
 
     public Fahrt createFahrt(Fahrt fahrt) {

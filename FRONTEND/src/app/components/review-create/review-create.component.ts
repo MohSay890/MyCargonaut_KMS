@@ -2,9 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { ConfirmationModalComponent } from '../confirmation-modal/confirmation-modal.component';
-import { ReviewService } from '../../services/review.service';
 
 @Component({
   selector: 'app-review-create',
@@ -14,150 +14,82 @@ import { ReviewService } from '../../services/review.service';
   styleUrls: ['./review-create.component.css']
 })
 export class ReviewCreateComponent implements OnInit {
-
   tripId: string = '';
-  driverName: string = 'Thomas M.';
-  tripRoute: string = 'Berlin → Hamburg';
+  driverName: string = 'Lädt...';
+  tripRoute: string = '';
+  fahrerId: number = 0;
 
-  // Rating Values
   overallRating: number = 0;
   punctualityRating: number = 0;
   careRating: number = 0;
   communicationRating: number = 0;
   friendlinessRating: number = 0;
-
-  // Comment
   reviewComment: string = '';
 
-  // Available Tags
-  availableTags: string[] = [
-    'Sehr zuverlässig',
-    'Pünktlich',
-    'Freundlich',
-    'Professionell',
-    'Gute Kommunikation',
-    'Sorgfältiger Umgang',
-    'Flexibel',
-    'Empfehlenswert'
-  ];
-
+  // Behebt den Fehler: Property 'availableTags' does not exist
+  availableTags: string[] = ['Pünktlich', 'Freundlich', 'Sorgfältig', 'Zuverlässig'];
   selectedTags: string[] = [];
 
-  // Modals
   showSuccessModal: boolean = false;
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private reviewService: ReviewService
-  ) {}
+  constructor(private route: ActivatedRoute, private router: Router, private http: HttpClient) {}
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
-      this.tripId = params['id'] || '1';
-
-      // Check if already reviewed
-      if (this.reviewService.hasReview(this.tripId)) {
-        alert('Diese Fahrt wurde bereits bewertet!');
-        this.router.navigate(['/my-trips']);
-      }
+      this.tripId = params['id'];
+      this.ladeFahrtInfo(this.tripId);
     });
   }
 
-  // Star Rating Methods
-  setRating(category: string, rating: number): void {
-    switch(category) {
-      case 'overall':
-        this.overallRating = rating;
-        break;
-      case 'punctuality':
-        this.punctualityRating = rating;
-        break;
-      case 'care':
-        this.careRating = rating;
-        break;
-      case 'communication':
-        this.communicationRating = rating;
-        break;
-      case 'friendliness':
-        this.friendlinessRating = rating;
-        break;
-    }
+  ladeFahrtInfo(id: string) {
+    this.http.get<any>(`http://localhost:8080/api/fahrten/${id}`).subscribe(fahrt => {
+      this.driverName = fahrt.fahrer?.vorname + ' ' + (fahrt.fahrer?.nachname?.charAt(0) || '') + '.';
+      this.tripRoute = `${fahrt.startOrt} → ${fahrt.zielOrt}`;
+      this.fahrerId = fahrt.fahrer?.id;
+    });
   }
 
-  getStars(rating: number, maxStars: number = 5): string[] {
-    return Array(maxStars).fill('☆').map((_, i) => i < rating ? '★' : '☆');
-  }
-
-  // Tag Selection
+  // Behebt Fehler in review-create.component.html
   toggleTag(tag: string): void {
     const index = this.selectedTags.indexOf(tag);
-    if (index > -1) {
-      this.selectedTags.splice(index, 1);
-    } else {
-      this.selectedTags.push(tag);
-    }
+    index > -1 ? this.selectedTags.splice(index, 1) : this.selectedTags.push(tag);
   }
 
   isTagSelected(tag: string): boolean {
     return this.selectedTags.includes(tag);
   }
 
-  // Form Validation
-  isFormValid(): boolean {
-    return this.overallRating > 0 &&
-      this.punctualityRating > 0 &&
-      this.careRating > 0 &&
-      this.communicationRating > 0 &&
-      this.friendlinessRating > 0;
+  setRating(category: string, rating: number): void {
+    if (category === 'overall') this.overallRating = rating;
+    if (category === 'punctuality') this.punctualityRating = rating;
+    if (category === 'care') this.careRating = rating;
+    if (category === 'communication') this.communicationRating = rating;
+    if (category === 'friendliness') this.friendlinessRating = rating;
   }
 
-  // Submit Review
+  getStars(rating: number): string[] { return Array(5).fill('☆').map((_, i) => i < rating ? '★' : '☆'); }
+
+  isFormValid(): boolean { return this.overallRating > 0 && this.punctualityRating > 0; }
+
   onSubmitReview(): void {
-    if (!this.isFormValid()) {
-      alert('Bitte fülle alle Pflichtfelder aus (alle Sterne-Bewertungen)');
-      return;
-    }
-
-    const userStr = localStorage.getItem('currentUser');
-    const currentUser = userStr ? JSON.parse(userStr) : null;
-    const reviewerName = currentUser ? currentUser.name : 'Anonymer Nutzer';
-    const reviewerAvatar = currentUser?.avatar || 'https://i.pravatar.cc/150?img=1';
-
-    // Create review object
-    const review = {
-      tripId: this.tripId,
-      reviewerName: reviewerName,
-      reviewerAvatar: reviewerAvatar,
-      driverName: this.driverName,
-      route: this.tripRoute,
-      date: new Date().toLocaleDateString('de-DE'),
-      rating: this.overallRating,
-      categoryRatings: {
-        punctuality: this.punctualityRating,
-        care: this.careRating,
-        communication: this.communicationRating,
-        friendliness: this.friendlinessRating
-      },
-      comment: this.reviewComment,
-      tags: this.selectedTags
+    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const payload = {
+      bewertetVon: { id: user.id },
+      bewerteterNutzer: { id: this.fahrerId },
+      fahrtId: parseInt(this.tripId),
+      sterne: this.overallRating,
+      kommentar: this.reviewComment,
+      puenktlich: this.punctualityRating >= 4,
+      abmachungenEingehalten: this.communicationRating >= 4,
+      wohlgefuehlt: this.friendlinessRating >= 4,
+      frachtUnbeschadet: this.careRating >= 4
     };
 
-    // Save review
-    this.reviewService.addReview(review);
-
-    console.log('Review successfully saved:', review);
-
-    // Show success modal
-    this.showSuccessModal = true;
+    this.http.post('http://localhost:8080/api/bewertungen', payload).subscribe(() => {
+      this.showSuccessModal = true;
+    });
   }
 
-  onSuccessConfirm(): void {
-    this.showSuccessModal = false;
-    this.router.navigate(['/my-trips']);
-  }
-
-  onCancel(): void {
-    this.router.navigate(['/my-trips']);
-  }
+  onSuccessConfirm(): void { this.router.navigate(['/my-trips']); }
+  onCancel(): void { this.router.navigate(['/my-trips']); }
 }
