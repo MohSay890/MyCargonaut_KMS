@@ -2,38 +2,61 @@ package com.mycargonaut.backend.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "bewertung")
 @Data
 public class Bewertung {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    private Cargonaut bewertetVon; // Wer gibt die Bewertung ab?
+    private int sterne; // 1-5 Sterne Skala
+
+    @Column(columnDefinition = "TEXT")
+    private String kommentar;
+
+    // Kriterium: Sichtbarkeit erst, wenn beide bewertet haben
+    @Column(name = "ist_sichtbar")
+    private boolean istSichtbar = false;
 
     @ManyToOne
-    private Cargonaut bewerteterNutzer; // Wer wird bewertet?
+    @JoinColumn(name = "fahrt_id")
+    private Fahrt fahrt;
 
-    private Long fahrtId; // Verknüpfung zur Fahrt
+    @ManyToOne
+    @JoinColumn(name = "autor_id")
+    private Cargonaut autor;
 
-    private int sterne; // 1-5 Sterne
+    @ManyToOne
+    @JoinColumn(name = "bewerteter_nutzer_id")
+    private Cargonaut bewerteterNutzer;
 
-    // Kriterien für beide
+    // --- Spezifische Fragen laut Kriterien (Explizites Mapping auf DB-Spalten) ---
+
+    @Column(name = "ist_puenktlich")
     private boolean puenktlich; // +/- 5 Minuten
-    private boolean abmachungenEingehalten; // Treffpunkt etc.
 
-    // Spezifisch für Mitfahrer (bewertet Fahrer)
-    private boolean wohlgefuehlt;
-    private boolean frachtUnbeschadet;
+    @Column(name = "abmachungen_eingehalten")
+    private boolean abmachungenEingehalten; // Treffpunkt usw.
 
-    // Spezifisch für Fahrer (bewertet Mitfahrer)
-    private boolean gerneMitgenommen;
+    @Column(name = "ist_freundlich")
+    private Boolean istFreundlich;
 
-    private String kommentar; // Optionaler Text
+    // Fragen nur für: Mitfahrer bewertet Fahrer
+    @Column(name = "wohlgefuehlt")
+    private Boolean wohlgefuehlt;
 
-    private boolean istSichtbar = false; // Erst sichtbar, wenn beide bewertet haben
-    private LocalDateTime erstelltAm = LocalDateTime.now();
+    @Column(name = "fracht_unbeschadet")
+    private Boolean frachtUnbeschadet;
+
+    // Frage nur für: Fahrer bewertet Mitfahrer
+    @Column(name = "gerne_mitgenommen")
+    private Boolean gerneMitgenommen;
+
+    // Hilfsmethode für das Frontend/Mapping
+    public Long getFahrtId() {
+        return fahrt != null ? fahrt.getId() : null;
+    }
 }

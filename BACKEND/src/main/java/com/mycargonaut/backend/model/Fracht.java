@@ -18,5 +18,8 @@ public class Fracht {
     private double hoehe;
 
     @ManyToOne
-    private Fahrt fahrt; // Verknüpfung zur Fahrt laut UML
+    private Fahrt fahrt;
+
+    @ManyToOne
+    private Cargonaut besitzer; // <--- DAS MUSS REIN (Der Mitfahrer)
 }

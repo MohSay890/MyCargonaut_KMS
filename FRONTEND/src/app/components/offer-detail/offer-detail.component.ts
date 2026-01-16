@@ -24,7 +24,7 @@ export class OfferDetailComponent implements OnInit {
   isOwnOffer: boolean = false; // True if current user created this offer
   hasAlreadyPaid: boolean = false; // True if user already paid for this offer
   currentUserEmail: string | null = null;
-
+  currentUserId: number | null = null;
   // Modal states
   showFavoriteModal: boolean = false;
   favoriteModalMessage: string = '';
@@ -50,12 +50,14 @@ export class OfferDetailComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Get current user email
     const userStr = localStorage.getItem('currentUser');
     if (userStr) {
       try {
         const user = JSON.parse(userStr);
         this.currentUserEmail = user.email || null;
+        // WICHTIG: Hier die ID aus dem Objekt holen (muss im Login-Objekt vorhanden sein)
+        this.currentUserId = user.id || null;
+        console.log('Geladene User-ID:', this.currentUserId);
       } catch (e) {
         console.error('Error parsing user data:', e);
       }
@@ -218,15 +220,44 @@ export class OfferDetailComponent implements OnInit {
     this.showPaymentModal = false;
   }
 
-  onPaymentSuccess(result: PaymentResult): void {
-    console.log('Payment successful:', result);
-    this.showPaymentModal = false;
-    this.paymentTransactionId = result.transactionId || '';
-    this.showSuccessModal = true;
-    this.hasAlreadyPaid = true; // Mark as paid to disable future booking
+  // src/app/components/offer-detail/offer-detail.component.ts
 
-    // Reload tracking - it should be created automatically after payment
-    setTimeout(() => this.loadTracking(), 2000); // Wait 2s for backend to create tracking
+  onPaymentSuccess(result: PaymentResult): void {
+    console.log('Payment successful result:', result);
+
+    // SICHERHEITS-CHECK: Prüfen, ob der User wirklich eingeloggt ist
+    if (!this.currentUserId) {
+      console.error('Buchung abgebrochen: Keine currentUserId gefunden!');
+      alert('Fehler: Du musst eingeloggt sein, um eine Buchung abzuschließen. Bitte melde dich erneut an.');
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    // Debug-Log, um im Browser zu sehen, was gesendet wird
+    console.log('Sende Buchung für Fahrt:', this.offerId, 'von User:', this.currentUserId);
+
+    // 1. Payload erstellen
+    const payload = {
+      fahrtId: parseInt(this.offerId),
+      userId: this.currentUserId
+    };
+
+    // 2. HTTP-Post Aufruf
+    this.offerService.bookOffer(payload).subscribe({
+      next: (response) => {
+        console.log('Buchung erfolgreich gespeichert:', response);
+        this.showPaymentModal = false;
+        this.paymentTransactionId = result.transactionId || '';
+        this.showSuccessModal = true;
+        this.hasAlreadyPaid = true;
+        setTimeout(() => this.loadTracking(), 2000);
+      },
+      error: (error) => {
+        console.error('Fehler beim Speichern der Buchung (Backend-Antwort):', error);
+        // Hier erscheint dein Fehler aus image_12ed7c.jpg, wenn der Token oder die ID fehlt
+        alert('Zahlung war erfolgreich, aber Buchung konnte nicht gespeichert werden (403/500).');
+      }
+    });
   }
 
   onPaymentError(result: PaymentResult): void {

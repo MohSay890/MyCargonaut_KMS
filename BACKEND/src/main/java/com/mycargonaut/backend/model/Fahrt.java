@@ -5,7 +5,7 @@ import lombok.Data;          // Für @Data (erzeugt Getter/Setter)
 import java.time.LocalDate;   // Für Geburtsdatum/Datum
 import java.util.List;        // Für Listen
 import java.math.BigDecimal;  // Für den Preis in "Fahrt"
-
+import lombok.Data;
 @Entity
 @Data
 public class Fahrt {
@@ -19,7 +19,7 @@ public class Fahrt {
     private String uhrzeit;           // Time of departure (e.g., "08:00")
     private int freiePlaetze;
     private BigDecimal preis;
-
+    private String status;
     // Additional transport details
     @Column(columnDefinition = "TEXT")
     private String beschreibung;      // Description - can be long text

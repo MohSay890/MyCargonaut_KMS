@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http'; // HttpHeaders hinzugefügt
 import { SidebarComponent } from '../sidebar/sidebar.component';
 
 interface Review {
@@ -10,17 +10,23 @@ interface Review {
   sterne: number;
   kommentar: string;
   istSichtbar: boolean;
-  bewertetVon?: {
+  // Hier von 'bewertetVon' zu 'autor' ändern:
+  autor?: {
     vorname: string;
     nachname: string;
     profilbild: string;
   };
+  fahrt?: {
+    startOrt: string;
+    zielOrt: string;
+    datum: string;
+  };
   fahrtId: number;
-  // Diese Felder beheben die Fehler in deinem Screenshot
   puenktlich: boolean;
-  wohlgefuehlt: boolean;
   abmachungenEingehalten: boolean;
-  frachtUnbeschadet: boolean;
+  wohlgefuehlt?: boolean;
+  frachtUnbeschadet?: boolean;
+  gerneMitgenommen?: boolean;
 }
 
 @Component({
@@ -36,7 +42,6 @@ export class ReviewsComponent implements OnInit {
   totalReviews: number = 0;
   ratingBreakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
   filterRating: string = 'all';
-  sortBy: string = 'newest';
   reviews: Review[] = [];
 
   constructor(private http: HttpClient) {}
@@ -50,12 +55,33 @@ export class ReviewsComponent implements OnInit {
     }
   }
 
+  // Hilfsmethode für JWT-Authentifizierung (Behebt Fehler in image_2107eb.jpg)
+  private getAuthHeaders(): HttpHeaders {
+    const userStr = localStorage.getItem('currentUser');
+    if (!userStr) return new HttpHeaders();
+
+    const user = JSON.parse(userStr);
+    const token = user?.token;
+
+    if (token && token !== 'undefined' && token.length > 20) {
+      return new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    }
+    return new HttpHeaders();
+  }
+
   ladeDaten(userId: number): void {
-    this.http.get<Review[]>(`http://localhost:8080/api/bewertungen/nutzer/${userId}`)
-      .subscribe(data => {
-        this.reviews = data;
-        this.totalReviews = data.length;
-        this.berechneStatistiken(data);
+    const headers = this.getAuthHeaders();
+    // Nutzt nun die Header, um den 403-Fehler aus image_1dd628.jpg zu vermeiden
+    this.http.get<Review[]>(`http://localhost:8080/api/bewertungen/nutzer/${userId}`, { headers })
+      .subscribe({
+        next: (data) => {
+          this.reviews = data;
+          this.totalReviews = data.length;
+          this.berechneStatistiken(data);
+        },
+        error: (err) => {
+          console.error('Fehler beim Laden der Bewertungen:', err);
+        }
       });
   }
 
@@ -79,6 +105,31 @@ export class ReviewsComponent implements OnInit {
     return filtered;
   }
 
-  getStars(rating: number): string { return '⭐'.repeat(Math.floor(rating)); }
-  getRatingBreakdown(stars: number): number { return this.ratingBreakdown[stars as keyof typeof this.ratingBreakdown]; }
+  getStars(rating: number): string {
+    return '⭐'.repeat(Math.floor(rating));
+  }
+  getInitials(vorname?: string, nachname?: string): string {
+    if (!vorname || vorname === '.') return 'C';
+    return (vorname[0] + (nachname ? nachname[0] : '')).toUpperCase();
+  }
+
+  formatName(vorname?: string, nachname?: string): string {
+    if (!vorname || vorname === '.') return 'Cargonaut Nutzer';
+    return `${vorname} ${nachname ? nachname.charAt(0) + '.' : ''}`;
+  }
+  getRelativeTime(dateString?: string): string {
+    if (!dateString) return 'unbekannt';
+
+    const reviewDate = new Date(dateString);
+    const today = new Date(); // 2026-01-16
+    const diffTime = Math.abs(today.getTime() - reviewDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return 'heute';
+    if (diffDays === 1) return 'gestern';
+    if (diffDays < 7) return `vor ${diffDays} Tagen`;
+    if (diffDays < 30) return `vor ${Math.floor(diffDays / 7)} Wochen`;
+
+    return reviewDate.toLocaleDateString(); // Fallback: Echtes Datum
+  }
 }

@@ -71,39 +71,45 @@ public class UserProfileService {
         Cargonaut user = cargonautRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Benutzer nicht gefunden"));
 
-        // Count active offers (Fahrten created by this user with future dates)
+        // 1. Aktive Angebote zählen (eigene Fahrten in der Zukunft)
         List<Fahrt> allUserFahrten = fahrtRepository.findByErstellerEmail(email);
         int activeOffers = (int) allUserFahrten.stream()
                 .filter(f -> f.getDatum() != null && !f.getDatum().isBefore(LocalDate.now()))
                 .count();
 
-        // Count completed trips (past dated Fahrten)
+        // 2. Abgeschlossene Fahrten zählen (eigene Fahrten in der Vergangenheit)
         int completedTrips = (int) allUserFahrten.stream()
                 .filter(f -> f.getDatum() != null && f.getDatum().isBefore(LocalDate.now()))
                 .count();
 
-        // Calculate earnings (sum of prices from all user's Fahrten)
+        // 3. Einnahmen berechnen
         BigDecimal earnings = allUserFahrten.stream()
                 .filter(f -> f.getPreis() != null)
                 .map(Fahrt::getPreis)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // KORREKTUR: Übergabe der Nutzer-ID (user.getId()), um den Durchschnitt für diesen User zu berechnen
+        // 4. Durchschnittsbewertung
         Double avgRating = bewertungRepository.findAverageRating(user.getId());
         double averageRating = avgRating != null ? avgRating : 0.0;
 
-        // KORREKTUR: Übergabe der Nutzer-ID (user.getId()), um die Anzahl der Bewertungen dieses Users zu zählen
+        // 5. Anzahl der Bewertungen
         Long reviewCount = bewertungRepository.countAllReviews(user.getId());
-
-        // KORREKTUR: intValue() ohne Argumente aufrufen
         int totalReviews = (reviewCount != null) ? reviewCount.intValue() : 0;
 
+        // 6. NEU: Aktive Buchungen zählen (Fahrten anderer, die ich gebucht habe)
+        // Wir nutzen die Methode aus dem BuchungRepository, die wir vorhin korrigiert haben
+        int activeBookings = (int) buchungRepository.countByMitfahrerEmailAndFahrt_DatumAfter(
+                email, LocalDate.now().minusDays(1)
+        );
+
+        // Rückgabe mit allen 6 Werten für dein Profil-Mockup
         return new UserProfileStatsResponse(
                 activeOffers,
                 completedTrips,
                 averageRating,
                 earnings,
-                totalReviews
+                totalReviews,
+                activeBookings // Das 6. Argument
         );
     }
 

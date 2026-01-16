@@ -1,9 +1,11 @@
 <div class="reviews-page">
+  <app-sidebar></app-sidebar>
+
   <div class="main-content">
     <div class="page-header-row">
       <div class="page-title">
         <h1>Bewertungen</h1>
-        <p class="subtitle">{{ driverName }}</p>
+        <p class="subtitle">Profil von: {{ driverName }}</p>
       </div>
       <a routerLink="/search" class="btn-back">← Zurück zur Suche</a>
     </div>
@@ -13,7 +15,19 @@
         <div class="rating-overview">
           <strong class="rating-number">{{ overallRating | number:'1.1-1' }}</strong>
           <div class="rating-stars">{{ getStars(overallRating) }}</div>
-          <p>{{ totalReviews }} Bewertungen</p>
+          <p>{{ totalReviews }} verifizierte Bewertungen</p>
+        </div>
+
+        <div class="filter-section">
+          <label>Bewertung filtern:</label>
+          <select [(ngModel)]="filterRating" class="filter-select">
+            <option value="all">Alle Sterne</option>
+            <option value="5">5 Sterne</option>
+            <option value="4">4 Sterne</option>
+            <option value="3">3 Sterne</option>
+            <option value="2">2 Sterne</option>
+            <option value="1">1 Stern</option>
+          </select>
         </div>
       </aside>
 
@@ -21,21 +35,46 @@
         <div class="reviews-list">
           <div class="review-card" *ngFor="let review of filteredReviews">
             <div class="review-header">
-              <img class="reviewer-avatar" [src]="review.bewertetVon?.profilbild || 'assets/default-avatar.png'">
-              <div>
-                <strong class="reviewer-name">{{ review.bewertetVon?.vorname }} {{ review.bewertetVon?.nachname?.charAt(0) }}.</strong>
-                <div class="review-meta">Fahrt #{{ review.fahrtId }}</div>
+              <div class="reviewer-avatar-container">
+                <img *ngIf="review.autor?.profilbild"
+                     class="reviewer-avatar"
+                     [src]="review.autor?.profilbild"
+                     [alt]="review.autor?.vorname">
+
+                <div *ngIf="!review.autor?.profilbild" class="avatar-initials">
+                  {{ getInitials(review.autor?.vorname, review.autor?.nachname) }}
+                </div>
               </div>
-              <div class="review-rating">{{ getStars(review.sterne) }}</div>
-            </div>
-            <p class="review-comment">{{ review.kommentar }}</p>
+
+              <div class="reviewer-info">
+                <strong class="reviewer-name">
+                  {{ formatName(review.autor?.vorname, review.autor?.nachname) }}
+                </strong>
+
+                <div class="review-date">
+                  {{ getRelativeTime(review.fahrt?.datum) }}
+                </div>
+
+                <div class="review-meta">
+                  <strong>Fahrt:</strong> {{ review.fahrt?.startOrt }} → {{ review.fahrt?.zielOrt }}
+                </div>
+              </div>
+
+            <p class="review-comment">{{ review.kommentar || 'Kein Kommentar hinterlassen.' }}</p>
+
             <div class="review-tags">
-              <span class="tag" *ngIf="review.puenktlich">Pünktlich</span>
-              <span class="tag" *ngIf="review.wohlgefuehlt">Freundlich</span>
-              <span class="tag" *ngIf="review.abmachungenEingehalten">Zuverlässig</span>
-              <span class="tag" *ngIf="review.frachtUnbeschadet">Sorgfältig</span>
+              <span class="tag" *ngIf="review.puenktlich">⏱️ Pünktlich (+/- 5 Min)</span>
+              <span class="tag" *ngIf="review.abmachungenEingehalten">🤝 Abmachungen eingehalten</span>
+              <span class="tag" *ngIf="review.wohlgefuehlt">😊 Wohlgefühlt</span>
+              <span class="tag" *ngIf="review.frachtUnbeschadet">📦 Fracht unbeschadet</span>
+              <span class="tag" *ngIf="review.gerneMitgenommen">🚗 Gerne mitgenommen</span>
             </div>
           </div>
+
+          <div class="no-reviews" *ngIf="filteredReviews.length === 0">
+            <p>Keine Bewertungen in dieser Kategorie gefunden.</p>
+          </div>
+        </div>
         </div>
       </main>
     </div>

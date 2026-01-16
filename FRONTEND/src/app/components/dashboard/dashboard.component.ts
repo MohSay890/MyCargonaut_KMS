@@ -4,6 +4,7 @@ import { Router} from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { UserProfileService } from '../../services/user-profile.service';
+import { NotificationService } from '../../services/notification.service';
 
 interface Trip {
   id: string;
@@ -15,12 +16,13 @@ interface Trip {
   status: 'confirmed' | 'pending';
 }
 
-interface Notification {
-  id: string;
-  type: 'booking' | 'review' | 'payment';
-  title: string;
-  message: string;
-  timestamp: Date;
+interface UserNotification {
+  id: string; // Da du sagtest id ist string
+  typ: 'BOOKING' | 'REVIEW' | 'PAYMENT';
+  titel: string;
+  nachricht: string;
+  zeitstempel: Date;
+  gelesen: boolean;
 }
 
 @Component({
@@ -34,6 +36,7 @@ export class DashboardComponent implements OnInit {
 
   userName: string = 'Benutzer';
   isLoading: boolean = true;
+  notifications: UserNotification[] = [];
 
   // Stats
   stats = {
@@ -44,65 +47,16 @@ export class DashboardComponent implements OnInit {
   };
 
   // Upcoming Trips
-  upcomingTrips: Trip[] = [
-    {
-      id: '1',
-      date: new Date('2024-12-15'),
-      route: 'Berlin → Hamburg',
-      time: '08:00 Uhr',
-      vehicle: 'Transporter',
-      maxWeight: 100,
-      status: 'confirmed'
-    },
-    {
-      id: '2',
-      date: new Date('2024-12-18'),
-      route: 'München → Stuttgart',
-      time: '14:00 Uhr',
-      vehicle: 'PKW',
-      maxWeight: 50,
-      status: 'pending'
-    },
-    {
-      id: '3',
-      date: new Date('2024-12-20'),
-      route: 'Köln → Frankfurt',
-      time: '10:00 Uhr',
-      vehicle: 'Transporter',
-      maxWeight: 150,
-      status: 'confirmed'
-    }
-  ];
+  upcomingTrips: Trip[] = [];
 
-  // Notifications
-  notifications: Notification[] = [
-    {
-      id: '1',
-      type: 'booking',
-      title: 'Neue Buchungsanfrage erhalten',
-      message: 'Sarah K. möchte deine Fahrt Berlin → Hamburg buchen',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 hours ago
-    },
-    {
-      id: '2',
-      type: 'review',
-      title: 'Neue Bewertung',
-      message: 'Peter M. hat dich mit 5 Sternen bewertet',
-      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000) // 5 hours ago
-    },
-    {
-      id: '3',
-      type: 'payment',
-      title: 'Zahlung eingegangen',
-      message: '65,00 € für die Fahrt München → Stuttgart',
-      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000) // 1 day ago
-    }
-  ];
+
+
 
   constructor(
     private router: Router,
     private http: HttpClient,
-    private userProfileService: UserProfileService
+    private userProfileService: UserProfileService,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
@@ -121,9 +75,26 @@ export class DashboardComponent implements OnInit {
       this.loadUserStats(user.email);
       // Load earnings from payment API
       this.loadEarnings(user.email);
+      this.loadRealNotifications(user.id);
     } else {
       this.isLoading = false;
     }
+  }
+
+  // dashboard.component.ts
+  loadRealNotifications(userId: any): void {
+    // Sicherstellen, dass der Service auch das neue Interface nutzt
+    this.notificationService.getNotifications(String(userId)).subscribe({
+      next: (data: any[]) => {
+        this.notifications = data.map(n => ({
+          ...n,
+          id: String(n.id),
+          // Umwandlung des Strings aus der DB in ein Date-Objekt
+          zeitstempel: new Date(n.zeitstempel)
+        }));
+      },
+      error: (err) => console.error('Fehler beim Laden:', err)
+    });
   }
 
   loadUserStats(email: string): void {

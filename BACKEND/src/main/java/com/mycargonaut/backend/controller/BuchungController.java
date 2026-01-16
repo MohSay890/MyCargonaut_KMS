@@ -3,9 +3,10 @@ package com.mycargonaut.backend.controller;
 import com.mycargonaut.backend.service.BuchungService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.mycargonaut.backend.dto.BuchungDTO;
 
 @RestController
-@RequestMapping("/api/buchungen")
+@RequestMapping("/api/fahrten/buchungen")
 public class BuchungController {
 
     private final BuchungService buchungService;
@@ -15,7 +16,16 @@ public class BuchungController {
     }
 
     @PostMapping
-    public ResponseEntity<?> buchen(@RequestParam Long fahrtId, @RequestParam Long userId) {
-        return ResponseEntity.ok(buchungService.createBuchung(fahrtId, userId));
+    public ResponseEntity<?> buchen(@RequestBody BuchungDTO request) {
+        // Diese Zeile erscheint in deinem WebStorm/Terminal-Fenster
+        System.out.println("--- EINGEHENDE BUCHUNG ---");
+        System.out.println("Fahrt-ID: " + request.getFahrtId());
+        System.out.println("User-ID: " + request.getUserId());
+        System.out.println("---------------------------");
+
+        return ResponseEntity.ok(buchungService.createBuchung(
+            request.getFahrtId(),
+            request.getUserId()
+        ));
     }
 }

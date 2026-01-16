@@ -8,15 +8,16 @@ import java.util.List;
 
 public interface BewertungRepository extends JpaRepository<Bewertung, Long> {
 
-    // Bestehende Methoden
-    List<Bewertung> findByBewerteterNutzerIdAndIstSichtbarTrue(Long nutzerId);
-    List<Bewertung> findByFahrtId(Long fahrtId);
+    // WICHTIG: Der Unterstrich löst den "Unable to locate Attribute" Fehler!
+    List<Bewertung> findByFahrt_Id(Long fahrtId);
 
-    // NEU: Berechnet den Durchschnitt der Sterne für einen Nutzer (nur sichtbare)
     @Query("SELECT AVG(b.sterne) FROM Bewertung b WHERE b.bewerteterNutzer.id = :nutzerId AND b.istSichtbar = true")
     Double findAverageRating(@Param("nutzerId") Long nutzerId);
 
-    // NEU: Zählt alle sichtbaren Bewertungen eines Nutzers
     @Query("SELECT COUNT(b) FROM Bewertung b WHERE b.bewerteterNutzer.id = :nutzerId AND b.istSichtbar = true")
     Long countAllReviews(@Param("nutzerId") Long nutzerId);
+
+    List<Bewertung> findByBewerteterNutzerIdAndIstSichtbarTrue(Long nutzerId);
+    // Prüft, ob dieser Autor für diese Fahrt bereits bewertet hat
+    boolean existsByFahrt_IdAndAutor_Id(Long fahrtId, Long autorId);
 }

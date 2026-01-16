@@ -3,6 +3,7 @@ package com.mycargonaut.backend.service;
 import com.mycargonaut.backend.model.*;
 import com.mycargonaut.backend.repository.PaymentRepository;
 import com.mycargonaut.backend.repository.CargonautRepository;
+import com.mycargonaut.backend.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,9 @@ import java.util.UUID;
 
 @Service
 public class PaymentService {
+
+    @Autowired // Geändert von private final auf @Autowired für Konsistenz
+    private NotificationService notificationService;
 
     @Autowired
     private PaymentRepository paymentRepository;
@@ -59,11 +63,11 @@ public class PaymentService {
         payment.setCurrency(currency);
         payment.setPaymentMethod(paymentMethod);
         payment.setStatus(PaymentStatus.PENDING);
-        
+
         // Calculate platform fee (15% commission)
         BigDecimal platformFee = amount.multiply(new BigDecimal("0.15"));
         payment.setPlatformFee(platformFee);
-        
+
         // Calculate recipient amount (amount - platform fee)
         BigDecimal recipientAmount = amount.subtract(platformFee);
         payment.setRecipientAmount(recipientAmount);
@@ -92,7 +96,16 @@ public class PaymentService {
         if (success) {
             payment.setStatus(PaymentStatus.COMPLETED);
             payment.setTransactionReference("TXN-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+            try {
+                Fahrt fahrt = payment.getFahrt();
+                Cargonaut mitfahrer = payment.getPayer();
+                String msg = String.format("%.2f € für die Fahrt %s → %s",
+                             payment.getAmount(), fahrt.getStartOrt(), fahrt.getZielOrt());
 
+                notificationService.sende(mitfahrer, "Zahlung ausgegangen", msg, "PAYMENT");
+            } catch (Exception e) {
+                System.err.println("Benachrichtigung konnte nicht gesendet werden: " + e.getMessage());
+            }
             // Auto-create tracking for this journey when payment is completed
             try {
                 Fahrt fahrt = payment.getFahrt();

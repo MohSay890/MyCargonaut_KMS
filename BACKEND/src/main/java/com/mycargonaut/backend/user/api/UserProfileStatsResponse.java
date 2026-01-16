@@ -7,5 +7,6 @@ public record UserProfileStatsResponse(
     int completedTrips,
     double averageRating,
     BigDecimal earnings,
-    int totalReviews
+    int totalReviews,
+    int activeBookings
 ) {}
