@@ -7,15 +7,8 @@ describe('PaymentService', () => {
   let httpMock: HttpTestingController;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [PaymentService]
-    });
-    service = TestBed.inject(PaymentService);
-    httpMock = TestBed.inject(HttpTestingController);
+    // 1. WICHTIG: LocalStorage MUSS gesetzt werden, BEVOR der Service injiziert wird
     localStorage.clear();
-
-    // Set up mock user for payment processing tests
     const mockUser = {
       id: 1,
       email: 'test@example.com',
@@ -23,10 +16,20 @@ describe('PaymentService', () => {
       nachname: 'Mustermann'
     };
     localStorage.setItem('currentUser', JSON.stringify(mockUser));
+
+    // 2. Jetzt erst das Modul konfigurieren
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [PaymentService]
+    });
+
+    // 3. Service injizieren (liest jetzt den User korrekt aus dem LocalStorage)
+    service = TestBed.inject(PaymentService);
+    httpMock = TestBed.inject(HttpTestingController);
   });
 
   afterEach(() => {
-    httpMock.verify(); // Verify no outstanding HTTP requests
+    httpMock.verify();
     localStorage.clear();
   });
 
@@ -94,9 +97,8 @@ describe('PaymentService', () => {
 
   describe('validateExpiryDate', () => {
     it('should validate correct expiry dates', () => {
-      // Use guaranteed future dates
       const today = new Date();
-      const futureYear = (today.getFullYear() + 2) % 100; // 2 years from now
+      const futureYear = (today.getFullYear() + 2) % 100;
       const futureDate = `12/${futureYear.toString().padStart(2, '0')}`;
       expect(service.validateExpiryDate(futureDate)).toBe(true);
       expect(service.validateExpiryDate('12/99')).toBe(true);
@@ -105,6 +107,7 @@ describe('PaymentService', () => {
     it('should reject invalid expiry dates', () => {
       expect(service.validateExpiryDate('13/25')).toBe(false);
       expect(service.validateExpiryDate('00/25')).toBe(false);
+      // Da wir 2026 haben, ist 12/20 (Vergangenheit) korrekt als false markiert
       expect(service.validateExpiryDate('12/20')).toBe(false);
     });
 
@@ -140,7 +143,7 @@ describe('PaymentService', () => {
         amount: 50.00,
         cardNumber: '4532015112830366',
         cardHolder: 'Max Mustermann',
-        expiryDate: '12/30',
+        expiryDate: '12/30', // In der Zukunft
         cvv: '123',
         saveCard: true,
         route: 'Berlin → Munich',
@@ -154,7 +157,6 @@ describe('PaymentService', () => {
         done();
       });
 
-      // Mock HTTP responses
       setTimeout(() => {
         const createReq = httpMock.expectOne('http://localhost:8080/api/payments');
         expect(createReq.request.method).toBe('POST');
@@ -163,7 +165,7 @@ describe('PaymentService', () => {
         const processReq = httpMock.expectOne('http://localhost:8080/api/payments/1/process');
         expect(processReq.request.method).toBe('POST');
         processReq.flush({ id: 1, status: 'COMPLETED', transactionReference: 'TXN-123' });
-      }, 2100); // After the 2s delay in processPayment
+      }, 2100);
     });
 
     it('should handle payment failure for invalid card', (done) => {
@@ -207,7 +209,6 @@ describe('PaymentService', () => {
         });
       });
 
-      // Mock HTTP responses
       setTimeout(() => {
         const createReq = httpMock.expectOne('http://localhost:8080/api/payments');
         createReq.flush({ id: 1, status: 'PENDING' });
@@ -226,7 +227,7 @@ describe('PaymentService', () => {
         cardNumber: '0366',
         cardBrand: 'visa',
         cardHolder: 'Max Mustermann',
-        expiryDate: '12/30',
+        expiryDate: '12/30', // GEÄNDERT auf 30
         isDefault: true,
         createdAt: new Date()
       };
@@ -247,7 +248,7 @@ describe('PaymentService', () => {
         type: 'credit_card',
         cardNumber: '0366',
         cardHolder: 'Max Mustermann',
-        expiryDate: '12/25',
+        expiryDate: '12/30', // GEÄNDERT auf 30
         isDefault: true,
         createdAt: new Date()
       };
@@ -267,7 +268,7 @@ describe('PaymentService', () => {
         type: 'credit_card',
         cardNumber: '0366',
         cardHolder: 'Max Mustermann',
-        expiryDate: '12/25',
+        expiryDate: '12/30', // GEÄNDERT auf 30
         isDefault: true,
         createdAt: new Date()
       };
@@ -288,7 +289,7 @@ describe('PaymentService', () => {
         type: 'credit_card',
         cardNumber: '0366',
         cardHolder: 'Max Mustermann',
-        expiryDate: '12/25',
+        expiryDate: '12/30', // GEÄNDERT auf 30
         isDefault: true,
         createdAt: new Date()
       };
@@ -298,7 +299,7 @@ describe('PaymentService', () => {
         type: 'credit_card',
         cardNumber: '9903',
         cardHolder: 'John Doe',
-        expiryDate: '06/26',
+        expiryDate: '06/30', // GEÄNDERT auf 30
         isDefault: false,
         createdAt: new Date()
       };

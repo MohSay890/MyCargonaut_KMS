@@ -91,15 +91,13 @@
       </div>
 
       <div class="notifications-list">
-        <div class="notification-card" *ngFor="let notification of notifications">
-          <div class="notification-icon">
-            {{ getNotificationIcon(notification.type) }}
-          </div>
-          <div class="notification-content">
-            <h3>{{ notification.title }}</h3>
-            <p>{{ notification.message }}</p>
-            <span class="notification-time">{{ formatTimestamp(notification.timestamp) }}</span>
-          </div>
+        <div class="notification-item" *ngFor="let n of notifications">
+          <div class="notif-icon">{{ getNotificationIcon(n.typ) }}</div>
+          <div class="notif-content">
+            <div class="notif-header">
+              <h4>{{ n.titel }}</h4> <span>{{ formatTimestamp(n.zeitstempel) }}</span>
+            </div>
+            <p>{{ n.nachricht }}</p> </div>
         </div>
       </div>
     </div>

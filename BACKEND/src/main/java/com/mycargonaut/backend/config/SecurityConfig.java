@@ -14,7 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
+import org.springframework.http.HttpMethod;
 import java.util.Arrays;
 import java.util.List;
 
@@ -41,27 +41,24 @@ public class SecurityConfig {
             // WICHTIG: Erlaubt Frames für die H2-Konsole
             .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
             .authorizeHttpRequests(auth -> auth
-                // Erlaube die Startseite und die H2-Konsole ohne Token
-                .requestMatchers("/", "/h2-console/**").permitAll()
-                // Erlaube Auth-Endpunkte (Login/Register) und Health-Check
-                .requestMatchers("/api/health", "/actuator/**", "/api/auth/**").permitAll()
-                // Erlaube Fahrten-Endpunkte (Suche und Anzeige) ohne Token
-                .requestMatchers("/api/fahrten/**").permitAll()
-                // Erlaube Anfragen-Endpunkte (Suche und Anzeige) ohne Token
-                .requestMatchers("/api/requests/**").permitAll()
-                // Erlaube Angebots-Endpunkte ohne Token
-                .requestMatchers("/api/request-offers/**").permitAll()
-                // Erlaube Fahrzeug-Endpunkte ohne Token (für Entwicklung)
-                .requestMatchers("/api/fahrzeuge/**").permitAll()
-                // Erlaube Profile-Endpunkte ohne Token (für Entwicklung)
-                .requestMatchers("/api/profile/**").permitAll()
-                // Erlaube Payment-Endpunkte ohne Token (für Entwicklung)
-                .requestMatchers("/api/payments/**").permitAll()
-                // Erlaube Tracking-Endpunkte ohne Token (für Entwicklung)
-                .requestMatchers("/api/tracking/**").permitAll()
-                // Alles andere erfordert ein gültiges JWT-Token
-                .anyRequest().authenticated()
-            )
+                 .requestMatchers("/", "/h2-console/**").permitAll()
+                 .requestMatchers("/api/health", "/actuator/**", "/api/auth/**").permitAll()
+
+                 // WICHTIG: Erlaube explizit POST-Anfragen für Buchungen
+                 .requestMatchers(HttpMethod.POST, "/api/fahrten/buchungen").permitAll()
+                 .requestMatchers("/api/fahrten/**").permitAll()
+
+                 // Falls dein Controller unter /api/buchungen läuft, füge auch das hinzu:
+                 .requestMatchers("/api/buchungen/**").permitAll()
+
+                 .requestMatchers("/api/requests/**", "/api/request-offers/**").permitAll()
+                 .requestMatchers("/api/fahrzeuge/**", "/api/profile/**").permitAll()
+                 .requestMatchers("/api/payments/**", "/api/tracking/**").permitAll()
+                 // Erlaubt sowohl /api/bewertungen als auch /api/bewertungen/123
+                 .requestMatchers("/api/bewertungen", "/api/bewertungen/**").permitAll()
+                 .requestMatchers("/api/notifications/**").permitAll()
+                 .anyRequest().authenticated()
+             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
@@ -73,9 +70,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:4200"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200")); // Dein Frontend
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // POST muss dabei sein!
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

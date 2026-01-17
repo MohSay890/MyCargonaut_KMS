@@ -275,58 +275,57 @@ export class OfferCreateComponent implements OnInit, OnDestroy {
   onPublish(): void {
     if (this.isSubmitting) return;
 
-    console.log(this.isEditMode ? 'Updating offer:' : 'Publishing offer:', this.formData);
     this.isSubmitting = true;
 
     const userStr = localStorage.getItem('currentUser');
     const currentUser = userStr ? JSON.parse(userStr) : null;
 
+    // WICHTIG: Die Feldnamen MÜSSEN zu deinem Java-Backend passen!
     const offerData = {
-      from: this.formData.from,
-      to: this.formData.to,
-      date: this.formData.date,
-      time: this.formData.time,
-      category: this.formData.category,
-      distance: this.formData.distance,
-      duration: this.formData.duration,
-      vehicleType: this.formData.vehicleType,
-      vehicleModel: this.formData.vehicleModel,
-      maxWeight: this.formData.maxWeight,
-      dimensions: this.formData.dimensions,
-      capacity: this.formData.capacity,
-      price: this.formData.price,
-      description: this.formData.description,
-      tags: this.formData.tags,
-      pickupLocation: this.formData.pickupLocation,
-      dropoffLocation: this.formData.dropoffLocation
+      startOrt: this.formData.from,         // statt from
+      zielOrt: this.formData.to,           // statt to
+      datum: this.formData.date,           // statt date
+      uhrzeit: this.formData.time,         // statt time
+      kategorie: this.formData.category,   // statt category
+      entfernung: this.formData.distance,  // statt distance
+      dauer: this.formData.duration,       // statt duration
+      fahrzeugTyp: this.formData.vehicleType,
+      fahrzeugModell: this.formData.vehicleModel,
+      freiePlaetze: this.formData.maxWeight, // statt maxWeight
+      abmessungen: this.formData.dimensions,
+      ladekapazitaet: this.formData.capacity,
+      preis: this.formData.price,           // statt price
+      beschreibung: this.formData.description,
+      // Tags müssen als Komma-String gesendet werden für das Backend-Feld 'extras'
+      extras: this.formData.tags.join(', '),
+      abholadresse: this.formData.pickupLocation,
+      lieferadresse: this.formData.dropoffLocation,
+      // Ersteller-Info ist zwingend für "Meine Angebote"
+      erstellerEmail: currentUser?.email,
+      erstellerName: currentUser?.name || currentUser?.username,
+      erstellerAvatar: currentUser?.avatar || 'assets/default-avatar.png'
     };
 
     if (this.isEditMode && this.editOfferId) {
-      // Update existing offer
       this.offerService.updateOffer(this.editOfferId, offerData, currentUser).subscribe({
-        next: (updatedOffer) => {
-          console.log('Offer updated successfully:', updatedOffer);
+        next: () => {
           this.isSubmitting = false;
           this.showSuccessModal = true;
         },
         error: (error) => {
-          console.error('Error updating offer:', error);
+          console.error('Update Error:', error);
           this.isSubmitting = false;
-          alert('Fehler beim Aktualisieren des Angebots. Bitte versuche es erneut.');
         }
       });
     } else {
-      // Create new offer
       this.offerService.createOffer(offerData, currentUser).subscribe({
-        next: (newOffer) => {
-          console.log('Offer created successfully:', newOffer);
+        next: () => {
           this.isSubmitting = false;
           this.showSuccessModal = true;
         },
         error: (error) => {
-          console.error('Error creating offer:', error);
+          console.error('Create Error:', error);
           this.isSubmitting = false;
-          alert('Fehler beim Erstellen des Angebots. Bitte versuche es erneut.');
         }
       });
     }

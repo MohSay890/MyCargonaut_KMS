@@ -45,3 +45,8 @@ Desktop.ini
 # Logs
 logs/
 *.log
+
+# Script files (local)
+#*#
+*~
+.#*

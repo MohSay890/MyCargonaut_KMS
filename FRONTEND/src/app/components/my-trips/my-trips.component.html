@@ -2,13 +2,10 @@
   <div class="container">
     <div class="page-layout">
 
-      <!-- Sidebar -->
       <app-sidebar></app-sidebar>
 
-      <!-- Main Content -->
       <main class="main-content">
 
-        <!-- Page Header -->
         <div class="page-header">
           <div>
             <h1>Meine Fahrten</h1>
@@ -17,7 +14,6 @@
           <button class="btn-create" (click)="onCreateNewTrip()">+ Neue Fahrt erstellen</button>
         </div>
 
-        <!-- Tabs -->
         <div class="tabs">
           <button
             class="tab"
@@ -39,12 +35,10 @@
           </button>
         </div>
 
-        <!-- Filters -->
         <div class="filters">
           <select [(ngModel)]="statusFilter" class="filter-select">
             <option value="all">Alle Status</option>
             <option value="active">Aktiv</option>
-            <option value="request">Anfrage offen</option>
             <option value="confirmed">Bestätigt</option>
           </select>
 
@@ -54,17 +48,14 @@
           </select>
         </div>
 
-        <!-- Trips List -->
-        <div class="trips-list" *ngIf="filteredTrips.length > 0">
+        <div class="trips-list" *ngIf="!isLoading && filteredTrips.length > 0">
           <div class="trip-card" *ngFor="let trip of filteredTrips">
 
-            <!-- Date Badge -->
             <div class="trip-date">
               <div class="date-day">{{ formatDate(trip.date).day }}</div>
               <div class="date-month">{{ formatDate(trip.date).month }}</div>
             </div>
 
-            <!-- Trip Info -->
             <div class="trip-info">
               <h3 class="trip-route">{{ trip.route }}</h3>
 
@@ -83,27 +74,20 @@
                   <span class="meta-label">Preis:</span>
                   <strong class="meta-value">{{ trip.price }} €</strong>
                 </div>
-                <div class="meta-item" *ngIf="trip.requests > 0">
-                  <span class="meta-label">|</span>
-                  <span class="meta-value">{{ trip.requests }} Anfrage{{ trip.requests > 1 ? 'n' : '' }}</span>
-                </div>
                 <div class="meta-item" *ngIf="trip.customer">
                   <span class="meta-label">|</span>
-                  <span class="meta-value">{{ trip.status === 'request' ? 'Anfrage von' : 'Gebucht von' }} {{ trip.customer }}</span>
+                  <span class="meta-value">{{ trip.status === 'confirmed' ? 'Gebucht von' : 'Anbieter:' }} {{ trip.customer }}</span>
                 </div>
               </div>
             </div>
 
-            <!-- Status Badge -->
             <div class="trip-status">
               <span class="status-badge" [ngClass]="getStatusClass(trip.status)">
                 {{ getStatusText(trip.status) }}
               </span>
             </div>
 
-            <!-- Actions -->
             <div class="trip-actions">
-              <!-- For Active Offers -->
               <button
                 *ngIf="trip.status === 'active' && trip.type === 'offer'"
                 class="btn-action btn-primary"
@@ -117,35 +101,13 @@
                 Löschen
               </button>
 
-              <!-- For Requests -->
-              <button
-                *ngIf="trip.status === 'request'"
-                class="btn-action btn-primary"
-                (click)="onViewRequests(trip)">
-                Anfrage ansehen
-              </button>
-
-              <!-- For Confirmed -->
               <button
                 *ngIf="trip.status === 'confirmed'"
                 class="btn-action btn-primary"
                 (click)="onViewDetails(trip)">
                 Details ansehen
               </button>
-              <button
-                *ngIf="trip.status === 'confirmed'"
-                class="btn-action btn-secondary"
-                (click)="onContact(trip)">
-                Kontakt
-              </button>
 
-              <!-- For Completed -->
-              <button
-                *ngIf="trip.status === 'completed'"
-                class="btn-action btn-primary"
-                (click)="onViewDetails(trip)">
-                Ansehen
-              </button>
               <button
                 *ngIf="trip.status === 'completed' && !trip.hasReview"
                 class="btn-action btn-review"
@@ -157,8 +119,11 @@
           </div>
         </div>
 
-        <!-- Empty State -->
-        <div class="empty-state" *ngIf="filteredTrips.length === 0">
+        <div class="loading-state" *ngIf="isLoading">
+          <div class="loader">Lade deine Fahrten...</div>
+        </div>
+
+        <div class="empty-state" *ngIf="!isLoading && filteredTrips.length === 0">
           <div class="empty-icon">🚗</div>
           <h3>Keine Fahrten gefunden</h3>
           <p>Du hast aktuell keine Fahrten in dieser Kategorie.</p>
@@ -171,12 +136,11 @@
   </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
 <app-confirmation-modal
   *ngIf="showDeleteModal"
   [isOpen]="true"
   [title]="'Fahrt löschen?'"
-  [message]="'Möchtest du die Fahrt &quot;' + tripToDelete?.route + '&quot; wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.'"
+  [message]="'Möchtest du die Fahrt nach &quot;' + tripToDelete?.route + '&quot; wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.'"
   [confirmText]="'Löschen'"
   [cancelText]="'Abbrechen'"
   [showCancelButton]="true"
