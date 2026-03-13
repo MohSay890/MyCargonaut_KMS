@@ -1,0 +1,189 @@
+<div class="my-requests-page">
+  <div class="container">
+    <div class="page-layout">
+
+      <!-- Sidebar -->
+      <app-sidebar></app-sidebar>
+
+      <!-- Main Content -->
+      <main class="main-content">
+
+        <!-- Page Header -->
+        <div class="page-header">
+          <div>
+            <h1>Meine Anfragen</h1>
+            <p class="subtitle">Verwalte deine Transportanfragen</p>
+          </div>
+          <button class="btn-create" (click)="onCreateNewRequest()">+ Neue Anfrage erstellen</button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-content">
+              <div class="stat-value">{{ getActiveCount() }}</div>
+              <div class="stat-label">Aktive Anfragen</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-content">
+              <div class="stat-value">{{ getInactiveCount() }}</div>
+              <div class="stat-label">Abgeschlossene</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📝</div>
+            <div class="stat-content">
+              <div class="stat-value">{{ requests.length }}</div>
+              <div class="stat-label">Gesamt</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+          <select [(ngModel)]="statusFilter" class="filter-select">
+            <option value="all">Alle Status</option>
+            <option value="active">Aktiv</option>
+            <option value="inactive">Inaktiv</option>
+          </select>
+
+          <select [(ngModel)]="categoryFilter" class="filter-select">
+            <option value="all">Alle Kategorien</option>
+            <option value="Möbel">🪑 Möbel</option>
+            <option value="Umzug">📦 Umzug</option>
+            <option value="Pakete">📮 Pakete</option>
+            <option value="Sonstiges">📋 Sonstiges</option>
+          </select>
+
+          <select [(ngModel)]="sortBy" class="filter-select">
+            <option value="date">Sortieren nach Datum</option>
+            <option value="price">Sortieren nach Preis</option>
+            <option value="status">Sortieren nach Status</option>
+          </select>
+        </div>
+
+        <!-- Requests List -->
+        <div class="requests-list" *ngIf="filteredRequests.length > 0">
+          <div class="request-card" *ngFor="let request of filteredRequests">
+
+            <!-- Date Badge -->
+            <div class="request-date">
+              <div class="date-day">{{ formatDate(request.date).day }}</div>
+              <div class="date-month">{{ formatDate(request.date).month }}</div>
+            </div>
+
+            <!-- Request Info -->
+            <div class="request-info">
+              <div class="request-header">
+                <h3 class="request-route">{{ request.route }}</h3>
+                <span class="category-badge">
+                  {{ getCategoryIcon(request.itemCategory) }} {{ request.itemCategory }}
+                </span>
+              </div>
+
+              <p class="request-description">{{ request.description }}</p>
+
+              <div class="request-details">
+                <span>{{ request.time }}</span>
+                <span>|</span>
+                <span>{{ request.weight }}kg</span>
+                <span>|</span>
+                <span>{{ request.dimensions }}</span>
+              </div>
+
+              <div class="request-meta">
+                <div class="meta-item">
+                  <span class="meta-label">Preis:</span>
+                  <strong class="meta-value">{{ request.price }} €</strong>
+                </div>
+                <div class="meta-item" *ngIf="getOfferCount(request.id) > 0">
+                  <span class="meta-label">|</span>
+                  <span class="meta-value offers-badge">
+                    📨 {{ getOfferCount(request.id) }} Angebot{{ getOfferCount(request.id) > 1 ? 'e' : '' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Status Badge -->
+            <div class="request-status">
+              <span class="status-badge" [ngClass]="getStatusClass(request.status)">
+                {{ getStatusText(request.status) }}
+              </span>
+            </div>
+
+            <!-- Actions -->
+            <div class="request-actions">
+              <!-- For Active Requests -->
+              <button
+                *ngIf="request.status === 'active'"
+                class="btn-action btn-primary"
+                (click)="onViewResponses(request)"
+                [class.has-offers]="getOfferCount(request.id) > 0">
+                <span *ngIf="getOfferCount(request.id) > 0">📨 Angebote ansehen ({{ getOfferCount(request.id) }})</span>
+                <span *ngIf="getOfferCount(request.id) === 0">📭 Noch keine Angebote</span>
+              </button>
+              <button
+                *ngIf="request.status === 'active'"
+                class="btn-action btn-secondary"
+                (click)="onEdit(request)">
+                Bearbeiten
+              </button>
+              <button
+                *ngIf="request.status === 'active'"
+                class="btn-action btn-delete"
+                (click)="onDelete(request)">
+                Löschen
+              </button>
+
+              <!-- For Inactive Requests -->
+              <button
+                *ngIf="request.status === 'inactive'"
+                class="btn-action btn-primary"
+                (click)="onViewRequest(request)">
+                Details ansehen
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" *ngIf="filteredRequests.length === 0">
+          <div class="empty-icon">📋</div>
+          <h3>Keine Anfragen gefunden</h3>
+          <p>Du hast aktuell keine Transportanfragen mit diesen Filtern.</p>
+          <button class="btn-create" (click)="onCreateNewRequest()">+ Neue Anfrage erstellen</button>
+        </div>
+
+      </main>
+
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<app-confirmation-modal
+  *ngIf="showDeleteModal"
+  [isOpen]="true"
+  [title]="'Anfrage löschen?'"
+  [message]="'Möchtest du die Anfrage &quot;' + requestToDelete?.route + '&quot; wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.'"
+  [confirmText]="'Löschen'"
+  [cancelText]="'Abbrechen'"
+  [showCancelButton]="true"
+  [isDangerous]="true"
+  (confirm)="onConfirmDelete()"
+  (cancel)="onCancelDelete()">
+</app-confirmation-modal>
+
+<!-- Offer Management Modal -->
+<app-offer-management-modal
+  *ngIf="showOfferModal && selectedRequestForOffers"
+  [request]="selectedRequestForOffers"
+  (close)="closeOfferModal()"
+  (offerUpdated)="onOfferUpdated()">
+</app-offer-management-modal>
+

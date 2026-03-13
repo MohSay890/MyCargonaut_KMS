@@ -1,0 +1,214 @@
+<div class="modal-overlay" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="modal-header">
+      <h2>📋 Angebote für Ihre Anfrage</h2>
+      <button class="close-btn" (click)="closeModal()">&times;</button>
+    </div>
+
+    <!-- Request Summary -->
+    <div class="request-summary">
+      <div class="route">
+        <span class="location">📍 {{ request.startOrt }}</span>
+        <span class="arrow">→</span>
+        <span class="location">🎯 {{ request.zielOrt }}</span>
+      </div>
+      <div class="details">
+        <span>📅 {{ request.datum }}</span>
+        <span *ngIf="request.gewicht">⚖️ {{ request.gewicht }} kg</span>
+        <span *ngIf="request.maxPreis">💰 Max: €{{ request.maxPreis }}</span>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading">
+      <div class="spinner"></div>
+      <p>Lade Angebote...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error" class="error-message">
+      {{ error }}
+    </div>
+
+    <!-- Offers Content -->
+    <div *ngIf="!loading && !error" class="offers-container">
+      <!-- No Offers -->
+      <div *ngIf="offers.length === 0" class="no-offers">
+        <p>🔍 Noch keine Angebote erhalten</p>
+        <small>Fahrer können Angebote für Ihre Anfrage abgeben.</small>
+      </div>
+
+      <!-- Pending Offers -->
+      <div *ngIf="getPendingOffers().length > 0" class="offer-section">
+        <h3 class="section-title">⏳ Ausstehende Angebote ({{ getPendingOffers().length }})</h3>
+        <div class="offer-list">
+          <div *ngFor="let offer of getPendingOffers()" class="offer-card pending">
+            <div class="offer-header">
+              <div class="driver-info">
+                <img
+                  [src]="offer.driverAvatar || 'assets/default-avatar.png'"
+                  [alt]="offer.driverName"
+                  class="driver-avatar"
+                  onerror="this.src='assets/default-avatar.png'"
+                >
+                <div class="driver-details">
+                  <h4>{{ offer.driverName }}</h4>
+                  <div class="rating" *ngIf="offer.driverRating">
+                    <span class="stars">{{ getRatingStars(offer.driverRating) }}</span>
+                    <span class="rating-value">({{ offer.driverRating.toFixed(1) }})</span>
+                  </div>
+                </div>
+              </div>
+              <div class="price-badge">
+                <div class="price">€{{ offer.angebotspreis }}</div>
+              </div>
+            </div>
+
+            <div class="offer-body">
+              <div class="vehicle-info" *ngIf="offer.fahrzeugtyp || offer.fahrzeugmarke">
+                <span class="vehicle-icon">{{ getVehicleIcon(offer.fahrzeugtyp) }}</span>
+                <span class="vehicle-text">
+                  {{ offer.fahrzeugtyp || 'Fahrzeug' }}
+                  <span *ngIf="offer.fahrzeugmarke"> - {{ offer.fahrzeugmarke }}</span>
+                </span>
+              </div>
+
+              <div class="message" *ngIf="offer.nachricht">
+                <strong>💬 Nachricht:</strong>
+                <p>{{ offer.nachricht }}</p>
+              </div>
+
+              <div class="offer-meta">
+                <small>📅 Erstellt: {{ offer.erstelltAm }}</small>
+              </div>
+            </div>
+
+            <div class="offer-actions">
+              <button
+                class="btn-accept"
+                (click)="acceptOffer(offer)"
+                [disabled]="processingOfferId === offer.id"
+              >
+                ✅ Annehmen
+              </button>
+              <button
+                class="btn-reject"
+                (click)="rejectOffer(offer)"
+                [disabled]="processingOfferId === offer.id"
+              >
+                ❌ Ablehnen
+              </button>
+              <a
+                [routerLink]="['/messages']"
+                [queryParams]="{driverEmail: offer.driverEmail}"
+                class="btn-message"
+                (click)="closeModal()"
+              >
+                💬 Nachricht
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accepted Offers -->
+      <div *ngIf="getAcceptedOffers().length > 0" class="offer-section">
+        <h3 class="section-title">✅ Akzeptierte Angebote ({{ getAcceptedOffers().length }})</h3>
+        <div class="offer-list">
+          <div *ngFor="let offer of getAcceptedOffers()" class="offer-card accepted">
+            <div class="offer-header">
+              <div class="driver-info">
+                <img
+                  [src]="offer.driverAvatar || 'assets/default-avatar.png'"
+                  [alt]="offer.driverName"
+                  class="driver-avatar"
+                  onerror="this.src='assets/default-avatar.png'"
+                >
+                <div class="driver-details">
+                  <h4>{{ offer.driverName }}</h4>
+                  <div class="rating" *ngIf="offer.driverRating">
+                    <span class="stars">{{ getRatingStars(offer.driverRating) }}</span>
+                    <span class="rating-value">({{ offer.driverRating.toFixed(1) }})</span>
+                  </div>
+                </div>
+              </div>
+              <div class="price-badge accepted">
+                <div class="price">€{{ offer.angebotspreis }}</div>
+                <span class="badge-accepted">Akzeptiert</span>
+              </div>
+            </div>
+
+            <div class="offer-body">
+              <div class="vehicle-info" *ngIf="offer.fahrzeugtyp || offer.fahrzeugmarke">
+                <span class="vehicle-icon">{{ getVehicleIcon(offer.fahrzeugtyp) }}</span>
+                <span class="vehicle-text">
+                  {{ offer.fahrzeugtyp || 'Fahrzeug' }}
+                  <span *ngIf="offer.fahrzeugmarke"> - {{ offer.fahrzeugmarke }}</span>
+                </span>
+              </div>
+
+              <div class="message" *ngIf="offer.nachricht">
+                <strong>💬 Nachricht:</strong>
+                <p>{{ offer.nachricht }}</p>
+              </div>
+
+              <div class="offer-meta">
+                <small>📅 Erstellt: {{ offer.erstelltAm }}</small>
+                <small *ngIf="offer.beantwortetAm">✅ Akzeptiert: {{ offer.beantwortetAm }}</small>
+              </div>
+            </div>
+
+            <div class="offer-actions">
+              <a
+                [routerLink]="['/messages']"
+                [queryParams]="{driverEmail: offer.driverEmail}"
+                class="btn-message"
+                (click)="closeModal()"
+              >
+                💬 Nachricht senden
+              </a>
+              <a
+                [routerLink]="['/tracking']"
+                class="btn-tracking"
+                (click)="closeModal()"
+              >
+                🚚 Transport verfolgen
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rejected Offers (Collapsed by default) -->
+      <details *ngIf="getRejectedOffers().length > 0" class="offer-section collapsed">
+        <summary class="section-title">❌ Abgelehnte Angebote ({{ getRejectedOffers().length }})</summary>
+        <div class="offer-list">
+          <div *ngFor="let offer of getRejectedOffers()" class="offer-card rejected">
+            <div class="offer-header">
+              <div class="driver-info">
+                <img
+                  [src]="offer.driverAvatar || 'assets/default-avatar.png'"
+                  [alt]="offer.driverName"
+                  class="driver-avatar"
+                  onerror="this.src='assets/default-avatar.png'"
+                >
+                <div class="driver-details">
+                  <h4>{{ offer.driverName }}</h4>
+                </div>
+              </div>
+              <div class="price-badge rejected">
+                <div class="price">€{{ offer.angebotspreis }}</div>
+                <span class="badge-rejected">Abgelehnt</span>
+              </div>
+            </div>
+            <div class="offer-meta">
+              <small>📅 Erstellt: {{ offer.erstelltAm }}</small>
+              <small *ngIf="offer.beantwortetAm">❌ Abgelehnt: {{ offer.beantwortetAm }}</small>
+            </div>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>

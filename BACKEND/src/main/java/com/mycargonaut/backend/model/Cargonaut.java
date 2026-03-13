@@ -4,7 +4,8 @@ import jakarta.persistence.*; // Für @Entity, @Id, @GeneratedValue, @ManyToOne
 import lombok.Data;          // Für @Data (erzeugt Getter/Setter)
 import java.time.LocalDate;   // Für Geburtsdatum/Datum
 import java.util.List;        // Für Listen
-import java.math.BigDecimal;  // Für den Preis in "Fahrt"
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 //Die User-Entity
 @Entity
 @Data
@@ -36,6 +37,7 @@ public class Cargonaut {
     private String profilbild;       // Avatar/profile picture URL or base64
     private String sprachen;         // Languages (e.g., "Deutsch, Englisch")
 
-    @OneToMany(mappedBy = "besitzer")
+    @OneToMany(mappedBy = "besitzer", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Fahrzeug> fahrzeuge;
 }

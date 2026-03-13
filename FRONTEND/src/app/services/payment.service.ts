@@ -341,6 +341,13 @@ export class PaymentService {
     this.saveToStorage();
   }
 
+  isOfferPaid(offerId: string): boolean {
+    return this.transactionsSubject.value.some(
+      t => t.offerId === offerId &&
+           (t.status === 'completed' || t.status === 'processing')
+    );
+  }
+
   /**
    * Check if user has already paid for an offer
    */

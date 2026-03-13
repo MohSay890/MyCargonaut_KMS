@@ -141,6 +141,10 @@
           <div class="status-actions">
             <span class="actions-label">Status ändern:</span>
             <div class="action-buttons">
+                <!-- DEV MODE OVERRIDE -->
+                <button class="btn-status dev-override" (click)="completeDelivery()" style="background-color: #8b5cf6; color: white; border: 2px dashed #4c1d95;" title="Entwickler-Override: Fahrt sofort beenden ohne GPS">
+                  🚀 Dev-Mode: Sofort abschließen
+                </button>
               @if (activeSession.status.code === 'WAITING') {
                 <button class="btn-status picked" (click)="updateStatus('PICKED_UP')">
                   📦 Abgeholt

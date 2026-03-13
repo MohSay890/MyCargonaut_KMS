@@ -2,7 +2,9 @@ package com.mycargonaut.backend.service;
 
 import com.mycargonaut.backend.model.*;
 import com.mycargonaut.backend.repository.*;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -17,20 +19,27 @@ public class TrackingService {
     private final TrackingHistoryRepository historyRepository;
     private final FahrtRepository fahrtRepository;
     private final CargonautRepository cargonautRepository;
+    private final PaymentRepository paymentRepository;
+    private final PaymentService paymentService;
     
     public TrackingService(TrackingRepository trackingRepository,
                           TrackingHistoryRepository historyRepository,
                           FahrtRepository fahrtRepository,
-                          CargonautRepository cargonautRepository) {
+                          CargonautRepository cargonautRepository,
+                          PaymentRepository paymentRepository,
+                          @Lazy PaymentService paymentService) {
         this.trackingRepository = trackingRepository;
         this.historyRepository = historyRepository;
         this.fahrtRepository = fahrtRepository;
         this.cargonautRepository = cargonautRepository;
+        this.paymentRepository = paymentRepository;
+        this.paymentService = paymentService;
     }
     
     /**
      * Create a new tracking session for a Fahrt
      */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Tracking createTracking(Long fahrtId, String driverEmail) {
         Fahrt fahrt = fahrtRepository.findById(fahrtId)
                 .orElseThrow(() -> new RuntimeException("Fahrt not found: " + fahrtId));
@@ -214,10 +223,18 @@ public class TrackingService {
                 if (tracking.getStartedAt() == null) {
                     tracking.setStartedAt(LocalDateTime.now());
                 }
+                if (tracking.getFahrt() != null && "ACTIVE".equals(tracking.getFahrt().getStatus())) {
+                    tracking.getFahrt().setStatus("IN_PROGRESS");
+                    fahrtRepository.save(tracking.getFahrt());
+                }
                 break;
             case IN_TRANSIT:
                 if (tracking.getStartedAt() == null) {
                     tracking.setStartedAt(LocalDateTime.now());
+                }
+                if (tracking.getFahrt() != null && "ACTIVE".equals(tracking.getFahrt().getStatus())) {
+                    tracking.getFahrt().setStatus("IN_PROGRESS");
+                    fahrtRepository.save(tracking.getFahrt());
                 }
                 break;
             case DELIVERED:
@@ -225,6 +242,15 @@ public class TrackingService {
                 tracking.setProgress(100.0);
                 tracking.setRemainingDistance(0.0);
                 tracking.setIsActive(false);
+
+                // Update Fahrt status to COMPLETED
+                if (tracking.getFahrt() != null) {
+                    Fahrt fahrt = tracking.getFahrt();
+                    fahrt.setStatus("COMPLETED");
+                    fahrtRepository.save(fahrt);
+                }
+
+                // Note: Escrow release is handled exclusively by BewertungService (Dual-Review Phase 1)
                 break;
             case CANCELLED:
                 tracking.setIsActive(false);

@@ -2,6 +2,7 @@ package com.mycargonaut.backend.controller;
 
 import com.mycargonaut.backend.model.TransportRequest;
 import com.mycargonaut.backend.repository.TransportRequestRepository;
+import com.mycargonaut.backend.service.PricingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,9 @@ public class TransportRequestController {
 
     @Autowired
     private TransportRequestRepository requestRepository;
+
+    @Autowired
+    private PricingService pricingService;
 
     /**
      * GET all transport requests
@@ -124,5 +128,41 @@ public class TransportRequestController {
             @RequestParam(required = false) String kategorie) {
         
         return requestRepository.searchRequests(start, ziel, datum, maxPreis, kategorie);
+    }
+
+    /**
+     * POST - Calculate transport price
+     */
+    @PostMapping("/calculate-price")
+    public ResponseEntity<PricingService.PriceBreakdown> calculatePrice(
+            @RequestBody PriceCalculationRequest request) {
+        
+        Double distanceKm = pricingService.extractDistanceKm(request.getEntfernung());
+        
+        PricingService.PriceBreakdown breakdown = pricingService.calculatePriceBreakdown(
+            request.getGewicht(),
+            distanceKm,
+            request.getKategorie()
+        );
+        
+        return ResponseEntity.ok(breakdown);
+    }
+
+    /**
+     * Request body for price calculation
+     */
+    public static class PriceCalculationRequest {
+        private Double gewicht;
+        private String entfernung;
+        private String kategorie;
+
+        public Double getGewicht() { return gewicht; }
+        public void setGewicht(Double gewicht) { this.gewicht = gewicht; }
+        
+        public String getEntfernung() { return entfernung; }
+        public void setEntfernung(String entfernung) { this.entfernung = entfernung; }
+        
+        public String getKategorie() { return kategorie; }
+        public void setKategorie(String kategorie) { this.kategorie = kategorie; }
     }
 }

@@ -46,6 +46,20 @@ public class Payment {
     @Column(nullable = false)
     private PaymentStatus status = PaymentStatus.PENDING;
     
+    // Escrow fields
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = true)
+    private EscrowStatus escrowStatus = EscrowStatus.HELD;
+    
+    @Column
+    private LocalDateTime escrowHeldAt; // When money was held by platform
+    
+    @Column
+    private LocalDateTime escrowReleasedAt; // When money was released to driver
+    
+    @Column
+    private LocalDateTime escrowRefundedAt; // When money was refunded to passenger
+    
     @Column(length = 100)
     private String transactionReference;
     

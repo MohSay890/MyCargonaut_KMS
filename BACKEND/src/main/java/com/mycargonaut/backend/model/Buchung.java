@@ -1,31 +1,52 @@
-package com.mycargonaut.backend.model;
+package com.mycargonaut.backend.model; // Muss zur Ordnerstruktur passen
 
-import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import jakarta.persistence.*; // Für @Entity, @Id, @GeneratedValue, @ManyToOne
+import lombok.Data;          // Für @Data (erzeugt Getter/Setter)
 import java.time.LocalDateTime;
 
-@Entity
-@Data // Generiert automatisch setGebuchtAm, setStatus, etc.
-@NoArgsConstructor
-@AllArgsConstructor
-public class Buchung {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+@Entity
+@Data
+public class Buchung {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "fahrt_id")
     private Fahrt fahrt;
 
     @ManyToOne
-    @JoinColumn(name = "mitfahrer_id")
-    private Cargonaut mitfahrer;
-
-    // Diese beiden Felder haben gefehlt:
-    private LocalDateTime gebuchtAm;
-    private String status;
-    private String mitfahrerEmail;
+    private Cargonaut mitfahrer; // The passenger who is requesting/booking
+    
+    // Booking status: PENDING, CONFIRMED, REJECTED, CANCELLED
+    private String status = "PENDING";
+    
+    // Payment enforcement fields
+    @Column(nullable = false)
+    private Boolean paymentRequired = true; // Payment must be completed
+    
+    @Column(nullable = false)
+    private Boolean isPaid = false; // Has payment been completed?
+    
+    @Column
+    private LocalDateTime paymentDeadline; // Deadline for payment (30 minutes after booking)
+    
+    // Timestamps
+    private LocalDateTime erstelltAm; // When booking was requested
+    private LocalDateTime bestaetigtAm; // When booking was confirmed
+    
+    // Optional message from passenger when requesting
+    @Column(length = 500)
+    private String nachricht;
+    
+    // Number of seats/spaces requested
+    private Integer anzahlPlaetze = 1;
+    
+    @PrePersist
+    protected void onCreate() {
+        this.erstelltAm = LocalDateTime.now();
+        // Set payment deadline to 30 minutes after booking creation
+        if (this.paymentRequired && this.paymentDeadline == null) {
+            this.paymentDeadline = LocalDateTime.now().plusMinutes(30);
+        }
+    }
 }

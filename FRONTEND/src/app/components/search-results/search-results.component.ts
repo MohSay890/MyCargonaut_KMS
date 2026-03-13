@@ -606,6 +606,25 @@ export class SearchResultsComponent implements OnInit {
     return '⭐'.repeat(Math.floor(rating));
   }
 
+  /**
+   * Get user avatar - use current profile picture if request belongs to logged-in user
+   */
+  getUserAvatar(request: TransportRequest): string {
+    // If this request belongs to the current user, use their current avatar
+    if (this.isLoggedIn && request.erstellerEmail === this.currentUserEmail) {
+      const userData = localStorage.getItem('currentUser');
+      if (userData) {
+        const user = JSON.parse(userData);
+        if (user.avatar) {
+          return user.avatar;
+        }
+      }
+    }
+    
+    // Otherwise use the stored avatar or fallback
+    return request.erstellerAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(request.erstellerName || 'User')}`;
+  }
+
   private parseDate(dateStr: string): Date {
     // Parse date string in DD.MM.YYYY format
     const [day, month, year] = dateStr.split('.');

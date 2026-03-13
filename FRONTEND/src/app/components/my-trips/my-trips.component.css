@@ -278,6 +278,12 @@ app-sidebar {
   color: #4338ca;
 }
 
+.status-cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+  text-decoration: line-through;
+}
+
 /* Trip Actions */
 .trip-actions {
   flex-shrink: 0;

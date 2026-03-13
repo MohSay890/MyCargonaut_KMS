@@ -16,6 +16,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import com.mycargonaut.backend.repository.BuchungRepository;
+import com.mycargonaut.backend.service.TrackingService;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -25,6 +28,12 @@ class PaymentServiceTest {
 
     @Mock
     private PaymentRepository paymentRepository;
+
+    @Mock
+    private BuchungRepository buchungRepository;
+
+    @Mock
+    private TrackingService trackingService;
 
     @InjectMocks
     private PaymentService paymentService;
@@ -222,7 +231,7 @@ class PaymentServiceTest {
     @Test
     void testRefundPayment_NotCompleted() {
         // Given
-        testPayment.setStatus(PaymentStatus.PENDING);
+        testPayment.setEscrowStatus(EscrowStatus.RELEASED); // Has been released, cannot refund
         when(paymentRepository.findById(1L)).thenReturn(Optional.of(testPayment));
 
         // When/Then

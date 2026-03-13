@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { LocationValidationService } from '../../services/location-validation.service';
 
 @Component({
   selector: 'app-registration',
@@ -33,7 +34,8 @@ export class RegistrationComponent {
 
   constructor(
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private locationValidator: LocationValidationService
   ) {}
 
   onSubmit(): void {
@@ -92,6 +94,26 @@ export class RegistrationComponent {
       return;
     }
 
+    // Validate location before proceeding
+    this.locationValidator.isValidPlzAndCity(this.postalCode, this.city).subscribe({
+      next: (isValid) => {
+        if (!isValid) {
+          this.error = 'PLZ und Stadt stimmen nicht überein oder sind ungültig.';
+          this.loading = false;
+          return;
+        }
+
+        // Location is valid, proceed with registration
+        this.completeRegistration();
+      },
+      error: () => {
+        // Fallback in case the validation API is down
+        this.completeRegistration();
+      }
+    });
+  }
+
+  private completeRegistration(): void {
     // Create user data
     const userData = {
       firstName: this.firstName,
@@ -138,7 +160,6 @@ export class RegistrationComponent {
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
 
-    // Adjust age if birthday hasn't occurred yet this year
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }

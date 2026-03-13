@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, Output, OnInit, OnDestroy } from '@angu
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PaymentService, PaymentRequest, PaymentResult } from '../../services/payment.service';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, interval } from 'rxjs';
 
 @Component({
   selector: 'app-payment-modal',
@@ -17,16 +17,26 @@ export class PaymentModalComponent implements OnInit, OnDestroy {
   @Input() offerId: string = '';
   @Input() route: string = '';
   @Input() driverName: string = '';
+  @Input() paymentRequired: boolean = true; // Make payment mandatory
+  @Input() deadlineMinutes: number = 30; // Payment deadline in minutes
   
   @Output() close = new EventEmitter<void>();
   @Output() paymentSuccess = new EventEmitter<PaymentResult>();
   @Output() paymentError = new EventEmitter<PaymentResult>();
+  @Output() deadlineExpired = new EventEmitter<void>();
 
   paymentForm!: FormGroup;
   isProcessing: boolean = false;
   cardBrand: 'visa' | 'mastercard' | 'amex' | undefined;
   formattedCardNumber: string = '';
   errorMessage: string = '';
+  
+  // Deadline tracking
+  paymentDeadline?: Date;
+  remainingTimeMs: number = 0;
+  remainingMinutes: number = 0;
+  remainingSeconds: number = 0;
+  isDeadlineExpired: boolean = false;
   
   private destroy$ = new Subject<void>();
 
@@ -37,11 +47,57 @@ export class PaymentModalComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initForm();
+    if (this.paymentRequired) {
+      this.startDeadlineTimer();
+    }
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+  
+  private startDeadlineTimer(): void {
+    // Set deadline
+    this.paymentDeadline = new Date(Date.now() + this.deadlineMinutes * 60 * 1000);
+    
+    // Update timer every second
+    interval(1000)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.updateRemainingTime();
+      });
+  }
+  
+  private updateRemainingTime(): void {
+    if (!this.paymentDeadline) return;
+    
+    const now = Date.now();
+    const deadline = this.paymentDeadline.getTime();
+    this.remainingTimeMs = Math.max(0, deadline - now);
+    
+    if (this.remainingTimeMs === 0 && !this.isDeadlineExpired) {
+      this.onDeadlineExpired();
+      return;
+    }
+    
+    // Convert to minutes and seconds
+    const totalSeconds = Math.floor(this.remainingTimeMs / 1000);
+    this.remainingMinutes = Math.floor(totalSeconds / 60);
+    this.remainingSeconds = totalSeconds % 60;
+  }
+  
+  private onDeadlineExpired(): void {
+    this.isDeadlineExpired = true;
+    this.isProcessing = true; // Prevent further interaction
+    this.errorMessage = 'Zahlungsfrist abgelaufen. Buchung wird storniert.';
+    this.deadlineExpired.emit();
+  }
+  
+  getDeadlineClass(): string {
+    if (this.remainingMinutes < 5) return 'deadline-critical';
+    if (this.remainingMinutes < 10) return 'deadline-warning';
+    return 'deadline-normal';
   }
 
   private initForm(): void {
@@ -114,14 +170,18 @@ export class PaymentModalComponent implements OnInit, OnDestroy {
   }
 
   onClose(): void {
-    if (!this.isProcessing) {
+    // Only allow closing if payment is not required or already processing succeeded
+    if (!this.isProcessing && !this.paymentRequired) {
       this.resetForm();
       this.close.emit();
     }
   }
 
   onBackdropClick(event: Event): void {
-    if ((event.target as HTMLElement).classList.contains('modal-backdrop') && !this.isProcessing) {
+    // Prevent closing on backdrop click if payment is required
+    if ((event.target as HTMLElement).classList.contains('modal-backdrop') && 
+        !this.isProcessing && 
+        !this.paymentRequired) {
       this.onClose();
     }
   }

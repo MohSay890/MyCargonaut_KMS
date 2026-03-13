@@ -46,7 +46,25 @@ Desktop.ini
 logs/
 *.log
 
-# Script files (local)
-#*#
-*~
-.#*
+# Test & Patch Scripts
+*.py
+*.cjs
+*patch*.js
+*fix*.js
+fix_*.ts
+*.sql
+tmp.txt
+test-output*.txt
+report.txt
+backend_test.txt
+old_top.txt
+replacement_top.txt
+replacement*.ts
+commit-message.txt
+
+# Playwright Test Reports
+playwright-report/
+test-results/
+
+# Angular Coverage
+coverage/

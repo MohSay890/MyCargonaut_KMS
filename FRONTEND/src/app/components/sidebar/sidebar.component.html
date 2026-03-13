@@ -10,7 +10,12 @@
       <span class="sidebar-label">Meine Fahrten</span>
     </a>
 
-    <a routerLink="/tracking/1" routerLinkActive="active" class="sidebar-item">
+    <a routerLink="/my-requests" routerLinkActive="active" class="sidebar-item">
+      <span class="sidebar-icon">📋</span>
+      <span class="sidebar-label">Meine Anfragen</span>
+    </a>
+
+    <a routerLink="/tracking" routerLinkActive="active" class="sidebar-item">
       <span class="sidebar-icon">📍</span>
       <span class="sidebar-label">Live Tracking</span>
     </a>
@@ -38,6 +43,21 @@
     <a routerLink="/payments" routerLinkActive="active" class="sidebar-item">
       <span class="sidebar-icon">💳</span>
       <span class="sidebar-label">Zahlungen</span>
+    </a>
+
+    <div class="sidebar-divider"></div>
+
+    <!-- Driver-specific links -->
+    <div class="sidebar-section-title">Fahrer Bereich</div>
+
+    <a routerLink="/driver/payouts" routerLinkActive="active" class="sidebar-item">
+      <span class="sidebar-icon">💰</span>
+      <span class="sidebar-label">Auszahlungen</span>
+    </a>
+
+    <a routerLink="/driver/bank-account" routerLinkActive="active" class="sidebar-item">
+      <span class="sidebar-icon">🏦</span>
+      <span class="sidebar-label">Bankkonto</span>
     </a>
 
     <div class="sidebar-divider"></div>

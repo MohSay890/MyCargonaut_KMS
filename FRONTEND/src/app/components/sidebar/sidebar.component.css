@@ -67,6 +67,17 @@
   margin: 1rem 0;
 }
 
+/* Section Title */
+.sidebar-section-title {
+  padding: 0.5rem 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.5rem;
+}
+
 /* Logout Item */
 .sidebar-logout {
   margin-top: 1rem;

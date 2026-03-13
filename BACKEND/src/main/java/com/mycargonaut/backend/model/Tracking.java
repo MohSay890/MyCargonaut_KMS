@@ -40,7 +40,11 @@ public class Tracking {
     @Column(nullable = false)
     private TrackingStatus status = TrackingStatus.WAITING;
     
-    // Current location
+    // Current location using PostGIS
+    @Column(columnDefinition = "geometry(Point,4326)")
+    private org.locationtech.jts.geom.Point currentLocation;
+    
+    // Legacy Current location fields (keep for backwards compatibility while migrating, or if needed by old DTOs)
     private Double currentLat;
     private Double currentLng;
     private String currentAddress;

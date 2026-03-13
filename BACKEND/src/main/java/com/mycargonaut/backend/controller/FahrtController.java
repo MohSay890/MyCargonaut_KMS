@@ -1,17 +1,12 @@
 package com.mycargonaut.backend.controller;
 
 import com.mycargonaut.backend.model.Fahrt;
-import com.mycargonaut.backend.model.Buchung;
 import com.mycargonaut.backend.repository.FahrtRepository;
-import com.mycargonaut.backend.repository.BuchungRepository;
 import com.mycargonaut.backend.service.FahrtService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.time.LocalDate;
 
 @RestController
@@ -21,20 +16,35 @@ public class FahrtController {
 
     private final FahrtRepository fahrtRepository;
     private final FahrtService fahrtService;
-    private final BuchungRepository buchungRepository;
 
-    public FahrtController(FahrtRepository fahrtRepository, FahrtService fahrtService, BuchungRepository buchungRepository) {
+    public FahrtController(FahrtRepository fahrtRepository, FahrtService fahrtService) {
         this.fahrtRepository = fahrtRepository;
         this.fahrtService = fahrtService;
-        this.buchungRepository = buchungRepository;
+    }
+
+    // GET all journeys
+    @GetMapping
+    public List<Fahrt> getAllFahrten() {
+        return fahrtRepository.findAll().stream()
+                .filter(f -> f.getStatus() == null || "ACTIVE".equalsIgnoreCase(f.getStatus()))
+                .map(fahrtService::enrichFahrt)
+                .toList();
     }
 
     // GET single journey by ID
     @GetMapping("/{id}")
     public ResponseEntity<Fahrt> getFahrtById(@PathVariable Long id) {
         return fahrtRepository.findById(id)
+                .map(fahrtService::enrichFahrt)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    // POST - Create a new journey
+    @PostMapping
+    public ResponseEntity<Fahrt> createFahrt(@RequestBody Fahrt fahrt) {
+        Fahrt savedFahrt = fahrtRepository.save(fahrt);
+        return ResponseEntity.ok(savedFahrt);
     }
 
     // PUT - Update a journey
@@ -100,66 +110,15 @@ public class FahrtController {
     // GET - Get journeys by creator email (for "Meine Fahrten")
     @GetMapping("/meine")
     public List<Fahrt> getMeineFahrten(@RequestParam String email) {
-        return fahrtRepository.findByErstellerEmail(email);
+        return fahrtRepository.findByErstellerEmail(email).stream()
+                .map(fahrtService::enrichFahrt)
+                .toList();
     }
-    @GetMapping
-        public List<Fahrt> getAllFahrten() { return fahrtRepository.findAll(); }
-
-        @PostMapping
-        public ResponseEntity<Fahrt> createFahrt(@RequestBody Fahrt fahrt) {
-            return ResponseEntity.ok(fahrtRepository.save(fahrt));
-        }
-
-        // --- NEUE METHODEN FÜR DEINE TABS ---
-
-        /**
-         * Tab 1: Meine Angebote (Aktive Fahrten, die ich anbiete)
-         * Entspricht image_ca538e.jpg
-         */
-        @GetMapping("/angebote/aktiv")
-        public List<Fahrt> getAktiveAngebote(@RequestParam String email) {
-            return fahrtRepository.findByErstellerEmail(email).stream()
-                    .filter(f -> f.getDatum().isAfter(LocalDate.now().minusDays(1)))
-                    .collect(Collectors.toList());
-        }
-
-        /**
-         * Tab 2: Gebuchte Transporte (Fahrten, die ich bei anderen gebucht habe)
-         * Entspricht image_caa585.jpg
-         */
-        @GetMapping("/gebucht/aktiv")
-        public List<Fahrt> getAktiveBuchungen(@RequestParam String email) {
-            // Wir suchen alle Buchungen des Mitfahrers und geben die zugehörigen Fahrten zurück
-            return buchungRepository.findByMitfahrerEmail(email).stream()
-                    .map(Buchung::getFahrt)
-                    .filter(f -> f.getDatum() != null && !f.getDatum().isBefore(LocalDate.now()))
-                    .collect(Collectors.toList());
-        }
-
-        // Tab 3: Abgeschlossen (Kombiniert eigene Angebote & fremde Buchungen)
-        @GetMapping("/abgeschlossen")
-        public List<Fahrt> getVergangeneFahrten(@RequestParam String email) {
-            // 1. Eigene abgelaufene Angebote
-            List<Fahrt> eigeneVergangen = fahrtRepository.findByErstellerEmail(email).stream()
-                    .filter(f -> f.getDatum() != null && f.getDatum().isBefore(LocalDate.now()))
-                    .toList();
-
-            // 2. Gebuchte Fahrten, die bereits stattgefunden haben
-            List<Fahrt> gebuchteVergangen = buchungRepository.findByMitfahrerEmail(email).stream()
-                    .map(Buchung::getFahrt)
-                    .filter(f -> f.getDatum() != null && f.getDatum().isBefore(LocalDate.now()))
-                    .toList();
-
-            // Alles zusammenführen
-            return Stream.concat(eigeneVergangen.stream(), gebuchteVergangen.stream())
-                    .distinct()
-                    .collect(Collectors.toList());
-        }
 
     // PUT - Update a journey (with authorization check)
     @PutMapping("/{id}/authorized")
     public ResponseEntity<Fahrt> updateFahrtAuthorized(
-            @PathVariable Long id,
+            @PathVariable Long id, 
             @RequestBody Fahrt fahrtDetails,
             @RequestParam String userEmail) {
         return fahrtRepository.findById(id)
@@ -199,9 +158,9 @@ public class FahrtController {
         return fahrtRepository.findById(id)
                 .map(fahrt -> {
                     System.out.println("Found fahrt with creator email: '" + fahrt.getErstellerEmail() + "'");
-                    System.out.println("Comparison: '" + fahrt.getErstellerEmail() + "' equals '" + userEmail + "': " +
+                    System.out.println("Comparison: '" + fahrt.getErstellerEmail() + "' equals '" + userEmail + "': " + 
                                      (fahrt.getErstellerEmail() != null && fahrt.getErstellerEmail().equals(userEmail)));
-
+                    
                     // Authorization check: only the creator can delete
                     if (fahrt.getErstellerEmail() == null || !fahrt.getErstellerEmail().equals(userEmail)) {
                         System.out.println("Authorization FAILED - User not authorized to delete this fahrt");
@@ -213,5 +172,4 @@ public class FahrtController {
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
-
 }

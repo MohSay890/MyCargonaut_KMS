@@ -2,7 +2,6 @@ package com.mycargonaut.backend.user;
 
 import com.mycargonaut.backend.model.Cargonaut;
 import com.mycargonaut.backend.model.Fahrt;
-import com.mycargonaut.backend.model.Buchung;
 import com.mycargonaut.backend.repository.CargonautRepository;
 import com.mycargonaut.backend.repository.FahrtRepository;
 import com.mycargonaut.backend.repository.BuchungRepository;
@@ -64,52 +63,42 @@ public class UserProfileService {
     /**
      * Get user statistics
      */
-/**
-     * Get user statistics
-     */
     public UserProfileStatsResponse getUserStats(String email) {
         Cargonaut user = cargonautRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Benutzer nicht gefunden"));
 
-        // 1. Aktive Angebote zählen (eigene Fahrten in der Zukunft)
+        // Count active offers (Fahrten created by this user with future dates)
         List<Fahrt> allUserFahrten = fahrtRepository.findByErstellerEmail(email);
         int activeOffers = (int) allUserFahrten.stream()
                 .filter(f -> f.getDatum() != null && !f.getDatum().isBefore(LocalDate.now()))
                 .count();
 
-        // 2. Abgeschlossene Fahrten zählen (eigene Fahrten in der Vergangenheit)
+        // Count completed trips (past dated Fahrten)
         int completedTrips = (int) allUserFahrten.stream()
                 .filter(f -> f.getDatum() != null && f.getDatum().isBefore(LocalDate.now()))
                 .count();
 
-        // 3. Einnahmen berechnen
+        // Calculate earnings (sum of prices from all user's Fahrten)
         BigDecimal earnings = allUserFahrten.stream()
                 .filter(f -> f.getPreis() != null)
                 .map(Fahrt::getPreis)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // 4. Durchschnittsbewertung
-        Double avgRating = bewertungRepository.findAverageRating(user.getId());
+        // Get average rating for this specific user (only visible reviews)
+        Double avgRating = bewertungRepository.findAverageRatingForUser(user);
         double averageRating = avgRating != null ? avgRating : 0.0;
 
-        // 5. Anzahl der Bewertungen
-        Long reviewCount = bewertungRepository.countAllReviews(user.getId());
-        int totalReviews = (reviewCount != null) ? reviewCount.intValue() : 0;
+        // Get total reviews count for this specific user
+        Long reviewCount = bewertungRepository.countReviewsForUser(user);
+        int totalReviews = reviewCount != null ? reviewCount.intValue() : 0;
 
-        // 6. NEU: Aktive Buchungen zählen (Fahrten anderer, die ich gebucht habe)
-        // Wir nutzen die Methode aus dem BuchungRepository, die wir vorhin korrigiert haben
-        int activeBookings = (int) buchungRepository.countByMitfahrerEmailAndFahrt_DatumAfter(
-                email, LocalDate.now().minusDays(1)
-        );
-
-        // Rückgabe mit allen 6 Werten für dein Profil-Mockup
         return new UserProfileStatsResponse(
                 activeOffers,
                 completedTrips,
                 averageRating,
                 earnings,
                 totalReviews,
-                activeBookings // Das 6. Argument
+                0 // Assuming 0 for active bookings for now, can be expanded later if queried
         );
     }
 
@@ -135,28 +124,28 @@ public class UserProfileService {
         if (request.stadt() != null) user.setStadt(request.stadt());
         if (request.plz() != null) user.setPlz(request.plz());
         if (request.bio() != null) user.setBio(request.bio());
-
+        
         // Update name in all existing Fahrten if name changed
         if (nameChanged) {
             String fullName = user.getVorname() + " " + user.getNachname();
             List<Fahrt> userFahrten = fahrtRepository.findAll().stream()
                     .filter(fahrt -> email.equals(fahrt.getErstellerEmail()))
                     .toList();
-
+            
             for (Fahrt fahrt : userFahrten) {
                 fahrt.setErstellerName(fullName);
                 fahrtRepository.save(fahrt);
             }
         }
-
+        
         if (request.profilbild() != null) {
             user.setProfilbild(request.profilbild());
-
+            
             // Update avatar in all existing Fahrten created by this user
             List<Fahrt> userFahrten = fahrtRepository.findAll().stream()
                     .filter(fahrt -> email.equals(fahrt.getErstellerEmail()))
                     .toList();
-
+            
             for (Fahrt fahrt : userFahrten) {
                 fahrt.setErstellerAvatar(request.profilbild());
                 fahrtRepository.save(fahrt);

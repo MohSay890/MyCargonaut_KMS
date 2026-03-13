@@ -5,13 +5,16 @@ import { OfferService, TransportOffer } from '../../services/offer.service';
 import { FavoritesService } from '../../services/favorites.service';
 import { PaymentService, PaymentResult } from '../../services/payment.service';
 import { TrackingService, TrackingSession } from '../../services/tracking.service';
+import { BookingService } from '../../services/booking.service';
+import { MessageService } from '../../services/message.service';
 import { ConfirmationModalComponent } from '../confirmation-modal/confirmation-modal.component';
 import { PaymentModalComponent } from '../payment-modal/payment-modal.component';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-offer-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, ConfirmationModalComponent, PaymentModalComponent],
+  imports: [CommonModule, RouterLink, FormsModule, ConfirmationModalComponent, PaymentModalComponent],
   templateUrl: './offer-detail.component.html',
   styleUrls: ['./offer-detail.component.css']
 })
@@ -22,16 +25,26 @@ export class OfferDetailComponent implements OnInit {
   isSaved: boolean = false;
   isLoading: boolean = true;
   isOwnOffer: boolean = false; // True if current user created this offer
-  hasAlreadyPaid: boolean = false; // True if user already paid for this offer
+  hasAlreadyPaid: boolean = false;
+  isFullyBooked: boolean = false;
+  hasExistingBooking: boolean = false; // True if user already has a PENDING booking request
+  hasConfirmedBooking: boolean = false; // True if booking is CONFIRMED and waiting for payment
   currentUserEmail: string | null = null;
-  currentUserId: number | null = null;
+  isLoggedIn: boolean = false;
+
   // Modal states
   showFavoriteModal: boolean = false;
   favoriteModalMessage: string = '';
   showBookingModal: boolean = false;
+  showBookingRequestModal: boolean = false; // New modal for booking request form
   showPaymentModal: boolean = false;
   showSuccessModal: boolean = false;
   paymentTransactionId: string = '';
+
+  // Booking request form
+  bookingMessage: string = '';
+  bookingSeats: number = 1;
+  isSubmittingBooking: boolean = false;
 
   // Tracking state
   trackingSession: TrackingSession | null = null;
@@ -44,20 +57,21 @@ export class OfferDetailComponent implements OnInit {
     private offerService: OfferService,
     private favoritesService: FavoritesService,
     private paymentService: PaymentService,
-    private trackingService: TrackingService
+    private trackingService: TrackingService,
+    private bookingService: BookingService,
+    private messageService: MessageService
   ) {
     console.log('OfferDetailComponent constructor - favoritesService:', this.favoritesService);
   }
 
   ngOnInit(): void {
+    // Get current user email
     const userStr = localStorage.getItem('currentUser');
     if (userStr) {
       try {
         const user = JSON.parse(userStr);
         this.currentUserEmail = user.email || null;
-        // WICHTIG: Hier die ID aus dem Objekt holen (muss im Login-Objekt vorhanden sein)
-        this.currentUserId = user.id || null;
-        console.log('Geladene User-ID:', this.currentUserId);
+        this.isLoggedIn = !!this.currentUserEmail;
       } catch (e) {
         console.error('Error parsing user data:', e);
       }
@@ -87,6 +101,11 @@ export class OfferDetailComponent implements OnInit {
 
           // Check if user has already paid for this offer
           this.hasAlreadyPaid = this.paymentService.hasUserPaidForOffer(this.offerId);
+            this.isFullyBooked = this.paymentService.isOfferPaid(this.offerId);
+          if (this.currentUserEmail) {
+            this.checkExistingBooking();
+          }
+          this.checkIfOfferIsPaid();
 
           // Load tracking data if available
           this.loadTracking();
@@ -184,8 +203,21 @@ export class OfferDetailComponent implements OnInit {
   }
 
   onSendMessage(): void {
-    console.log('Send message to driver:', this.offer?.driverName);
-    this.router.navigate(['/messages']);
+    if (!this.offer || !this.offer.creatorEmail) {
+      console.error('No offer or creator email available');
+      return;
+    }
+
+    console.log('Send message to driver:', this.offer.driverName, this.offer.creatorEmail);
+
+    // Navigate to messages with recipient info in state
+    this.router.navigate(['/messages'], {
+      state: {
+        recipientEmail: this.offer.creatorEmail,
+        recipientName: this.offer.driverName,
+        recipientAvatar: this.offer.driverAvatar
+      }
+    });
   }
 
   onBookNow(): void {
@@ -197,13 +229,122 @@ export class OfferDetailComponent implements OnInit {
       return;
     }
 
-    // Prevent duplicate booking
-    if (this.hasAlreadyPaid) {
-      alert('Du hast bereits für diese Fahrt bezahlt!');
+    // Check if user already has a booking for this trip
+    if (this.hasExistingBooking) {
+      alert('Du hast bereits eine Buchungsanfrage für diese Fahrt!');
       return;
     }
 
-    this.showBookingModal = true;
+    // Check if user is logged in
+    if (!this.currentUserEmail) {
+      alert('Bitte melde dich an, um eine Buchungsanfrage zu stellen.');
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    // Show booking request modal
+    this.showBookingRequestModal = true;
+  }
+
+  onSubmitBookingRequest(): void {
+    if (!this.currentUserEmail || !this.offer) {
+      return;
+    }
+
+    // Validate seats
+    if (this.bookingSeats < 1 || this.bookingSeats > this.offer.maxWeight) {
+      alert(`Bitte wähle zwischen 1 und ${this.offer.maxWeight} Plätze(n).`);
+      return;
+    }
+
+    this.isSubmittingBooking = true;
+
+    const bookingRequest = {
+      fahrtId: parseInt(this.offerId),
+      passengerEmail: this.currentUserEmail,
+      nachricht: this.bookingMessage || undefined,
+      anzahlPlaetze: this.bookingSeats
+    };
+
+    this.bookingService.createBookingRequest(bookingRequest).subscribe({
+      next: (booking) => {
+        console.log('Booking request created:', booking);
+        this.isSubmittingBooking = false;
+        this.showBookingRequestModal = false;
+        this.hasExistingBooking = true;
+
+        // Show success message
+        alert('Buchungsanfrage erfolgreich gesendet! Der Fahrer wird deine Anfrage prüfen und sich melden.');
+
+        // Reset form
+        this.bookingMessage = '';
+        this.bookingSeats = 1;
+      },
+      error: (error) => {
+        console.error('Error creating booking request:', error);
+        this.isSubmittingBooking = false;
+
+        const errorMsg = error.error?.error || 'Fehler beim Senden der Buchungsanfrage. Bitte versuche es erneut.';
+        alert(errorMsg);
+      }
+    });
+  }
+
+  onCancelBookingRequest(): void {
+    this.showBookingRequestModal = false;
+    this.bookingMessage = '';
+    this.bookingSeats = 1;
+  }
+
+  checkIfOfferIsPaid(): void {
+    if (!this.offerId) return;
+    this.bookingService.getBookingsForTrip(parseInt(this.offerId)).subscribe({
+      next: (bookings) => {
+        const isPaidInBackend = bookings.some(b => b.isPaid === true);
+        if (isPaidInBackend) {
+          this.isFullyBooked = true;
+          console.log('Offer is fully booked (paid)!');
+        }
+      },
+      error: (err) => console.error('Error checking if offer is paid:', err)
+    });
+  }
+
+  checkExistingBooking(): void {
+    if (!this.currentUserEmail) return;
+
+    this.bookingService.getBookingsByPassenger(this.currentUserEmail).subscribe({
+      next: (bookings) => {
+        // Check if user already has a booking for this trip
+        const existingBooking = bookings.find(b => b.fahrt?.id === parseInt(this.offerId));
+
+        if (existingBooking) {
+          // Only block the request button if booking is still PENDING
+          this.hasExistingBooking = existingBooking.status === 'PENDING';
+          // Enable payment flow if booking is CONFIRMED
+          this.hasConfirmedBooking = existingBooking.status === 'CONFIRMED';
+
+          console.log('Existing booking found:', existingBooking.status,
+                     'hasExistingBooking:', this.hasExistingBooking,
+                     'hasConfirmedBooking:', this.hasConfirmedBooking);
+                     
+          // Auto-open payment modal if ?pay=true
+          if (this.hasConfirmedBooking && !this.hasAlreadyPaid) {
+            this.route.queryParams.subscribe(params => {
+              if (params['pay'] === 'true') {
+                this.showPaymentModal = true;
+              }
+            });
+          }
+        } else {
+          this.hasExistingBooking = false;
+          this.hasConfirmedBooking = false;
+        }
+      },
+      error: (error) => {
+        console.error('Error checking existing booking:', error);
+      }
+    });
   }
 
   onConfirmBooking(): void {
@@ -220,44 +361,14 @@ export class OfferDetailComponent implements OnInit {
     this.showPaymentModal = false;
   }
 
-  // src/app/components/offer-detail/offer-detail.component.ts
-
   onPaymentSuccess(result: PaymentResult): void {
-    console.log('Payment successful result:', result);
-
-    // SICHERHEITS-CHECK: Prüfen, ob der User wirklich eingeloggt ist
-    if (!this.currentUserId) {
-      console.error('Buchung abgebrochen: Keine currentUserId gefunden!');
-      alert('Fehler: Du musst eingeloggt sein, um eine Buchung abzuschließen. Bitte melde dich erneut an.');
-      this.router.navigate(['/login']);
-      return;
-    }
-
-    // Debug-Log, um im Browser zu sehen, was gesendet wird
-    console.log('Sende Buchung für Fahrt:', this.offerId, 'von User:', this.currentUserId);
-
-    // 1. Payload erstellen
-    const payload = {
-      fahrtId: parseInt(this.offerId),
-      userId: this.currentUserId
-    };
-
-    // 2. HTTP-Post Aufruf
-    this.offerService.bookOffer(payload).subscribe({
-      next: (response) => {
-        console.log('Buchung erfolgreich gespeichert:', response);
-        this.showPaymentModal = false;
-        this.paymentTransactionId = result.transactionId || '';
-        this.showSuccessModal = true;
-        this.hasAlreadyPaid = true;
-        setTimeout(() => this.loadTracking(), 2000);
-      },
-      error: (error) => {
-        console.error('Fehler beim Speichern der Buchung (Backend-Antwort):', error);
-        // Hier erscheint dein Fehler aus image_12ed7c.jpg, wenn der Token oder die ID fehlt
-        alert('Zahlung war erfolgreich, aber Buchung konnte nicht gespeichert werden (403/500).');
-      }
-    });
+    console.log('Payment successful:', result);
+    this.showPaymentModal = false;
+    this.paymentTransactionId = result.transactionId || '';
+    this.showSuccessModal = true;
+    this.hasAlreadyPaid = true; // Mark as paid to disable future booking
+      this.isFullyBooked = true;
+    setTimeout(() => this.loadTracking(), 2000); // Wait 2s for backend to create tracking
   }
 
   onPaymentError(result: PaymentResult): void {

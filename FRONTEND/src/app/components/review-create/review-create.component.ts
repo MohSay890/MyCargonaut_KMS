@@ -2,9 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { ConfirmationModalComponent } from '../confirmation-modal/confirmation-modal.component';
+import { ReviewService } from '../../services/review.service';
+import { OfferService } from '../../services/offer.service';
+import { BookingService } from '../../services/booking.service';
 
 @Component({
   selector: 'app-review-create',
@@ -14,126 +16,185 @@ import { ConfirmationModalComponent } from '../confirmation-modal/confirmation-m
   styleUrls: ['./review-create.component.css']
 })
 export class ReviewCreateComponent implements OnInit {
-  // Metadaten der Fahrt
+
   tripId: string = '';
-  displayPartnerName: string = 'Lädt...';
+  reviewedPersonName: string = 'Laden...';
   tripRoute: string = '';
-  bewerteterNutzerId: number = 0;
+  reviewerRole: 'DRIVER' | 'PASSENGER' = 'PASSENGER'; // Who is writing the review
+  reviewedPersonEmail: string = ''; // Email of person being reviewed
 
-  // Rollen-Logik
-  isDriver: boolean = false;
-
-  // Status-Variablen für UI-Sperre und Erfolg
-  isSubmitting: boolean = false;
-  showSuccessModal: boolean = false;
-
-  // Bewertungsgrundlagen
+  // Overall Rating (1-5 stars)
   overallRating: number = 0;
+
+  // Common Questions (both driver and passenger)
+  warPuenktlich: boolean | null = null;      // Was the person on time? (+/- 5 minutes)
+  hiltAbmachungen: boolean | null = null;    // Did they keep to all agreements?
+
+  // Passenger-specific questions (rating driver)
+  fuehlteSichWohl: boolean | null = null;    // Did you feel comfortable during the trip?
+  frachtUnbeschaedigt: boolean | null = null; // Did the cargo arrive undamaged?
+
+  // Driver-specific question (rating passenger)
+  gerneGenommen: boolean | null = null;       // Did you enjoy having the passenger?
+
+  // Comment
   reviewComment: string = '';
 
-  // Spezifische Fragen
-  questions = {
-    puenktlich: true,
-    abmachungenEingehalten: true,
-    istFreundlich: true,
-    wohlgefuehlt: true,
-    frachtUnbeschadet: true,
-    gerneMitgenommen: true
-  };
+  // Available Tags
+  availableTags: string[] = [
+    'Sehr zuverlässig',
+    'Pünktlich',
+    'Freundlich',
+    'Professionell',
+    'Gute Kommunikation',
+    'Sorgfältiger Umgang',
+    'Flexibel',
+    'Empfehlenswert'
+  ];
+
+  selectedTags: string[] = [];
+
+  // Modals
+  showSuccessModal: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private http: HttpClient
+    private reviewService: ReviewService,
+    private offerService: OfferService,
+    private bookingService: BookingService
   ) {}
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
-      this.tripId = params['id'];
-      this.ladeFahrtInfo(this.tripId);
-    });
+      this.tripId = params['id'] || '1';
+
+      // Check if already reviewed
+        const userStr = localStorage.getItem('currentUser');
+        const currentUser = userStr ? JSON.parse(userStr) : null;
+        if (currentUser) {
+          this.reviewService.hasUserReviewedTrip(parseInt(this.tripId), currentUser.email).subscribe(hasReview => {
+            if (hasReview) {
+              alert('Diese Fahrt wurde bereits bewertet!');
+              this.router.navigate(['/my-trips']);
+            } else {
+              this.loadTripDetails();
+            }
+          });
+        } else {
+          this.loadTripDetails();
+        }
+
+      });
   }
 
-  private getAuthHeaders(): HttpHeaders {
-    const userStr = localStorage.getItem('currentUser');
-    if (!userStr) return new HttpHeaders();
-
-    const user = JSON.parse(userStr);
-    const token = user?.token;
-
-    if (token && token !== 'undefined' && token.length > 20) {
-      return new HttpHeaders().set('Authorization', `Bearer ${token}`);
-    }
-    return new HttpHeaders();
-  }
-
-  ladeFahrtInfo(id: string) {
-    const headers = this.getAuthHeaders();
+  private loadTripDetails(): void {
     const userStr = localStorage.getItem('currentUser');
     const currentUser = userStr ? JSON.parse(userStr) : null;
 
-    this.http.get<any>(`http://localhost:8080/api/fahrten/${id}`, { headers }).subscribe(fahrt => {
-      this.tripRoute = `${fahrt.startOrt} → ${fahrt.zielOrt}`;
-      this.isDriver = (fahrt.erstellerEmail === currentUser.email);
+    if (!currentUser) return;
 
-      if (this.isDriver) {
-        this.displayPartnerName = "Dein Mitfahrer";
-      } else {
-        this.displayPartnerName = fahrt.erstellerName || 'Fahrer';
+    this.offerService.getOfferById(this.tripId).subscribe(offer => {
+      if (offer) {
+        this.tripRoute = `${offer.from} → ${offer.to}`;
+
+        // Determine role and who to review
+        if (offer.creatorEmail && offer.creatorEmail.trim().toLowerCase() === currentUser.email.trim().toLowerCase()) {
+          // Current user is the DRIVER, so they should review the PASSENGER
+          this.reviewerRole = 'DRIVER';
+
+          // Need to fetch bookings to find the passenger
+          this.bookingService.getBookingsForTrip(parseInt(this.tripId)).subscribe(bookings => {
+            const confirmedBooking = bookings.find(b => b.status === 'CONFIRMED');
+            if (confirmedBooking && confirmedBooking.mitfahrer) {
+              this.reviewedPersonEmail = confirmedBooking.mitfahrer.email;
+              this.reviewedPersonName = confirmedBooking.mitfahrer.vorname + ' ' + confirmedBooking.mitfahrer.nachname;
+            }
+          });
+
+        } else {
+          // Current user is the PASSENGER, so they review the DRIVER
+          this.reviewerRole = 'PASSENGER';
+          this.reviewedPersonEmail = offer.creatorEmail || '';
+          this.reviewedPersonName = offer.driverName || 'Fahrer';
+        }
       }
     });
   }
 
-  setRating(rating: number): void {
-    if (this.isSubmitting) return;
+  // Star Rating Method (only for overall rating now)
+  setOverallRating(rating: number): void {
     this.overallRating = rating;
   }
 
-  isFormValid(): boolean {
-    return this.overallRating >= 1 && this.overallRating <= 5;
+  getStars(rating: number, maxStars: number = 5): string[] {
+    return Array(maxStars).fill('☆').map((_, i) => i < rating ? '★' : '☆');
   }
 
-  /**
-   * Sendet die Bewertung ab und verhindert Mehrfacheingaben
-   */
-  onSubmitReview(): void {
-    if (this.isSubmitting || !this.isFormValid()) return;
+  // Form Validation
+  isFormValid(): boolean {
+    // Overall rating is required
+    if (this.overallRating === 0) return false;
 
-    this.isSubmitting = true; // Sperrt den Button sofort
+    // Common questions are required for both roles
+    if (this.warPuenktlich === null || this.hiltAbmachungen === null) return false;
+
+    // Role-specific validation
+    if (this.reviewerRole === 'PASSENGER') {
+      // Passengers must answer all 4 questions
+      return this.fuehlteSichWohl !== null && this.frachtUnbeschaedigt !== null;
+    } else {
+      // Drivers must answer the passenger-specific question
+      return this.gerneGenommen !== null;
+    }
+  }
+
+  // Submit Review
+  onSubmitReview(): void {
+    if (!this.isFormValid()) {
+      alert('Bitte beantworte alle Pflichtfragen');
+      return;
+    }
 
     const userStr = localStorage.getItem('currentUser');
     const currentUser = userStr ? JSON.parse(userStr) : null;
-    const headers = this.getAuthHeaders();
 
-    const payload = {
-      autor: { id: currentUser.id },
-      fahrt: { id: parseInt(this.tripId) },
+    if (!currentUser) {
+      alert('Bitte melde dich an, um eine Bewertung abzugeben');
+      return;
+    }
+
+    // Create review object for backend
+    const reviewData = {
+      fahrtId: parseInt(this.tripId),
+      verfasserEmail: currentUser.email,
+      bewertetEmail: this.reviewedPersonEmail,
+      reviewerRole: this.reviewerRole,
       sterne: this.overallRating,
       kommentar: this.reviewComment,
-      istFreundlich: this.questions.istFreundlich,
-      puenktlich: this.questions.puenktlich,
-      abmachungenEingehalten: this.questions.abmachungenEingehalten,
-      wohlgefuehlt: this.isDriver ? null : this.questions.wohlgefuehlt,
-      frachtUnbeschadet: this.isDriver ? null : this.questions.frachtUnbeschadet,
-      gerneMitgenommen: this.isDriver ? this.questions.gerneMitgenommen : null,
-      istSichtbar: false
+      warPuenktlich: this.warPuenktlich,
+      hiltAbmachungen: this.hiltAbmachungen,
+      fuehlteSichWohl: this.reviewerRole === 'PASSENGER' ? this.fuehlteSichWohl : null,
+      frachtUnbeschaedigt: this.reviewerRole === 'PASSENGER' ? this.frachtUnbeschaedigt : null,
+      gerneGenommen: this.reviewerRole === 'DRIVER' ? this.gerneGenommen : null
     };
 
-    this.http.post('http://localhost:8080/api/bewertungen', payload, { headers }).subscribe({
-      next: () => {
+    // Save review via service
+    this.reviewService.createReview(reviewData).subscribe({
+      next: (response) => {
+        console.log('Review successfully saved:', response);
         this.showSuccessModal = true;
-        // Button bleibt gesperrt (isSubmitting = true)
       },
-      error: (err) => {
-        this.isSubmitting = false; // Bei Fehler wieder freigeben
-        alert(err.error?.message || 'Sie haben diese Fahrt bereits bewertet.');
+      error: (error) => {
+        console.error('Error saving review:', error);
+        alert(error.error?.error || 'Fehler beim Speichern der Bewertung');
       }
     });
   }
 
-  // Nachdem der User im Modal auf "OK" klickt -> Startseite
   onSuccessConfirm(): void {
-    this.router.navigate(['/']);
+    this.showSuccessModal = false;
+    this.router.navigate(['/my-trips']);
   }
 
   onCancel(): void {

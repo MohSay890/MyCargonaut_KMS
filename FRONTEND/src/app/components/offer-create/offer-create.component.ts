@@ -2,11 +2,13 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { Subscription, of } from 'rxjs';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { ConfirmationModalComponent } from '../confirmation-modal/confirmation-modal.component';
 import { OfferService } from '../../services/offer.service';
 import { VehicleService, Vehicle } from '../../services/vehicle.service';
+import { LocationValidationService } from '../../services/location-validation.service';
+import { concatMap, delay } from 'rxjs/operators';
 
 interface OfferFormData {
   // Step 1: Route & Date
@@ -107,7 +109,8 @@ export class OfferCreateComponent implements OnInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     private offerService: OfferService,
-    private vehicleService: VehicleService
+    private vehicleService: VehicleService,
+    private locationValidator: LocationValidationService
   ) {}
 
   ngOnInit(): void {
@@ -176,6 +179,65 @@ export class OfferCreateComponent implements OnInit, OnDestroy {
 
   // Navigation
   nextStep(): void {
+    if (this.currentStep === 1 && this.validateStep(1)) {
+      this.isSubmitting = true;
+
+      
+      let results = { fromValid: false, toValid: false, pickupValid: false, dropoffValid: false };
+
+      this.locationValidator.isValidLocationString(this.formData.from).pipe(
+        concatMap((res) => {
+          results.fromValid = res;
+          return this.locationValidator.isValidLocationString(this.formData.to).pipe(delay(1200));
+        }),
+        concatMap((res) => {
+          results.toValid = res;
+          return this.locationValidator.isValidLocationString(this.formData.pickupLocation).pipe(delay(1200));
+        }),
+        concatMap((res) => {
+          results.pickupValid = res;
+          return this.locationValidator.isValidLocationString(this.formData.dropoffLocation).pipe(delay(1200));
+        })
+      ).subscribe({
+        next: (finalRes) => { results.dropoffValid = finalRes;
+          this.isSubmitting = false;
+          if (!results.fromValid) {
+            this.validationMessage = 'Startort (Von) scheint ungültig oder falsch geschrieben zu sein.';
+            this.showValidationModal = true;
+            return;
+          }
+          if (!results.toValid) {
+            this.validationMessage = 'Zielort (Nach) scheint ungültig oder falsch geschrieben zu sein.';
+            this.showValidationModal = true;
+            return;
+          }
+          if (!results.pickupValid) {
+            this.validationMessage = 'Abholadresse scheint ungültig oder falsch geschrieben zu sein. Bitte verwende eine reale Adresse.';
+            this.showValidationModal = true;
+            return;
+          }
+          if (!results.dropoffValid) {
+              this.validationMessage = 'Lieferadresse scheint ungültig oder falsch geschrieben zu sein. Bitte verwende eine reale Adresse.';
+              window.scrollTo(0, 0);
+              return;
+            }
+
+            if (this.currentStep < this.totalSteps) {
+              this.currentStep++;
+              window.scrollTo(0, 0);
+            }
+          },
+        error: () => {
+          this.isSubmitting = false;
+          if (this.currentStep < this.totalSteps) {
+            this.currentStep++;
+            window.scrollTo(0, 0);
+          }
+        }
+      });
+      return;
+    }
+
     if (this.validateStep(this.currentStep)) {
       if (this.currentStep < this.totalSteps) {
         this.currentStep++;
@@ -202,8 +264,8 @@ export class OfferCreateComponent implements OnInit, OnDestroy {
   validateStep(step: number): boolean {
     switch(step) {
       case 1:
-        if (!this.formData.from || !this.formData.to || !this.formData.date || !this.formData.time || !this.formData.category) {
-          this.validationMessage = 'Bitte fülle alle Pflichtfelder aus (Von, Nach, Datum, Uhrzeit, Kategorie)';
+        if (!this.formData.from || !this.formData.to || !this.formData.date || !this.formData.time || !this.formData.category || !this.formData.pickupLocation || !this.formData.dropoffLocation) {
+          this.validationMessage = 'Bitte fülle alle Pflichtfelder aus (Von, Nach, Abholadresse, Lieferadresse, Datum, Uhrzeit, Kategorie)';
           this.showValidationModal = true;
           return false;
         }

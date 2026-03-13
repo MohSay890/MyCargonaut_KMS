@@ -1,0 +1,196 @@
+<div class="page-layout-wrapper">
+  <div class="container">
+    <div class="page-layout">
+      <!-- Sidebar -->
+      <app-sidebar></app-sidebar>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div class="payout-dashboard">
+          <div class="header">
+            <div class="header-content">
+              <div class="icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="1" x2="12" y2="23"></line>
+                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+              </div>
+              <div>
+                <h2>Auszahlungen</h2>
+                <p>Übersicht deiner Einnahmen und Auszahlungen</p>
+              </div>
+            </div>
+            <button class="btn-refresh" (click)="loadData()" [disabled]="isLoading">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+              </svg>
+            </button>
+          </div>
+
+  <!-- Error Message -->
+  <div class="alert alert-error" *ngIf="errorMessage">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="15" y1="9" x2="9" y2="15"></line>
+      <line x1="9" y1="9" x2="15" y2="15"></line>
+    </svg>
+    {{ errorMessage }}
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Lade Auszahlungsdaten...</p>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div class="dashboard-content" *ngIf="!isLoading">
+
+    <!-- Summary Cards -->
+    <div class="summary-grid">
+      <div class="summary-card total">
+        <div class="card-icon">💰</div>
+        <div class="card-content">
+          <span class="card-label">Gesamt verdient</span>
+          <span class="card-value">{{ summary.totalEarnings | number:'1.2-2' }} €</span>
+        </div>
+      </div>
+
+      <div class="summary-card pending">
+        <div class="card-icon">⏳</div>
+        <div class="card-content">
+          <span class="card-label">Ausstehend</span>
+          <span class="card-value">{{ summary.pendingPayouts | number:'1.2-2' }} €</span>
+        </div>
+      </div>
+
+      <div class="summary-card month">
+        <div class="card-icon">📅</div>
+        <div class="card-content">
+          <span class="card-label">Diesen Monat</span>
+          <span class="card-value">{{ summary.thisMonthEarnings | number:'1.2-2' }} €</span>
+        </div>
+      </div>
+
+      <div class="summary-card count">
+        <div class="card-icon">✅</div>
+        <div class="card-content">
+          <span class="card-label">Auszahlungen</span>
+          <span class="card-value">{{ summary.completedPayouts }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Next Payout Info -->
+    <div class="next-payout-banner" *ngIf="summary.pendingPayouts > 0">
+      <div class="banner-icon">📆</div>
+      <div class="banner-content">
+        <strong>Nächste Auszahlung</strong>
+        <span>{{ getNextPayoutDate() }} um 02:00 Uhr</span>
+      </div>
+      <div class="banner-amount">
+        {{ summary.pendingPayouts | number:'1.2-2' }} €
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <button
+        class="filter-btn"
+        [class.active]="selectedFilter === 'all'"
+        (click)="setFilter('all')">
+        Alle
+      </button>
+      <button
+        class="filter-btn"
+        [class.active]="selectedFilter === 'pending'"
+        (click)="setFilter('pending')">
+        Ausstehend
+      </button>
+      <button
+        class="filter-btn"
+        [class.active]="selectedFilter === 'completed'"
+        (click)="setFilter('completed')">
+        Abgeschlossen
+      </button>
+    </div>
+
+    <!-- Payouts List -->
+    <div class="payouts-section">
+      <h3>Transaktionen</h3>
+
+      <div class="empty-state" *ngIf="filteredPayouts.length === 0">
+        <div class="empty-icon">📭</div>
+        <p>Keine Auszahlungen gefunden</p>
+      </div>
+
+      <div class="payout-list" *ngIf="filteredPayouts.length > 0">
+        <div class="payout-item" *ngFor="let payout of filteredPayouts">
+          <div class="payout-header">
+            <div class="payout-route">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+              {{ payout.payment.fahrt.startOrt }} → {{ payout.payment.fahrt.zielOrt }}
+            </div>
+            <div class="payout-status" [ngClass]="getStatusClass(payout.status)">
+              {{ getStatusIcon(payout.status) }} {{ getStatusLabel(payout.status) }}
+            </div>
+          </div>
+
+          <div class="payout-details">
+            <div class="detail-row">
+              <span class="detail-label">Betrag</span>
+              <span class="detail-value amount">{{ payout.amount | number:'1.2-2' }} €</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Fahrtdatum</span>
+              <span class="detail-value">{{ payout.payment.fahrt.datum }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Erstellt</span>
+              <span class="detail-value">{{ formatDateTime(payout.createdAt) }}</span>
+            </div>
+            <div class="detail-row" *ngIf="payout.scheduledAt">
+              <span class="detail-label">Geplant für</span>
+              <span class="detail-value">{{ formatDateTime(payout.scheduledAt) }}</span>
+            </div>
+            <div class="detail-row" *ngIf="payout.completedAt">
+              <span class="detail-label">Abgeschlossen</span>
+              <span class="detail-value">{{ formatDateTime(payout.completedAt) }}</span>
+            </div>
+            <div class="detail-row" *ngIf="payout.transactionReference">
+              <span class="detail-label">Referenz</span>
+              <span class="detail-value ref">{{ payout.transactionReference }}</span>
+            </div>
+            <div class="detail-row notes" *ngIf="payout.notes">
+              <span class="detail-label">Hinweis</span>
+              <span class="detail-value">{{ payout.notes }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info Box -->
+    <div class="info-box">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="16" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+      </svg>
+      <div>
+        <strong>Automatische Auszahlungen</strong>
+        <p>Auszahlungen erfolgen jeden Montag um 2:00 Uhr automatisch für alle abgeschlossenen Fahrten der Vorwoche.
+        Nach Abzug der 15% Plattformgebühr wird der Betrag auf dein hinterlegtes Bankkonto überwiesen.</p>
+      </div>
+    </div>
+  </div>
+</div>
+      </main>
+    </div>
+  </div>
+</div>

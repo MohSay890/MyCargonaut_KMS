@@ -1,6 +1,7 @@
 package com.mycargonaut.backend.service;
 
 import com.mycargonaut.backend.model.Fahrt;
+import com.mycargonaut.backend.model.Cargonaut;
 import com.mycargonaut.backend.repository.FahrtRepository;
 import com.mycargonaut.backend.repository.BewertungRepository;
 import com.mycargonaut.backend.repository.CargonautRepository;
@@ -9,6 +10,7 @@ import java.util.List;
 import java.time.LocalDate;
 import java.util.stream.Collectors;
 import java.math.BigDecimal;
+import java.util.Optional;
 
 @Service
 public class FahrtService {
@@ -25,49 +27,55 @@ public class FahrtService {
 
     public List<Fahrt> findePassendeFahrten(String start, String ziel, LocalDate datum, Double maxPreis, String kategorie, Double minRating) {
         List<Fahrt> fahrten = fahrtRepository.searchFahrten(
-            start,
-            ziel,
+            start, 
+            ziel, 
             datum != null ? datum : LocalDate.now()
         );
 
         return fahrten.stream()
+                .filter(f -> f.getStatus() == null || "ACTIVE".equalsIgnoreCase(f.getStatus()))
                 .filter(f -> maxPreis == null || f.getPreis().compareTo(BigDecimal.valueOf(maxPreis)) <= 0)
                 .filter(f -> f.getFreiePlaetze() > 0)
-                .filter(f -> kategorie == null || kategorie.isEmpty() ||
+                .filter(f -> kategorie == null || kategorie.isEmpty() || 
                             (f.getKategorie() != null && f.getKategorie().equalsIgnoreCase(kategorie)))
-                .filter(f -> minRating == null || getDriverRating(f) >= minRating)
+                .map(this::enrichFahrt)
+                .filter(f -> minRating == null || (f.getDurchschnittlicheBewertung() != null && f.getDurchschnittlicheBewertung() >= minRating))
                 .collect(Collectors.toList());
     }
+    
+    public Fahrt enrichFahrt(Fahrt fahrt) {
+        fahrt.setDurchschnittlicheBewertung(getDriverRating(fahrt));
+        fahrt.setErstellerFahrten(getDriverCompletedFahrten(fahrt));
+        return fahrt;
+    }
 
-    /**
-     * Calculate average rating for the driver of this trip.
-     * For now, returns a default rating since we don't have user-review relationship.
-     * In production, this would query actual reviews for the driver.
-     */
+    private int getDriverCompletedFahrten(Fahrt fahrt) {
+        if (fahrt.getErstellerEmail() != null) {
+            return fahrtRepository.countByErstellerEmailAndStatus(fahrt.getErstellerEmail(), "COMPLETED");
+        }
+        return 0;
+    }
+
     private double getDriverRating(Fahrt fahrt) {
-            // Sicherstellen, dass ein Fahrer (Ersteller) vorhanden ist, um die ID abzufragen
-            if (fahrt.getFahrer() != null) {
-                // Übergabe der ID an das Repository, um den spezifischen Durchschnitt zu berechnen
-                Double avgRating = bewertungRepository.findAverageRating(fahrt.getFahrer().getId());
+        // Use the pre-calculated rating on the Fahrt if available
+        if (fahrt.getDurchschnittlicheBewertung() != null && fahrt.getDurchschnittlicheBewertung() > 0) {
+            return fahrt.getDurchschnittlicheBewertung();
+        }
+
+        // Otherwise, calculate from driver's email
+        if (fahrt.getErstellerEmail() != null) {
+            Optional<Cargonaut> driver = cargonautRepository.findByEmail(fahrt.getErstellerEmail());
+            if (driver.isPresent()) {
+                Double avgRating = bewertungRepository.findAverageRatingForUser(driver.get());
                 return avgRating != null ? avgRating : 0.0;
             }
-            // Falls kein Fahrer zugeordnet ist (Standardwert 0.0 für neue Profile)
-            return 0.0;
+        }
+        
+        // No rating available - return 0.0 instead of mock 4.5
+        return 0.0;
     }
 
     public Fahrt createFahrt(Fahrt fahrt) {
-            // 1. Status initialisieren (damit er nicht NULL ist)
-            if (fahrt.getStatus() == null) {
-                fahrt.setStatus("active");
-            }
-
-            // 2. Fahrer verknüpfen (füllt die fahrer_id in der DB)
-            if (fahrt.getErstellerEmail() != null) {
-                cargonautRepository.findByEmail(fahrt.getErstellerEmail()).ifPresent(nutzer -> {
-                    fahrt.setFahrer(nutzer);
-                });
-            }
-
-            return fahrtRepository.save(fahrt);
-        }
+        return fahrtRepository.save(fahrt);
+    }
 }

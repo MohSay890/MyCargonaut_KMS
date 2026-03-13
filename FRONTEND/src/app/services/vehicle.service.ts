@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { BehaviorSubject, Observable, catchError, of, tap, map } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, of, tap, map, switchMap } from 'rxjs';
 
 export interface Vehicle {
   id?: number;  // Backend uses Long/number
@@ -245,19 +245,21 @@ export class VehicleService {
 
     // Get current vehicle first
     return this.getVehicleById(id).pipe(
-      map(vehicle => {
+      switchMap(vehicle => {
         if (!vehicle) {
           return of({ success: false, error: 'Fahrzeug nicht gefunden.' });
         }
 
         // Update with toggled active status
-        return this.updateVehicle(id, { isActive: !vehicle.isActive });
+        return this.updateVehicle(id, { isActive: !vehicle.isActive }).pipe(
+          map(res => ({ ...res, isActive: !vehicle.isActive }))
+        );
       }),
       catchError(error => {
         console.error('Error toggling vehicle active:', error);
-        return of(of({ success: false, error: 'Fehler beim Aktualisieren des Fahrzeugs.' }));
+        return of({ success: false, error: 'Fehler beim Aktualisieren des Fahrzeugs.' });
       })
-    ) as any; // Type assertion needed due to complex Observable nesting
+    );
   }
 
   /**

@@ -42,6 +42,8 @@ describe('PaymentModalComponent', () => {
 
   it('should emit close event when onClose is called', () => {
     spyOn(component.close, 'emit');
+    component.paymentRequired = false;
+    component.isProcessing = false;
     component.onClose();
     expect(component.close.emit).toHaveBeenCalled();
   });

@@ -1,10 +1,16 @@
 import { Component, OnInit } from '@angular/core';
+
+import { OfferService } from '../../services/offer.service';
+import { BookingService } from '../../services/booking.service';
+import { forkJoin } from 'rxjs';
+import { BookingRequestModalComponent } from '../booking-request-modal/booking-request-modal.component';
+import { NotificationService, Notification } from '../../services/notification.service';
+
 import { CommonModule } from '@angular/common';
-import { Router} from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { UserProfileService } from '../../services/user-profile.service';
-import { NotificationService } from '../../services/notification.service';
 
 interface Trip {
   id: string;
@@ -13,22 +19,13 @@ interface Trip {
   time: string;
   vehicle: string;
   maxWeight: number;
-  status: 'confirmed' | 'pending';
-}
-
-interface UserNotification {
-  id: string; // Da du sagtest id ist string
-  typ: 'BOOKING' | 'REVIEW' | 'PAYMENT';
-  titel: string;
-  nachricht: string;
-  zeitstempel: Date;
-  gelesen: boolean;
+  status: string;
 }
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, SidebarComponent],
+  imports: [CommonModule, RouterModule, SidebarComponent, BookingRequestModalComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
@@ -36,7 +33,6 @@ export class DashboardComponent implements OnInit {
 
   userName: string = 'Benutzer';
   isLoading: boolean = true;
-  notifications: UserNotification[] = [];
 
   // Stats
   stats = {
@@ -49,14 +45,26 @@ export class DashboardComponent implements OnInit {
   // Upcoming Trips
   upcomingTrips: Trip[] = [];
 
+  // Notifications
+  notifications: Notification[] = [];
 
+  currentUserEmail: string = '';
+  hasBankAccount: boolean = true;
+  currentUserId: number | null = null;
+  // Modal properties
+  showBookingRequestModal: boolean = false;
+  selectedBooking: any = null;
+  showCongratulationsModal: boolean = false;
+  congratulationsData: any = null;
 
 
   constructor(
     private router: Router,
     private http: HttpClient,
     private userProfileService: UserProfileService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private offerService: OfferService,
+    private bookingService: BookingService
   ) {}
 
   ngOnInit(): void {
@@ -72,28 +80,90 @@ export class DashboardComponent implements OnInit {
       }
 
       // Load real stats from backend
+      this.currentUserEmail = user.email;
+      this.currentUserId = user.id;
+
+      this.checkBankAccount();
+
       this.loadUserStats(user.email);
       // Load earnings from payment API
       this.loadEarnings(user.email);
-      this.loadRealNotifications(user.id);
+
+      this.loadUpcomingTrips(user.email);
+      this.loadNotifications(user.email);
     } else {
       this.isLoading = false;
     }
   }
 
-  // dashboard.component.ts
-  loadRealNotifications(userId: any): void {
-    // Sicherstellen, dass der Service auch das neue Interface nutzt
-    this.notificationService.getNotifications(String(userId)).subscribe({
-      next: (data: any[]) => {
-        this.notifications = data.map(n => ({
-          ...n,
-          id: String(n.id),
-          // Umwandlung des Strings aus der DB in ein Date-Objekt
-          zeitstempel: new Date(n.zeitstempel)
-        }));
+
+  parseGermanDate(dateString: string): Date {
+    if (!dateString) return new Date();
+    const parts = dateString.split('.');
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+      const year = parseInt(parts[2], 10);
+      return new Date(year, month, day);
+    }
+    return new Date(dateString); // fallback
+  }
+
+  loadUpcomingTrips(email: string): void {
+    forkJoin({
+      offers: this.offerService.getMyOffers(email)
+    }).subscribe({
+      next: (res: any) => {
+        let trips: Trip[] = [];
+
+        if (res.offers && res.offers.length > 0) {
+          let pendingRequests = res.offers.length;
+          res.offers.forEach((offer: any) => {
+            if (offer.status !== 'COMPLETED') {
+              this.bookingService.getBookingsForTrip(offer.id).subscribe((bookings: any[]) => {
+                const hasConfirmedBooking = bookings.some((b: any) => b.status === 'CONFIRMED' || b.isPaid);
+                if (hasConfirmedBooking) {
+                  trips.push({
+                    id: offer.id ? offer.id.toString() : '',
+                    date: this.parseGermanDate(offer.date),
+                    route: offer.route || (offer.from + ' -> ' + offer.to),
+                    time: offer.time || '12:00 Uhr',
+                    vehicle: offer.vehicleType || 'Transporter',
+                    maxWeight: offer.maxWeight || 0,
+                    status: 'confirmed'
+                  });
+                }
+
+                pendingRequests--;
+                if (pendingRequests === 0) {
+                  this.upcomingTrips = trips.sort((a,b) => a.date.getTime() - b.date.getTime()).slice(0, 5);
+                }
+              });
+            } else {
+              pendingRequests--;
+              if (pendingRequests === 0) {
+                this.upcomingTrips = trips.sort((a,b) => a.date.getTime() - b.date.getTime()).slice(0, 5);
+              }
+            }
+          });
+        } else {
+          this.upcomingTrips = trips.sort((a,b) => a.date.getTime() - b.date.getTime()).slice(0, 5);
+        }
       },
-      error: (err) => console.error('Fehler beim Laden:', err)
+      error: (err: any) => console.error('Error loading trips', err)
+    });
+  }
+
+  loadNotifications(email: string): void {
+    this.notificationService.getUserNotifications(email).subscribe({
+      next: (notifications: any[]) => {
+        // Show only the 3 most recent notifications
+        this.notifications = notifications.slice(0, 3);
+      },
+      error: (error: any) => {
+        console.error('Error loading notifications:', error);
+        this.notifications = [];
+      }
     });
   }
 
@@ -163,6 +233,8 @@ export class DashboardComponent implements OnInit {
       case 'booking': return 'ℹ️';
       case 'review': return '⭐';
       case 'payment': return '💶';
+      case 'offer': return '📝';
+      case 'offer-status': return '✅';
       default: return '📢';
     }
   }
@@ -170,7 +242,7 @@ export class DashboardComponent implements OnInit {
   // Quick actions
   onNewOffer(): void {
     console.log('New offer clicked');
-    this.router.navigate(['/my-trips']);
+    this.router.navigate(['/my-trips'], { queryParams: { tab: 'booked' } });
     // TODO: Later open create trip modal
   }
 
@@ -182,18 +254,79 @@ export class DashboardComponent implements OnInit {
 
   onViewAllTrips(): void {
     console.log('View all trips clicked');
-    this.router.navigate(['/my-trips']);
+    this.router.navigate(['/my-trips'], { queryParams: { tab: 'booked' } });
   }
 
   onViewAllNotifications(): void {
     console.log('View all notifications clicked');
-    this.router.navigate(['/notifications']);
+    alert('Die Seite "Alle Benachrichtigungen" befindet sich noch im Aufbau. Bitte nutzen Sie das Glocken-Symbol oben rechts.');
     // TODO: Create notifications page
   }
 
   onTripAction(trip: Trip): void {
     console.log('Trip action:', trip.id);
-    this.router.navigate(['/my-trips']);
+    this.router.navigate(['/my-trips'], { queryParams: { tab: 'booked' } });
     // TODO: Navigate to specific trip details
+  }
+
+  onNotificationClick(notification: Notification): void {
+    if (notification.type === 'booking' && notification.relatedData) {
+      this.selectedBooking = notification.relatedData;
+      this.showBookingRequestModal = true;
+    } else if (notification.type === 'booking-confirmed' && notification.relatedData) {
+      this.congratulationsData = notification.relatedData;
+      this.showCongratulationsModal = true;
+    } else if (notification.actionUrl) {
+      this.router.navigate([notification.actionUrl]);
+    }
+  }
+
+  onBookingRequestModalClose(): void {
+    this.showBookingRequestModal = false;
+    this.selectedBooking = null;
+  }
+
+  onBookingAccepted(booking: any): void {
+    console.log('Booking accepted:', booking);
+    if (this.currentUserEmail) {
+      this.loadNotifications(this.currentUserEmail);
+    }
+    alert('Buchung erfolgreich angenommen! Der Fahrgast wurde benachrichtigt.');
+  }
+
+  onBookingRejected(booking: any): void {
+    console.log('Booking rejected:', booking);
+    if (this.currentUserEmail) {
+      this.loadNotifications(this.currentUserEmail);
+    }
+    alert('Buchung abgelehnt. Der Fahrgast wurde benachrichtigt.');
+  }
+
+  onCongratulationsClose(): void {
+    this.showCongratulationsModal = false;
+    this.congratulationsData = null;
+  }
+
+  onGoToPayment(): void {
+    if (this.congratulationsData && this.congratulationsData.fahrt && this.congratulationsData.fahrt.id) {
+      this.showCongratulationsModal = false;
+      this.router.navigate(['/offer', this.congratulationsData.fahrt.id]);
+    }
+  }
+
+
+  checkBankAccount(): void {
+    if (!this.currentUserId) return;
+
+    this.http.get<any>(`http://localhost:8080/api/driver-payout-accounts/driver/${this.currentUserId}`)
+      .subscribe({
+        next: (account: any) => {
+          this.hasBankAccount = !!account && !!account.isActive;
+        },
+        error: (error: any) => {
+          console.error('Error fetching bank account:', error);
+          this.hasBankAccount = false; // Missing or failed
+        }
+      });
   }
 }

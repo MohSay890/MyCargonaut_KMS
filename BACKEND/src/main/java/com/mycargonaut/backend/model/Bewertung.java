@@ -1,62 +1,54 @@
-package com.mycargonaut.backend.model;
+package com.mycargonaut.backend.model; // Muss zur Ordnerstruktur passen
 
-import jakarta.persistence.*;
-import lombok.Data;
+import jakarta.persistence.*; // Für @Entity, @Id, @GeneratedValue, @ManyToOne
+import lombok.Data;          // Für @Data (erzeugt Getter/Setter)
+import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
-@Table(name = "bewertung")
 @Data
 public class Bewertung {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private int sterne; // 1-5 Sterne Skala
-
-    @Column(columnDefinition = "TEXT")
-    private String kommentar;
-
-    // Kriterium: Sichtbarkeit erst, wenn beide bewertet haben
-    @Column(name = "ist_sichtbar")
-    private boolean istSichtbar = false;
-
+    
+    private int sterne; // Overall rating 1-5
+    private String kommentar; // Optional comment
+    
+    // Common questions for both driver and passenger
+    private Boolean warPuenktlich; // Was the person on time? (+/- 5 minutes)
+    private Boolean hiltAbmachungen; // Did they keep to all agreements?
+    
+    // Passenger-specific questions (rating driver)
+    private Boolean fuehlteSichWohl; // Did you feel comfortable during the trip?
+    private Boolean frachtUnbeschaedigt; // Did the cargo arrive undamaged?
+    
+    // Driver-specific question (rating passenger)
+    private Boolean gerneGenommen; // Did you enjoy having the passenger?
+    
+    // Meta information
+    @ManyToOne
+    @JoinColumn(name = "verfasser_id")
+    @JsonIgnoreProperties({"fahrzeuge", "passwort", "resetToken", "resetTokenExpiry"})
+    private Cargonaut verfasser; // Person who wrote the review
+    
+    @ManyToOne
+    @JoinColumn(name = "bewertet_id")
+    @JsonIgnoreProperties({"fahrzeuge", "passwort", "resetToken", "resetTokenExpiry"})
+    private Cargonaut bewertet; // Person being reviewed
+    
     @ManyToOne
     @JoinColumn(name = "fahrt_id")
-    private Fahrt fahrt;
-
-    @ManyToOne
-    @JoinColumn(name = "autor_id")
-    private Cargonaut autor;
-
-    @ManyToOne
-    @JoinColumn(name = "bewerteter_nutzer_id")
-    private Cargonaut bewerteterNutzer;
-
-    // --- Spezifische Fragen laut Kriterien (Explizites Mapping auf DB-Spalten) ---
-
-    @Column(name = "ist_puenktlich")
-    private boolean puenktlich; // +/- 5 Minuten
-
-    @Column(name = "abmachungen_eingehalten")
-    private boolean abmachungenEingehalten; // Treffpunkt usw.
-
-    @Column(name = "ist_freundlich")
-    private Boolean istFreundlich;
-
-    // Fragen nur für: Mitfahrer bewertet Fahrer
-    @Column(name = "wohlgefuehlt")
-    private Boolean wohlgefuehlt;
-
-    @Column(name = "fracht_unbeschadet")
-    private Boolean frachtUnbeschadet;
-
-    // Frage nur für: Fahrer bewertet Mitfahrer
-    @Column(name = "gerne_mitgenommen")
-    private Boolean gerneMitgenommen;
-
-    // Hilfsmethode für das Frontend/Mapping
-    public Long getFahrtId() {
-        return fahrt != null ? fahrt.getId() : null;
+    @JsonIgnoreProperties({"frachten", "bewertungen", "fahrer", "fahrzeug"})
+    private Fahrt fahrt; // Trip this review belongs to
+    
+    private String reviewerRole; // "DRIVER" or "PASSENGER" - who is writing the review
+    
+    private LocalDateTime erstelltAm; // When the review was created
+    
+    private boolean istSichtbar; // Only visible when all participants have rated
+    
+    @PrePersist
+    protected void onCreate() {
+        erstelltAm = LocalDateTime.now();
     }
 }

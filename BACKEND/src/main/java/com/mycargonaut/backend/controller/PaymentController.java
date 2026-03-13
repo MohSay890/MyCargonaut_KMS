@@ -107,18 +107,46 @@ public class PaymentController {
     }
     
     /**
-     * Refund a payment
+     * Refund a payment (escrow refund)
      * POST /api/payments/{id}/refund
      */
     @PostMapping("/{id}/refund")
-    public ResponseEntity<?> refundPayment(@PathVariable Long id) {
+    public ResponseEntity<?> refundPayment(@PathVariable Long id, @RequestParam(required = false) String reason) {
         try {
-            Payment payment = paymentService.refundPayment(id);
+            String refundReason = reason != null ? reason : "Manual refund requested";
+            Payment payment = paymentService.refundEscrow(id, refundReason);
             return ResponseEntity.ok(toPaymentResponse(payment));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", e.getMessage()));
         }
+    }
+    
+    /**
+     * Release escrow after trip completion
+     * POST /api/payments/{id}/release-escrow
+     */
+    @PostMapping("/{id}/release-escrow")
+    public ResponseEntity<?> releaseEscrow(@PathVariable Long id) {
+        try {
+            Payment payment = paymentService.releaseEscrow(id);
+            return ResponseEntity.ok(toPaymentResponse(payment));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", e.getMessage()));
+        }
+    }
+    
+    /**
+     * Get payments in escrow
+     * GET /api/payments/escrow
+     */
+    @GetMapping("/escrow")
+    public ResponseEntity<List<Map<String, Object>>> getPaymentsInEscrow() {
+        List<Payment> payments = paymentService.getPaymentsInEscrow();
+        return ResponseEntity.ok(payments.stream()
+            .map(this::toPaymentResponse)
+            .toList());
     }
     
     /**
@@ -151,23 +179,30 @@ public class PaymentController {
                     .orElseThrow(() -> new RuntimeException("User not found"));
             
             List<Payment> receivedPayments = paymentService.getPaymentsByRecipient(user.getId());
-            
-            // Calculate total earnings (completed payments only) - use recipientAmount (85% after platform fee)
+
+            // Calculate total earnings (completed payments AND Escrow released)
             BigDecimal totalEarnings = receivedPayments.stream()
-                    .filter(p -> p.getStatus() == PaymentStatus.COMPLETED)
+                    .filter(p -> p.getStatus() == PaymentStatus.COMPLETED && p.getEscrowStatus() == EscrowStatus.RELEASED)
                     .map(Payment::getRecipientAmount)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
-            
+
+            // Calculate pending payout (in Escrow)
+            BigDecimal pendingPayout = receivedPayments.stream()
+                    .filter(p -> p.getStatus() == PaymentStatus.COMPLETED && p.getEscrowStatus() == EscrowStatus.HELD)
+                    .map(Payment::getRecipientAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
             // Subtract refunded amounts - use recipientAmount for refunds too
             BigDecimal refundedAmount = receivedPayments.stream()
                     .filter(p -> p.getStatus() == PaymentStatus.REFUNDED)
                     .map(Payment::getRecipientAmount)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
-            
+
             BigDecimal netEarnings = totalEarnings.subtract(refundedAmount);
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("totalEarnings", totalEarnings);
+            response.put("pendingPayout", pendingPayout);
             response.put("refundedAmount", refundedAmount);
             response.put("netEarnings", netEarnings);
             response.put("completedPayments", receivedPayments.stream()
@@ -191,9 +226,15 @@ public class PaymentController {
         response.put("fahrtId", payment.getFahrt().getId());
         response.put("payerId", payment.getPayer().getId());
         response.put("amount", payment.getAmount());
+        response.put("platformFee", payment.getPlatformFee());
+        response.put("recipientAmount", payment.getRecipientAmount());
         response.put("currency", payment.getCurrency());
         response.put("paymentMethod", payment.getPaymentMethod().name());
         response.put("status", payment.getStatus().name());
+        response.put("escrowStatus", payment.getEscrowStatus() != null ? payment.getEscrowStatus().name() : null);
+        response.put("escrowHeldAt", payment.getEscrowHeldAt());
+        response.put("escrowReleasedAt", payment.getEscrowReleasedAt());
+        response.put("escrowRefundedAt", payment.getEscrowRefundedAt());
         response.put("createdAt", payment.getCreatedAt());
         response.put("processedAt", payment.getProcessedAt());
         response.put("transactionReference", payment.getTransactionReference());

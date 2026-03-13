@@ -28,6 +28,7 @@ public class TransportRequest {
     private String uhrzeit;
     
     // Cargo details
+    @Column(length = 1000)
     private String beschreibung;
     private String abmessungen;
     private Double gewicht;  // in kg
@@ -38,13 +39,16 @@ public class TransportRequest {
     private BigDecimal maxPreis;  // Maximum price user is willing to pay
     
     // Additional info
+    @Column(length = 500)
     private String abholadresse;
+    @Column(length = 500)
     private String lieferadresse;
     private String extras;  // Comma-separated tags
     
     // Creator information
     private String erstellerName;
     private String erstellerEmail;
+    @Column(columnDefinition = "TEXT")
     private String erstellerAvatar;
     
     // Metadata
@@ -56,4 +60,7 @@ public class TransportRequest {
     
     @Column(name = "status")
     private String status = "ACTIVE";  // ACTIVE, MATCHED, CANCELLED, EXPIRED
+
+    @Column(name = "fahrt_id")
+    private Long fahrtId; // Link to the auto-generated Fahrt
 }
