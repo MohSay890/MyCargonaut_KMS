@@ -97,7 +97,8 @@ public class UserProfileService {
                 completedTrips,
                 averageRating,
                 earnings,
-                totalReviews
+                totalReviews,
+                0 // Assuming 0 for active bookings for now, can be expanded later if queried
         );
     }
 
