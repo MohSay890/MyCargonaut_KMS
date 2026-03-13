@@ -36,45 +36,37 @@
           <div class="review-card" *ngFor="let review of filteredReviews">
             <div class="review-header">
               <div class="reviewer-avatar-container">
-                <img *ngIf="review.autor?.profilbild"
-                     class="reviewer-avatar"
-                     [src]="review.autor?.profilbild"
-                     [alt]="review.autor?.vorname">
-
-                <div *ngIf="!review.autor?.profilbild" class="avatar-initials">
-                  {{ getInitials(review.autor?.vorname, review.autor?.nachname) }}
-                </div>
+                <img class="reviewer-avatar"
+                     [src]="review.reviewerAvatar"
+                     [alt]="review.reviewerName">
               </div>
 
               <div class="reviewer-info">
                 <strong class="reviewer-name">
-                  {{ formatName(review.autor?.vorname, review.autor?.nachname) }}
+                  {{ review.reviewerName }}
                 </strong>
+                <span class="review-stars-inline">{{ getStars(review.rating) }}</span>
 
                 <div class="review-date">
-                  {{ getRelativeTime(review.fahrt?.datum) }}
+                  {{ review.date }}
                 </div>
 
                 <div class="review-meta">
-                  <strong>Fahrt:</strong> {{ review.fahrt?.startOrt }} → {{ review.fahrt?.zielOrt }}
+                  <strong>Fahrt:</strong> {{ review.route }}
                 </div>
               </div>
+            </div>
 
-            <p class="review-comment">{{ review.kommentar || 'Kein Kommentar hinterlassen.' }}</p>
+            <p class="review-comment">{{ review.comment || 'Kein Kommentar hinterlassen.' }}</p>
 
             <div class="review-tags">
-              <span class="tag" *ngIf="review.puenktlich">⏱️ Pünktlich (+/- 5 Min)</span>
-              <span class="tag" *ngIf="review.abmachungenEingehalten">🤝 Abmachungen eingehalten</span>
-              <span class="tag" *ngIf="review.wohlgefuehlt">😊 Wohlgefühlt</span>
-              <span class="tag" *ngIf="review.frachtUnbeschadet">📦 Fracht unbeschadet</span>
-              <span class="tag" *ngIf="review.gerneMitgenommen">🚗 Gerne mitgenommen</span>
+              <span class="tag" *ngFor="let tag of review.tags">✓ {{ tag }}</span>
             </div>
           </div>
 
           <div class="no-reviews" *ngIf="filteredReviews.length === 0">
             <p>Keine Bewertungen in dieser Kategorie gefunden.</p>
           </div>
-        </div>
         </div>
       </main>
     </div>
