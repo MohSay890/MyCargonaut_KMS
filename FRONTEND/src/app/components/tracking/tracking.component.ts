@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -9,6 +9,7 @@ import {
   TrackingSession,
   TrackingNotification
 } from '../../services/tracking.service';
+import * as L from 'leaflet';
 
 interface StatusTimelineItem {
   status: string;
@@ -29,7 +30,8 @@ interface StatusTimelineItem {
   templateUrl: './tracking.component.html',
   styleUrls: ['./tracking.component.css']
 })
-export class TrackingComponent implements OnInit, OnDestroy {
+export class TrackingComponent implements OnInit, OnDestroy, AfterViewInit {
+  [key: string]: any; // Allow dynamic properties like _timeAgoNow
 
   // Route params
   tripId: string = '';
@@ -39,22 +41,22 @@ export class TrackingComponent implements OnInit, OnDestroy {
   session: TrackingSession | null = null;
   notifications: TrackingNotification[] = [];
 
+  // Map elements
+  private map: L.Map | undefined;
+  private driverMarker: L.Marker | undefined;
+  private routeLine: L.Polyline | undefined;
+
   // UI state
   isLoading: boolean = true;
-  isSimulationRunning: boolean = false;
   showNotifications: boolean = false;
   unreadCount: number = 0;
   errorMessage: string = '';
-  isGPSActive: boolean = false;
 
   // Mode: 'customer' (query only) or 'driver' (share location)
   mode: 'customer' | 'driver' = 'customer';
 
   // Driver mode - tracking code input
   searchTrackingCode: string = '';
-
-  // Demo mode (fallback when backend unavailable)
-  isDemoMode: boolean = false;
 
   private destroy$ = new Subject<void>();
 
@@ -86,10 +88,21 @@ export class TrackingComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(session => {
         if (session) {
+          const previousLocation = this.session?.currentLocation;
           this.session = session;
           this.updateStatusTimeline();
+
+          if (this.map && session.currentLocation) {
+             this.updateMapLocation(session.currentLocation.lat, session.currentLocation.lng, session.heading);
+          } else if (!this.map && session.currentLocation) {
+             // Init map if it was delayed due to UI loading
+             setTimeout(() => this.initMap(), 100);
+          }
         }
       });
+
+    // Subscribing to Stomp connection
+    this.trackingService.connectWebSocket();
 
     // Subscribe to notifications
     this.trackingService.notifications$
@@ -105,6 +118,89 @@ export class TrackingComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
     this.trackingService.stopPolling();
     this.trackingService.stopSimulation();
+    if (this.map) {
+      this.map.remove();
+    }
+  }
+
+  ngAfterViewInit(): void {
+    if (this.session && this.session.currentLocation) {
+        this.initMap();
+    }
+  }
+
+  private initMap(): void {
+    if (this.map) return;
+
+    const mapElement = document.getElementById('map');
+    if (!mapElement) return;
+
+      // Start with current location, then origin, then fallback to Germany center
+      const initLat = this.session?.currentLocation?.lat || this.session?.origin?.lat || 51.165691;
+      const initLng = this.session?.currentLocation?.lng || this.session?.origin?.lng || 10.451526;
+
+      this.map = L.map('map').setView([initLat, initLng], 13);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(this.map);
+
+      // Add Origin Marker
+      if (this.session?.origin?.lat && this.session?.origin?.lng) {
+        L.marker([this.session.origin.lat, this.session.origin.lng], {
+          icon: L.divIcon({
+            className: 'custom-div-icon',
+            html: '<div style="font-size: 24px;">📦</div>',
+            iconSize: [24, 24]
+          })
+        }).bindPopup('Abholort: ' + (this.session.origin.city || '')).addTo(this.map);
+      }
+
+      // Add Destination Marker
+      if (this.session?.destination?.lat && this.session?.destination?.lng) {
+        L.marker([this.session.destination.lat, this.session.destination.lng], {
+          icon: L.divIcon({
+            className: 'custom-div-icon',
+            html: '<div style="font-size: 24px;">🏁</div>',
+            iconSize: [24, 24]
+          })
+        }).bindPopup('Zielort: ' + (this.session.destination.city || '')).addTo(this.map);
+      }
+
+      this.createOrUpdateMarker(initLat, initLng, this.session?.heading || 0);
+    }
+
+    private createOrUpdateMarker(lat: number, lng: number, heading: number): void {
+      if (!this.map) return;
+
+      if (this.driverMarker) {
+        this.driverMarker.setLatLng([lat, lng]);
+
+      // Update heading using CSS transform on the marker icon
+      const iconElement = this.driverMarker.getElement();
+      if (iconElement) {
+        iconElement.style.transform = `${iconElement.style.transform} rotate(${heading}deg)`;
+      }
+    } else {
+      // Create a truck icon
+      const truckIcon = L.divIcon({
+        className: 'custom-div-icon',
+        html: `<div class="truck-marker-icon" style="transform: rotate(${heading}deg);">🚚</div>`,
+        iconSize: [30, 42],
+        iconAnchor: [15, 42]
+      });
+
+      this.driverMarker = L.marker([lat, lng], { icon: truckIcon }).addTo(this.map);
+    }
+  }
+
+  private updateMapLocation(lat: number, lng: number, heading: number): void {
+    if (!this.map) return;
+
+    // Smoothly pan map to new coordinates
+    this.map.panTo([lat, lng], { animate: true, duration: 1.0 });
+    this.createOrUpdateMarker(lat, lng, heading);
   }
 
   // ========== Load Methods ==========
@@ -125,8 +221,6 @@ export class TrackingComponent implements OnInit, OnDestroy {
         error: (err) => {
           this.errorMessage = 'Tracking-Code nicht gefunden. Bitte überprüfen Sie den Code.';
           this.isLoading = false;
-          // Try demo mode
-          this.loadDemoMode();
         }
       });
   }
@@ -143,22 +237,15 @@ export class TrackingComponent implements OnInit, OnDestroy {
             this.updateStatusTimeline();
             this.trackingService.startPolling(parseInt(session.id), 5000);
           } else {
-            // No tracking exists yet, try demo mode
-            this.loadDemoMode();
+            this.errorMessage = 'Noch keine Tracking-Session für diese Fahrt vorhanden.';
           }
           this.isLoading = false;
         },
         error: () => {
-          this.loadDemoMode();
+          this.errorMessage = 'Fehler beim Laden der Tracking-Session.';
           this.isLoading = false;
         }
       });
-  }
-
-  private loadDemoMode(): void {
-    this.isDemoMode = true;
-    this.session = this.trackingService.createDemoSession(parseInt(this.tripId) || 1);
-    this.updateStatusTimeline();
   }
 
   // ========== Search by Tracking Code ==========
@@ -194,7 +281,7 @@ export class TrackingComponent implements OnInit, OnDestroy {
         time: this.session.progress >= 10 ? `Aktualisiert: ${this.getTimeAgo(this.session.lastUpdate)}` : 'Ausstehend',
         location: this.session.currentLocation
           ? (this.session.currentLocation.city || 'Unterwegs')
-          : 'Warten auf Start',
+            : (this.session.origin?.city || 'Warten auf Start'),
         details: this.session.progress >= 10
           ? `${Math.round(this.session.currentSpeed)} km/h | ${Math.round(this.session.remainingDistance)} km verbleibend`
           : undefined,
@@ -220,71 +307,7 @@ export class TrackingComponent implements OnInit, OnDestroy {
     ];
   }
 
-  // ========== Simulation Controls ==========
-
-  onToggleSimulation(): void {
-    if (!this.session) return;
-
-    if (this.isSimulationRunning) {
-      if (this.isDemoMode) {
-        this.trackingService.stopSimulation();
-      } else {
-        this.trackingService.stopSimulation();
-      }
-      this.isSimulationRunning = false;
-    } else {
-      if (this.isDemoMode) {
-        this.trackingService.runDemoSimulation();
-      } else {
-        this.trackingService.startDriverSimulation(parseInt(this.session.id), false);
-      }
-      this.isSimulationRunning = true;
-    }
-  }
-
-  onResetSimulation(): void {
-    this.trackingService.stopSimulation();
-    this.isSimulationRunning = false;
-
-    if (this.isDemoMode) {
-      this.session = this.trackingService.createDemoSession(parseInt(this.tripId) || 1);
-      this.updateStatusTimeline();
-    }
-  }
-
-  // ========== Driver GPS Mode ==========
-
-  onToggleDriverGPS(): void {
-    if (!this.session) return;
-
-    if (this.isGPSActive) {
-      // Stop GPS sharing
-      this.trackingService.stopSimulation();
-      this.isGPSActive = false;
-      this.isSimulationRunning = false;
-      this.trackingService.addNotification({
-        title: 'GPS deaktiviert',
-        message: 'GPS-Standortfreigabe wurde gestoppt.',
-        icon: '📍',
-        type: 'status_change'
-      });
-    } else {
-      // Start real GPS sharing
-      this.mode = 'driver';
-      this.trackingService.stopSimulation(); // Stop any running simulation first
-      this.trackingService.startDriverSimulation(parseInt(this.session.id), true);
-      this.isGPSActive = true;
-      this.isSimulationRunning = false;
-      this.trackingService.addNotification({
-        title: 'GPS aktiviert',
-        message: 'Dein Standort wird jetzt in Echtzeit geteilt.',
-        icon: '📍',
-        type: 'status_change'
-      });
-    }
-  }
-
-  // ========== Notifications ==========
+// ========== Notifications ==========
 
   onToggleNotifications(): void {
     this.showNotifications = !this.showNotifications;
@@ -328,9 +351,17 @@ export class TrackingComponent implements OnInit, OnDestroy {
   // ========== Formatting Helpers ==========
 
   formatTime(date: Date | string | null): string {
-    if (!date) return '--:--';
-    const d = new Date(date);
-    return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr';
+      if (!date) {
+        if (this.session && this.session.estimatedMinutes && this.session.status.code !== 'DELIVERED') {
+          // If we don't have an exact arrival date but we have minutes
+          const now = new Date();
+          const d = new Date(now.getTime() + this.session.estimatedMinutes * 60000);
+          return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr (geschätzt)';
+        }
+        return '--:--';
+      }
+      const d = new Date(date);
+      return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr';
   }
 
   formatDate(date: Date | string | null): string {
@@ -349,7 +380,14 @@ export class TrackingComponent implements OnInit, OnDestroy {
     if (!date) return 'Nie';
     const d = new Date(date);
     const now = new Date();
-    const diffMs = now.getTime() - d.getTime();
+    // Cache the "now" time so it doesn't change during change detection loops
+    if (!this['_timeAgoNow']) {
+      this['_timeAgoNow'] = now;
+      setTimeout(() => this['_timeAgoNow'] = null, 1000); // Clear cache after a second
+    }
+    const cachedNow = this['_timeAgoNow'];
+
+    const diffMs = cachedNow.getTime() - d.getTime();
     const diffSecs = Math.floor(diffMs / 1000);
     const diffMins = Math.floor(diffSecs / 60);
     const diffHours = Math.floor(diffMins / 60);

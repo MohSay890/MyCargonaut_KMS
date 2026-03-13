@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { TrackingService, TrackingSession, LocationUpdate } from '../../services/tracking.service';
@@ -40,12 +40,13 @@ export class DriverTrackingComponent implements OnInit, OnDestroy {
 
   constructor(
     private trackingService: TrackingService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     // Get driver email from localStorage (would use auth service)
-    const userStr = localStorage.getItem('user');
+    const userStr = localStorage.getItem('user') || localStorage.getItem('currentUser');
     if (userStr) {
       try {
         const user = JSON.parse(userStr);
@@ -59,6 +60,14 @@ export class DriverTrackingComponent implements OnInit, OnDestroy {
 
     // Load driver's tracking sessions
     this.loadDriverSessions();
+
+    // Auto create tracking session from query parameters
+    this.route.queryParams.subscribe(params => {
+      if (params['fahrtId']) {
+        this.selectedFahrtId = parseInt(params['fahrtId'], 10);
+        this.onCreateTracking(this.selectedFahrtId);
+      }
+    });
 
     // Subscribe to current session updates
     this.trackingService.currentSession$

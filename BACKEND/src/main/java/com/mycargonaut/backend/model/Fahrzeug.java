@@ -3,6 +3,7 @@ package com.mycargonaut.backend.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Data
@@ -36,6 +37,7 @@ public class Fahrzeug {
     
     @ManyToOne
     @JoinColumn(name = "besitzer_id")
+    @JsonIgnoreProperties({"fahrzeuge", "passwort", "resetToken", "resetTokenExpiry"})
     private Cargonaut besitzer;
     
     @PrePersist

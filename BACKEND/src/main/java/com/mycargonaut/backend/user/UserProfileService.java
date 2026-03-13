@@ -2,7 +2,6 @@ package com.mycargonaut.backend.user;
 
 import com.mycargonaut.backend.model.Cargonaut;
 import com.mycargonaut.backend.model.Fahrt;
-import com.mycargonaut.backend.model.Buchung;
 import com.mycargonaut.backend.repository.CargonautRepository;
 import com.mycargonaut.backend.repository.FahrtRepository;
 import com.mycargonaut.backend.repository.BuchungRepository;
@@ -85,13 +84,12 @@ public class UserProfileService {
                 .map(Fahrt::getPreis)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Get average rating (for simplicity, we'll use global average)
-        // In production, you'd want to track reviews per user
-        Double avgRating = bewertungRepository.findAverageRating();
+        // Get average rating for this specific user (only visible reviews)
+        Double avgRating = bewertungRepository.findAverageRatingForUser(user);
         double averageRating = avgRating != null ? avgRating : 0.0;
 
-        // Get total reviews count
-        Long reviewCount = bewertungRepository.countAllReviews();
+        // Get total reviews count for this specific user
+        Long reviewCount = bewertungRepository.countReviewsForUser(user);
         int totalReviews = reviewCount != null ? reviewCount.intValue() : 0;
 
         return new UserProfileStatsResponse(

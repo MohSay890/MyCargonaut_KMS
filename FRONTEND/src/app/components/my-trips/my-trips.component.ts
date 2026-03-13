@@ -6,6 +6,7 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
 import { ConfirmationModalComponent } from '../confirmation-modal/confirmation-modal.component';
 import { ReviewService } from '../../services/review.service';
 import { OfferService, TransportOffer } from '../../services/offer.service';
+import { BookingService } from '../../services/booking.service';
 
 interface Trip {
   id: string;
@@ -21,6 +22,10 @@ interface Trip {
   status: 'active' | 'request' | 'confirmed' | 'completed';
   type: 'offer' | 'booked';
   hasReview?: boolean;
+  bookingId?: number;
+  bookingStatus?: string;
+  isPaid?: boolean;
+  isDriver?: boolean;
 }
 
 @Component({
@@ -44,143 +49,18 @@ export class MyTripsComponent implements OnInit {
 
   // Only keep mock data for booked/completed trips (demo purposes)
   // Real offers will be loaded from backend
-  trips: Trip[] = [
-    // BOOKED TRIPS (mock data for demo - these are trips the user booked from others)
-    {
-      id: 'mock_booked_1',
-      route: 'Köln → Frankfurt',
-      date: new Date(2026, 0, 20),
-      time: '10:00 Uhr',
-      vehicle: 'Transporter',
-      maxWeight: 150,
-      dimensions: '250x180x150 cm',
-      price: 70,
-      requests: 0,
-      customer: 'Michael B.',
-      status: 'confirmed',
-      type: 'booked'
-    },
-    {
-      id: 'mock_booked_2',
-      route: 'Leipzig → Dresden',
-      date: new Date(2026, 1, 5),
-      time: '11:00 Uhr',
-      vehicle: 'Transporter',
-      maxWeight: 120,
-      dimensions: '220x150x130 cm',
-      price: 55,
-      requests: 0,
-      customer: 'Thomas L.',
-      status: 'confirmed',
-      type: 'booked'
-    },
-    {
-      id: 'mock_booked_3',
-      route: 'Hannover → Berlin',
-      date: new Date(2026, 1, 12),
-      time: '09:30 Uhr',
-      vehicle: 'Transporter',
-      maxWeight: 150,
-      dimensions: '240x160x140 cm',
-      price: 85,
-      requests: 0,
-      customer: 'Lisa W.',
-      status: 'confirmed',
-      type: 'booked'
-    },
-    // COMPLETED TRIPS (mock data for demo)
-    {
-      id: 'mock_completed_1',
-      route: 'Stuttgart → München',
-      date: new Date(2025, 11, 10),
-      time: '11:00 Uhr',
-      vehicle: 'PKW',
-      maxWeight: 50,
-      dimensions: '100x80x60 cm',
-      price: 40,
-      requests: 0,
-      customer: 'Anna M.',
-      status: 'completed',
-      type: 'booked',
-      hasReview: false
-    },
-    {
-      id: 'mock_completed_2',
-      route: 'Frankfurt → Köln',
-      date: new Date(2025, 11, 5),
-      time: '15:00 Uhr',
-      vehicle: 'Transporter',
-      maxWeight: 120,
-      dimensions: '180x140x100 cm',
-      price: 55,
-      requests: 0,
-      customer: 'Peter L.',
-      status: 'completed',
-      type: 'offer',
-      hasReview: true
-    },
-    {
-      id: 'mock_completed_3',
-      route: 'Berlin → München',
-      date: new Date(2025, 10, 28),
-      time: '08:00 Uhr',
-      vehicle: 'Sprinter',
-      maxWeight: 250,
-      dimensions: '350x220x200 cm',
-      price: 180,
-      requests: 0,
-      customer: 'Michael S.',
-      status: 'completed',
-      type: 'booked',
-      hasReview: false
-    },
-    {
-      id: 'mock_completed_4',
-      route: 'Hamburg → Frankfurt',
-      date: new Date(2025, 10, 20),
-      time: '10:30 Uhr',
-      vehicle: 'Transporter',
-      maxWeight: 130,
-      dimensions: '230x150x120 cm',
-      price: 95,
-      requests: 0,
-      customer: 'Julia H.',
-      status: 'completed',
-      type: 'offer',
-      hasReview: false
-    },
-    {
-      id: 'mock_completed_5',
-      route: 'Köln → Berlin',
-      date: new Date(2025, 10, 15),
-      time: '07:30 Uhr',
-      vehicle: 'Kastenwagen',
-      maxWeight: 90,
-      dimensions: '190x130x110 cm',
-      price: 75,
-      requests: 0,
-      customer: 'Sebastian K.',
-      status: 'completed',
-      type: 'booked',
-      hasReview: false
-    }
-  ];
+  trips: Trip[] = [];
 
   constructor(
     private router: Router,
     private reviewService: ReviewService,
-    private offerService: OfferService
+    private offerService: OfferService,
+    private bookingService: BookingService
   ) {}
 
   ngOnInit(): void {
     // Load user's own offers from OfferService
     this.loadMyOffers();
-
-    // Update hasReview status for all trips
-    this.trips = this.trips.map(trip => ({
-      ...trip,
-      hasReview: this.reviewService.hasReview(trip.id)
-    }));
   }
 
   loadMyOffers(): void {
@@ -201,37 +81,136 @@ export class MyTripsComponent implements OnInit {
     this.offerService.getMyOffers(userEmail).subscribe({
       next: (offers) => {
         console.log('Loading MY offers from backend:', offers.length, 'for user:', userEmail);
+        
+        // Also load confirmed bookings to check if offers are booked
+        this.bookingService.getConfirmedBookingsForCreator(userEmail).subscribe({
+          next: (creatorBookings) => {
+            const bookedFahrtIds = new Set(creatorBookings.map(b => b.fahrt?.id?.toString() || ''));
+            
+            // Convert TransportOffer to Trip format and add to trips array
+            offers.forEach(offer => {
+              // Check if already exists (avoid duplicates)
+              const exists = this.trips.some(t => t.id === offer.id);
+              if (!exists) {
+                const isBookedOffer = bookedFahrtIds.has(offer.id);
+                
+                let tripStatus: 'active' | 'completed' | 'confirmed' | 'request' = 'active';
+                let customerName: string | undefined = undefined;
 
-        // Convert TransportOffer to Trip format and add to trips array
-        offers.forEach(offer => {
-          // Check if already exists (avoid duplicates)
-          const exists = this.trips.some(t => t.id === offer.id);
-          if (!exists) {
-            const trip: Trip = {
-              id: offer.id,
-              route: offer.route,
-              date: this.parseGermanDate(offer.date),
-              time: offer.time || '08:00 Uhr',
-              vehicle: offer.vehicleType || 'Transporter',
-              maxWeight: offer.maxWeight || 100,
-              dimensions: offer.dimensions || '200x150x120 cm',
-              price: offer.price,
-              requests: 0,
-              status: 'active',
-              type: 'offer',
-              hasReview: false
-            };
-            // Add new offers at the beginning
-            this.trips.unshift(trip);
-            console.log('Added MY offer from backend:', trip.route, 'ID:', trip.id);
+                if (offer.status && offer.status.toLowerCase() === 'completed') {
+                   tripStatus = 'completed';
+                   if (isBookedOffer) {
+                       const booking = creatorBookings.find(b => b.fahrt?.id?.toString() === offer.id);
+                       if (booking && booking.mitfahrer) {
+                           customerName = (booking.mitfahrer.vorname + ' ' + booking.mitfahrer.nachname).trim();
+                       }
+                   }
+                } else if (isBookedOffer) {
+                   tripStatus = 'confirmed';
+                   const booking = creatorBookings.find(b => b.fahrt?.id?.toString() === offer.id);
+                   if (booking && booking.mitfahrer) {
+                       customerName = (booking.mitfahrer.vorname + ' ' + booking.mitfahrer.nachname).trim();
+                   }
+                }
+
+                const trip: Trip = {
+                  id: offer.id,
+                  route: offer.route,
+                  date: this.parseGermanDate(offer.date),
+                  time: offer.time || '08:00 Uhr',
+                  vehicle: offer.vehicleType || 'Transporter',
+                  maxWeight: offer.maxWeight || 100,
+                  dimensions: offer.dimensions || '200x150x120 cm',
+                  price: offer.price,
+                  requests: 0,
+                  customer: customerName,
+                  status: tripStatus as any,
+                  type: isBookedOffer ? 'booked' : 'offer',
+                  isDriver: true,
+                  hasReview: false
+                };
+                // Add new offers at the beginning
+                this.trips.unshift(trip);
+                this.reviewService.hasUserReviewedTrip(parseInt(trip.id), userEmail).subscribe(hasReview => trip.hasReview = hasReview);
+              }
+            });
+
+            // After loading offers, load the user's bookings as a passenger
+            this.loadMyBookings(userEmail);
+          },
+          error: (error) => {
+             console.error('Error loading creator bookings:', error);
+             // fallback
+             this.loadMyBookings(userEmail);
           }
         });
-
-        this.isLoading = false;
       },
       error: (error) => {
         console.error('Error loading offers:', error);
-        this.isLoading = false;
+        // Try getting bookings anyway
+        this.loadMyBookings(userEmail);
+      }
+    });
+  }
+
+  loadMyBookings(userEmail: string): void {
+    this.bookingService.getBookingsByPassenger(userEmail).subscribe({
+      next: (bookings) => {
+         bookings.forEach(b => {
+            const f = b.fahrt;
+            if(!f) return;
+            
+            // Map booking to Trip
+            const route = f.startOrt && f.zielOrt ? `${f.startOrt} → ${f.zielOrt}` : 'Unbekannte Route';
+            
+            // Parse fahrt date properly - it might be an array [YYYY, MM, DD] or string
+            let dateObj = new Date();
+            if (Array.isArray(f.datum) && f.datum.length >= 3) {
+               dateObj = new Date(f.datum[0], f.datum[1] - 1, f.datum[2]);
+            } else if (f.datum) {
+               dateObj = new Date(f.datum);
+            }
+            
+            let statusMapped: 'active' | 'request' | 'confirmed' | 'completed' = 'confirmed';
+            if (f.status && f.status.toString().toLowerCase() === 'completed') {
+               statusMapped = 'completed';
+            } else if (b.status === 'PENDING') {
+               statusMapped = 'request';
+            }
+            
+            const trip: Trip = {
+               id: f.id ? f.id.toString() : `booking_${b.id}`,
+               route: route,
+               date: dateObj,
+               time: f.uhrzeit || '12:00 Uhr',
+               vehicle: f.fahrzeugModell || f.fahrzeugTyp || 'Transporter',
+               maxWeight: f.freiePlaetze || 100,
+               dimensions: f.abmessungen || '200x150x120 cm',
+               price: f.preis || 0,
+               requests: 0,
+               customer: f.erstellerName || 'Unbekannt',
+               status: statusMapped,
+               type: 'booked',
+               bookingId: b.id,
+               bookingStatus: b.status,
+               isPaid: b.isPaid || false,
+               hasReview: false
+            };
+            
+            this.trips.push(trip);
+              if(!isNaN(parseInt(trip.id))) {
+                 this.reviewService.hasUserReviewedTrip(parseInt(trip.id), userEmail).subscribe(hasReview => trip.hasReview = hasReview);
+              }
+         });
+         
+         // Sort finally
+         this.trips.sort((a, b) => b.date.getTime() - a.date.getTime());
+         
+         this.isLoading = false;
+      },
+      error: (err) => {
+         console.error('Error loading bookings', err);
+         this.isLoading = false;
       }
     });
   }
@@ -374,12 +353,6 @@ export class MyTripsComponent implements OnInit {
             const index = this.trips.findIndex(t => t.id === this.tripToDelete!.id);
             if (index > -1) {
               this.trips.splice(index, 1);
-
-              // Update hasReview for remaining trips
-              this.trips = this.trips.map(trip => ({
-                ...trip,
-                hasReview: this.reviewService.hasReview(trip.id)
-              }));
             }
           } else {
             alert('Sie können nur Ihre eigenen Angebote löschen.');
@@ -410,9 +383,23 @@ export class MyTripsComponent implements OnInit {
     alert('Anfragen ansehen - Diese Funktion wird noch implementiert');
   }
 
+  onStartTracking(trip: Trip): void {
+    // Navigate driver to tracking page to create tracking
+    this.router.navigate(['/tracking/driver'], { queryParams: { fahrtId: trip.id }});
+  }
+
   onViewDetails(trip: Trip): void {
     console.log('View details for trip:', trip);
-    this.router.navigate(['/tracking', trip.id]);
+    if (trip.type === 'booked' && !trip.isPaid && trip.status === 'confirmed') {
+      this.router.navigate(['/offer-detail', trip.id]);
+    } else {
+      this.router.navigate(['/offer-detail', trip.id]);
+    }
+  }
+
+  onPayNow(trip: Trip): void {
+    console.log('Directing to payment for trip:', trip);
+    this.router.navigate(['/offer-detail', trip.id], { queryParams: { pay: 'true' } });
   }
 
   onContact(trip: Trip): void {

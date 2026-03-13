@@ -12,6 +12,19 @@
       <p class="subtitle">Willkommen zurück, {{ userName }}! Hier ist eine Übersicht deiner Aktivitäten</p>
     </div>
 
+
+    <!-- Missing Bank Account Banner -->
+    <div *ngIf="!isLoading && !hasBankAccount" class="bank-alert-banner">
+      <div class="bank-alert-content">
+        <div class="bank-alert-icon">💳</div>
+        <div class="bank-alert-text">
+          <h3>Wichtig: Bankkonto fehlt!</h3>
+          <p>Du hast noch kein Bankkonto für Auszahlungen hinterlegt. Füge es jetzt hinzu, damit du dein verdientes Guthaben auszahlen lassen kannst.</p>
+        </div>
+      </div>
+      <a routerLink="/driver/bank-account" class="btn-bank-alert">Jetzt einrichten</a>
+    </div>
+
     <!-- Loading State -->
     <div *ngIf="isLoading" class="loading">
       Daten werden geladen...
@@ -31,9 +44,12 @@
         <div class="stat-value">{{ stats.averageRating.toFixed(1) }}</div>
         <div class="stat-label">Durchschn. Bewertung</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" [class.has-error]="!hasBankAccount">
         <div class="stat-value">{{ stats.totalEarnings }}€</div>
-        <div class="stat-label">Einnahmen (Gesamt)</div>
+        <div class="stat-label">Eingesammeltes Guthaben</div>
+        <a *ngIf="!hasBankAccount" routerLink="/driver/bank-account" class="bank-warning" style="text-decoration: none; margin-top: 8px; display: inline-block; font-size: 0.9em; font-weight: bold;">
+          ⚠️ Bankkonto fehlt!
+        </a>
       </div>
     </div>
 
@@ -91,7 +107,7 @@
       </div>
 
       <div class="notifications-list">
-        <div class="notification-card" *ngFor="let notification of notifications">
+        <div class="notification-card" *ngFor="let notification of notifications" (click)="onNotificationClick(notification)">
           <div class="notification-icon">
             {{ getNotificationIcon(notification.type) }}
           </div>
@@ -100,6 +116,9 @@
             <p>{{ notification.message }}</p>
             <span class="notification-time">{{ formatTimestamp(notification.timestamp) }}</span>
           </div>
+          <div class="notification-arrow" *ngIf="notification.type === 'booking' || notification.type === 'offer' || notification.type === 'offer-status'">
+            →
+          </div>
         </div>
       </div>
     </div>
@@ -107,3 +126,64 @@
     </div> <!-- Ende page-layout -->
   </div> <!-- Ende container -->
 </div> <!-- Ende dashboard-page -->
+
+<!-- Booking Request Modal -->
+<app-booking-request-modal
+  [isOpen]="showBookingRequestModal"
+  [booking]="selectedBooking"
+  [creatorEmail]="currentUserEmail"
+  (close)="onBookingRequestModalClose()"
+  (accepted)="onBookingAccepted($event)"
+  (rejected)="onBookingRejected($event)">
+</app-booking-request-modal>
+
+<!-- Congratulations Modal -->
+<div class="modal-overlay" *ngIf="showCongratulationsModal" (click)="onCongratulationsClose()">
+  <div class="congratulations-modal" (click)="$event.stopPropagation()">
+    <button class="close-btn" (click)="onCongratulationsClose()">
+      <i class="fas fa-times"></i>
+    </button>
+
+    <div class="modal-header">
+      <div class="success-icon">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <h2>Glückwunsch! 🎉</h2>
+      <p class="subtitle">Deine Buchung wurde bestätigt!</p>
+    </div>
+
+    <div class="modal-body" *ngIf="congratulationsData">
+      <div class="trip-info">
+        <div class="info-row">
+          <i class="fas fa-route"></i>
+          <span>{{ congratulationsData.fahrt?.startOrt }} → {{ congratulationsData.fahrt?.zielOrt }}</span>
+        </div>
+        <div class="info-row">
+          <i class="fas fa-calendar"></i>
+          <span>{{ congratulationsData.fahrt?.datum | date:'dd.MM.yyyy' }}</span>
+        </div>
+        <div class="info-row">
+          <i class="fas fa-clock"></i>
+          <span>{{ congratulationsData.fahrt?.uhrzeit }}</span>
+        </div>
+        <div class="info-row">
+          <i class="fas fa-user"></i>
+          <span>Fahrer: {{ congratulationsData.fahrt?.erstellerName }}</span>
+        </div>
+      </div>
+
+      <div class="payment-prompt">
+        <p>Bitte schließe deine Zahlung ab, um die Buchung zu finalisieren.</p>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="onCongratulationsClose()">
+        Später
+      </button>
+      <button class="btn-primary" (click)="onGoToPayment()">
+        💳 Zur Zahlung
+      </button>
+    </div>
+  </div>
+</div>

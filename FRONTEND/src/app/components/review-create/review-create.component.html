@@ -12,7 +12,7 @@
         <div class="page-header-row">
           <div class="page-title">
             <h1>Bewertung abgeben</h1>
-            <p class="subtitle">{{ driverName }} • {{ tripRoute }}</p>
+            <p class="subtitle">{{ reviewedPersonName }} • {{ tripRoute }}</p>
           </div>
           <button class="btn-back" (click)="onCancel()">← Zurück zu Meine Fahrten</button>
         </div>
@@ -30,7 +30,7 @@
                 *ngFor="let star of getStars(overallRating); let i = index"
                 class="star-btn large"
                 [class.filled]="i < overallRating"
-                (click)="setRating('overall', i + 1)">
+                (click)="setOverallRating(i + 1)">
                 {{ star }}
               </button>
             </div>
@@ -42,80 +42,132 @@
             </p>
           </div>
 
-          <!-- Category Ratings -->
+          <!-- Yes/No Questions -->
           <div class="form-section">
-            <h2>Detaillierte Bewertung <span class="required">*</span></h2>
-            <p class="section-description">Bewerte verschiedene Aspekte des Transports</p>
+            <h2>Detailbewertung <span class="required">*</span></h2>
+            <p class="section-description">Bitte beantworte die folgenden Fragen</p>
 
-            <div class="category-ratings">
-              <!-- Pünktlichkeit -->
-              <div class="category-rating-item">
-                <div class="category-label">
-                  <span>⏰</span>
-                  <strong>Pünktlichkeit</strong>
-                </div>
-                <div class="star-rating">
-                  <button
-                    *ngFor="let star of getStars(punctualityRating); let i = index"
-                    class="star-btn"
-                    [class.filled]="i < punctualityRating"
-                    (click)="setRating('punctuality', i + 1)">
-                    {{ star }}
-                  </button>
-                </div>
-              </div>
-
-              <!-- Sorgfalt -->
-              <div class="category-rating-item">
-                <div class="category-label">
-                  <span>📦</span>
-                  <strong>Sorgfalt</strong>
-                </div>
-                <div class="star-rating">
-                  <button
-                    *ngFor="let star of getStars(careRating); let i = index"
-                    class="star-btn"
-                    [class.filled]="i < careRating"
-                    (click)="setRating('care', i + 1)">
-                    {{ star }}
-                  </button>
-                </div>
-              </div>
-
-              <!-- Kommunikation -->
-              <div class="category-rating-item">
-                <div class="category-label">
-                  <span>💬</span>
-                  <strong>Kommunikation</strong>
-                </div>
-                <div class="star-rating">
-                  <button
-                    *ngFor="let star of getStars(communicationRating); let i = index"
-                    class="star-btn"
-                    [class.filled]="i < communicationRating"
-                    (click)="setRating('communication', i + 1)">
-                    {{ star }}
-                  </button>
-                </div>
-              </div>
-
-              <!-- Freundlichkeit -->
-              <div class="category-rating-item">
-                <div class="category-label">
-                  <span>😊</span>
-                  <strong>Freundlichkeit</strong>
-                </div>
-                <div class="star-rating">
-                  <button
-                    *ngFor="let star of getStars(friendlinessRating); let i = index"
-                    class="star-btn"
-                    [class.filled]="i < friendlinessRating"
-                    (click)="setRating('friendliness', i + 1)">
-                    {{ star }}
-                  </button>
-                </div>
+            <!-- Common Questions -->
+            <div class="question-item">
+              <label class="question-label">
+                <span class="question-icon">⏰</span>
+                <span class="question-text">
+                  {{ reviewerRole === 'PASSENGER' ? 'War der Fahrer pünktlich? (± 5 Minuten)' : 'War der Passagier pünktlich? (+/- 5 Minuten)' }}
+                </span>
+              </label>
+              <div class="yes-no-buttons">
+                <button
+                  class="btn-yes"
+                  [class.selected]="warPuenktlich === true"
+                  (click)="warPuenktlich = true">
+                  ✓ Ja
+                </button>
+                <button
+                  class="btn-no"
+                  [class.selected]="warPuenktlich === false"
+                  (click)="warPuenktlich = false">
+                  ✗ Nein
+                </button>
               </div>
             </div>
+
+            <div class="question-item">
+              <label class="question-label">
+                <span class="question-icon">📋</span>
+                <span class="question-text">
+                  Hat {{ reviewerRole === 'PASSENGER' ? 'der Fahrer' : 'der Passagier' }} alle Vereinbarungen eingehalten? (Treffpunkt usw.)
+                </span>
+              </label>
+              <div class="yes-no-buttons">
+                <button
+                  class="btn-yes"
+                  [class.selected]="hiltAbmachungen === true"
+                  (click)="hiltAbmachungen = true">
+                  ✓ Ja
+                </button>
+                <button
+                  class="btn-no"
+                  [class.selected]="hiltAbmachungen === false"
+                  (click)="hiltAbmachungen = false">
+                  ✗ Nein
+                </button>
+              </div>
+            </div>
+
+            <!-- Passenger-specific questions -->
+            <ng-container *ngIf="reviewerRole === 'PASSENGER'">
+              <div class="question-item">
+                <label class="question-label">
+                  <span class="question-icon">😊</span>
+                  <span class="question-text">
+                    Haben Sie sich während der Fahrt wohlgefühlt?
+                  </span>
+                </label>
+                <div class="yes-no-buttons">
+                  <button
+                    class="btn-yes"
+                    [class.selected]="fuehlteSichWohl === true"
+                    (click)="fuehlteSichWohl = true">
+                    ✓ Ja
+                  </button>
+                  <button
+                    class="btn-no"
+                    [class.selected]="fuehlteSichWohl === false"
+                    (click)="fuehlteSichWohl = false">
+                    ✗ Nein
+                  </button>
+                </div>
+              </div>
+
+              <div class="question-item">
+                <label class="question-label">
+                  <span class="question-icon">📦</span>
+                  <span class="question-text">
+                    Did the cargo arrive undamaged?
+                  </span>
+                </label>
+                <div class="yes-no-buttons">
+                  <button
+                    class="btn-yes"
+                    [class.selected]="frachtUnbeschaedigt === true"
+                    (click)="frachtUnbeschaedigt = true">
+                    ✓ Ja
+                  </button>
+                  <button
+                    class="btn-no"
+                    [class.selected]="frachtUnbeschaedigt === false"
+                    (click)="frachtUnbeschaedigt = false">
+                    ✗ Nein
+                  </button>
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- Driver-specific question -->
+            <ng-container *ngIf="reviewerRole === 'DRIVER'">
+              <div class="question-item">
+                <label class="question-label">
+                  <span class="question-icon">👍</span>
+                  <span class="question-text">
+                    Hat es Ihnen Spaß gemacht, den Beifahrer dabei zu haben?
+                  </span>
+                </label>
+                <div class="yes-no-buttons">
+                  <button
+                    class="btn-yes"
+                    [class.selected]="gerneGenommen === true"
+                    (click)="gerneGenommen = true">
+                    ✓ Ja
+                  </button>
+                  <button
+                    class="btn-no"
+                    [class.selected]="gerneGenommen === false"
+                    (click)="gerneGenommen = false">
+                    ✗ Nein
+                  </button>
+                </div>
+              </div>
+            </ng-container>
           </div>
 
           <!-- Comment -->
@@ -132,21 +184,7 @@
             <p class="char-count">{{ reviewComment.length }}/500 Zeichen</p>
           </div>
 
-          <!-- Tags -->
-          <div class="form-section">
-            <h2>Eigenschaften (optional)</h2>
-            <p class="section-description">Wähle passende Eigenschaften aus</p>
 
-            <div class="tags-selection">
-              <button
-                *ngFor="let tag of availableTags"
-                class="tag-btn"
-                [class.selected]="isTagSelected(tag)"
-                (click)="toggleTag(tag)">
-                {{ tag }}
-              </button>
-            </div>
-          </div>
 
           <!-- Action Buttons -->
           <div class="form-actions">

@@ -24,6 +24,23 @@ export interface TransportRequest {
   dauer?: string;
   erstelltAm?: string;
   status?: string;
+  fahrtId?: number;
+}
+
+export interface PriceBreakdown {
+  basePrice: number;
+  weightCost: number;
+  distanceCost: number;
+  subtotal: number;
+  categoryMultiplier: number;
+  totalPrice: number;
+  category: string;
+}
+
+export interface PriceCalculationRequest {
+  gewicht: number;
+  entfernung: string;
+  kategorie: string;
 }
 
 @Injectable({
@@ -121,6 +138,26 @@ export class RequestService {
       catchError(error => {
         console.error('Error loading requests:', error);
         return of([]);
+      })
+    );
+  }
+
+  /**
+   * Calculate price for transport request
+   */
+  calculatePrice(request: PriceCalculationRequest): Observable<PriceBreakdown> {
+    return this.http.post<PriceBreakdown>(`${this.apiUrl}/calculate-price`, request).pipe(
+      catchError(error => {
+        console.error('Error calculating price:', error);
+        return of({
+          basePrice: 25,
+          weightCost: 0,
+          distanceCost: 0,
+          subtotal: 25,
+          categoryMultiplier: 1,
+          totalPrice: 25,
+          category: request.kategorie
+        });
       })
     );
   }

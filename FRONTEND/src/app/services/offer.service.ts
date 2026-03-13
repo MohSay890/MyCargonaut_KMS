@@ -25,8 +25,13 @@ export interface Fahrt {
   erstellerName?: string;
   erstellerEmail?: string;
   erstellerAvatar?: string;
+  durchschnittlicheBewertung?: number; // Average rating from reviews
+  anzahlBewertungen?: number; // Number of reviews
+  erstellerFahrten?: number; // Completed trips dynamically calculated
+  status?: string; // Trip status (ACTIVE, IN_PROGRESS, COMPLETED, CANCELLED)
   fahrer?: any;
   fahrzeug?: any;
+  bewertungen?: any[];
 }
 
 // Frontend display model (for UI)
@@ -54,7 +59,8 @@ export interface TransportOffer {
   dropoffLocation: string;
   description: string;
   kategorie?: string; // Category (e.g., "möbel", "pakete", "umzug")
-  creatorEmail?: string; // Email of the user who created this offer
+  creatorEmail?: string;
+  status?: string; // Email of the user who created this offer
   verified: {
     id: boolean;
     license: boolean;
@@ -366,8 +372,9 @@ export class OfferService {
       // Use stored creator info from backend, fallback to passed user, then to defaults
       driverName: fahrt.erstellerName || fahrt.fahrer?.vorname || user?.name || 'Unbekannt',
       driverAvatar: fahrt.erstellerAvatar || user?.avatar || 'https://i.pravatar.cc/150?img=12',
-      driverRating: user?.rating || 4.5,
-      driverTrips: user?.trips || 0,
+      // Use real rating from backend or 0 (no mock 4.5 anymore)
+      driverRating: fahrt.durchschnittlicheBewertung || user?.rating || 0,
+      driverTrips: fahrt.erstellerFahrten || user?.trips || 0,
       route: `${fahrt.startOrt} → ${fahrt.zielOrt}`,
       from: fahrt.startOrt,
       to: fahrt.zielOrt,
@@ -389,10 +396,19 @@ export class OfferService {
       description: fahrt.beschreibung || extraData?.description || '',
       kategorie: fahrt.kategorie || extraData?.category,
       creatorEmail: fahrt.erstellerEmail,
+      status: (fahrt as any).status || 'ACTIVE',
       verified: user?.verified || { id: true, license: true, phone: true },
       memberSince: this.formatMemberSince(user?.registriert),
       responseTime: 'Innerhalb 2 Stunden',
-      reviews: []
+      reviews: (fahrt.bewertungen || [])
+        .filter(b => b.istSichtbar)
+        .map(b => ({
+          reviewerName: b.verfasser?.vorname ? `${b.verfasser.vorname} ${b.verfasser.nachname || ''}`.trim() : 'Unbekannt',
+          reviewerAvatar: b.verfasser?.profilbild || `https://ui-avatars.com/api/?name=${b.verfasser?.vorname || 'User'}`,
+          rating: b.sterne || 0,
+          date: b.erstelltAm ? new Date(b.erstelltAm).toLocaleDateString('de-DE') : '',
+          comment: b.kommentar || ''
+        }))
     };
   }
 

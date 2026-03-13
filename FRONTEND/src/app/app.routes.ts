@@ -22,6 +22,9 @@ import { RequestDetailComponent } from './components/request-detail/request-deta
 import { PaymentHistoryComponent } from './components/payment-history/payment-history.component';
 import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
+import { MyRequestsComponent } from './components/my-requests/my-requests.component';
+import { DriverBankAccountComponent } from './components/driver-bank-account/driver-bank-account.component';
+import { DriverPayoutDashboardComponent } from './components/driver-payout-dashboard/driver-payout-dashboard.component';
 import { AuthGuard } from './services/auth.guard';
 
 export const routes: Routes = [
@@ -88,6 +91,11 @@ export const routes: Routes = [
     component: MyTripsComponent,
     canActivate: [AuthGuard]
   },
+  {
+    path: 'my-requests',
+    component: MyRequestsComponent,
+    canActivate: [AuthGuard]
+  },
   // Tracking routes - order matters! More specific routes first
   {
     path: 'tracking/code/:code',
@@ -131,6 +139,17 @@ export const routes: Routes = [
     path: 'payment-history',
     redirectTo: 'payments',
     pathMatch: 'full'
+  },
+  // Driver-specific routes
+  {
+    path: 'driver/bank-account',
+    component: DriverBankAccountComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'driver/payouts',
+    component: DriverPayoutDashboardComponent,
+    canActivate: [AuthGuard]
   },
 
   // Fallback

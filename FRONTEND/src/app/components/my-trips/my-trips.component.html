@@ -89,7 +89,8 @@
                 </div>
                 <div class="meta-item" *ngIf="trip.customer">
                   <span class="meta-label">|</span>
-                  <span class="meta-value">{{ trip.status === 'request' ? 'Anfrage von' : 'Gebucht von' }} {{ trip.customer }}</span>
+                    <span class="meta-value" *ngIf="trip.isDriver">{{ trip.status === 'request' ? 'Anfrage von' : 'Mitfahrer:' }} {{ trip.customer }}</span>
+                    <span class="meta-value" *ngIf="!trip.isDriver">{{ trip.status === 'request' ? 'Anfrage an' : 'Fahrer:' }} {{ trip.customer }}</span>
                 </div>
               </div>
             </div>
@@ -126,6 +127,23 @@
               </button>
 
               <!-- For Confirmed -->
+              <!-- For Confirmed (Driver Tracking) -->
+              <button
+                *ngIf="trip.status === 'confirmed' && trip.isDriver"
+                class="btn-action btn-tracking"
+                style="background: #e11d48; color: white;"
+                (click)="onStartTracking(trip)">
+                🔴 Tracking starten
+              </button>
+
+              <button
+                *ngIf="trip.status === 'confirmed' && !trip.isDriver && trip.type === 'booked' && !trip.isPaid"
+                class="btn-action btn-payment"
+                style="background: #22c55e; color: white;"
+                (click)="onPayNow(trip)">
+                💳 Jetzt Bezahlen
+              </button>
+
               <button
                 *ngIf="trip.status === 'confirmed'"
                 class="btn-action btn-primary"

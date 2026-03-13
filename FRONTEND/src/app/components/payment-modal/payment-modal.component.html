@@ -11,7 +11,7 @@
         </div>
         <h2>Sichere Zahlung</h2>
       </div>
-      <button class="close-btn" (click)="onClose()" [disabled]="isProcessing">
+      <button class="close-btn" (click)="onClose()" [disabled]="isProcessing || paymentRequired" [class.disabled]="paymentRequired">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="18" y1="6" x2="6" y2="18"></line>
           <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -19,8 +19,32 @@
       </button>
     </div>
 
+    <!-- Payment Deadline Timer (if payment is required) -->
+    <div class="deadline-banner" *ngIf="paymentRequired && !isDeadlineExpired" [ngClass]="getDeadlineClass()">
+      <div class="deadline-icon">⏱️</div>
+      <div class="deadline-content">
+        <div class="deadline-title">Zahlungsfrist</div>
+        <div class="deadline-timer">
+          <span class="time-value">{{ remainingMinutes.toString().padStart(2, '0') }}</span>:
+          <span class="time-value">{{ remainingSeconds.toString().padStart(2, '0') }}</span>
+        </div>
+      </div>
+      <div class="deadline-message">
+        <span *ngIf="remainingMinutes >= 10">Bitte schließe die Zahlung innerhalb der Frist ab.</span>
+        <span *ngIf="remainingMinutes < 10 && remainingMinutes >= 5" class="warning-text">⚠️ Bitte beeile dich!</span>
+        <span *ngIf="remainingMinutes < 5" class="critical-text">🚨 Nur noch wenige Minuten!</span>
+      </div>
+    </div>
+
+    <!-- Deadline Expired Message -->
+    <div class="deadline-expired" *ngIf="isDeadlineExpired">
+      <div class="expired-icon">⏰</div>
+      <div class="expired-title">Zahlungsfrist abgelaufen</div>
+      <div class="expired-message">Die Buchung wird automatisch storniert. Die Plätze wurden wieder freigegeben.</div>
+    </div>
+
     <!-- Amount Display -->
-    <div class="amount-display">
+    <div class="amount-display" *ngIf="!isDeadlineExpired">
       <div class="amount-breakdown">
         <div class="breakdown-row">
           <span class="breakdown-label">Transportpreis</span>

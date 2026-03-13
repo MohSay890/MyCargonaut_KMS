@@ -31,6 +31,13 @@
 
               <!-- Chat Items -->
               <div class="chat-items">
+                <!-- Loading State -->
+                <div class="loading-state" *ngIf="isLoading">
+                  <div class="spinner"></div>
+                  <p>Lade Nachrichten...</p>
+                </div>
+
+                <!-- Chat List -->
                 <div
                   class="chat-item"
                   *ngFor="let chat of filteredChats"
@@ -55,7 +62,7 @@
                 </div>
 
                 <!-- Empty State -->
-                <div class="empty-chats" *ngIf="filteredChats.length === 0">
+                <div class="empty-chats" *ngIf="!isLoading && filteredChats.length === 0">
                   <div class="empty-icon">💬</div>
                   <p>Keine Konversationen gefunden</p>
                 </div>

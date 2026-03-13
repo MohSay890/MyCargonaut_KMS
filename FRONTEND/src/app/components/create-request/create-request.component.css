@@ -149,12 +149,13 @@
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
+  color: #005b52;
   transition: all 0.3s ease;
 }
 
 .btn-primary {
   background: var(--primary-color);
-  color: white;
+  color: #005b52;
 }
 
 .btn-primary:hover:not(:disabled) {

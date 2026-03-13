@@ -1023,3 +1023,6 @@ app-sidebar {
     text-align: center;
   }
 }
+
+#map { height: 400px; width: 100%; border-radius: 12px; margin-top: 20px; z-index: 1; transition: all 0.3s ease; } .truck-marker-icon { font-size: 24px; transition: all 0.5s linear; }
+\n#map { height: 400px; width: 100%; border-radius: 8px; margin-top: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); z-index: 10; }\n.custom-div-icon { background: transparent; border: none; }\n.truck-marker-icon { font-size: 24px; text-align: center; transition: transform 0.3s ease-in-out; }

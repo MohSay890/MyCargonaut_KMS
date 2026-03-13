@@ -75,9 +75,14 @@ export class RequestDetailComponent implements OnInit {
     }
 
     this.offerService.acceptOffer(offerId, this.currentUserEmail).subscribe({
-      next: () => {
+      next: (response: any) => {
         alert('Angebot erfolgreich angenommen! Die Fahrt wurde erstellt.');
-        this.router.navigate(['/search']);
+        const fahrtId = response.fahrtId || response.fahrt?.id || response.id;
+        if (fahrtId) {
+          this.router.navigate(['/offer-detail', fahrtId], { queryParams: { pay: 'true' } });
+        } else {
+          this.router.navigate(['/my-trips'], { queryParams: { tab: 'booked' } });
+        }
       },
       error: (err) => {
         console.error('Error accepting offer:', err);

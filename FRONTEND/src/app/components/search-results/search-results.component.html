@@ -243,7 +243,10 @@
                   <span>pro Transport</span>
                 </div>
                 <button class="btn-details" (click)="onViewDetails(offer)">Details</button>
-                <button class="btn-message" (click)="onSendMessage(offer)" *ngIf="isLoggedIn">💬 Nachricht</button>
+                <button class="btn-message" (click)="onSendMessage(offer)" *ngIf="isLoggedIn && offer.creatorEmail !== currentUserEmail">💬 Nachricht</button>
+                <div class="own-offer-badge" *ngIf="isLoggedIn && offer.creatorEmail === currentUserEmail">
+                  <span class="info-icon">ℹ️</span> Dein Angebot
+                </div>
                 <button class="btn-login" *ngIf="!isLoggedIn" routerLink="/login">🔒 Anmelden zum Kontaktieren</button>
               </div>
             </div>
@@ -261,7 +264,7 @@
             <div class="request-card" *ngFor="let request of paginatedRequests">
               <!-- Request Creator Info -->
               <div class="request-creator">
-                <img [src]="request.erstellerAvatar || 'https://ui-avatars.com/api/?name=' + request.erstellerName" [alt]="request.erstellerName" class="creator-avatar">
+                <img [src]="getUserAvatar(request)" [alt]="request.erstellerName" class="creator-avatar">
                 <div class="creator-info">
                   <strong class="creator-name">{{ request.erstellerName }}</strong>
                   <span class="request-badge">📦 Anfrage</span>
@@ -305,7 +308,11 @@
                   <strong>{{ request.maxPreis }} €</strong>
                 </div>
                 <button class="btn-details" (click)="onViewRequestDetails(request)">Details</button>
-                <button class="btn-offer-transport" (click)="onOfferTransport(request)" *ngIf="isLoggedIn">🚚 Transport anbieten</button>
+                <button class="btn-offer-transport"
+                  (click)="onOfferTransport(request)" *ngIf="isLoggedIn && request.erstellerEmail !== currentUserEmail">🚚 Transport anbieten</button>
+                <div class="own-request-badge" *ngIf="isLoggedIn && request.erstellerEmail === currentUserEmail">
+                  <span class="info-icon">ℹ️</span> Deine Anfrage
+                </div>
                 <button class="btn-login" *ngIf="!isLoggedIn" routerLink="/login">🔒 Anmelden zum Anbieten</button>
               </div>
             </div>

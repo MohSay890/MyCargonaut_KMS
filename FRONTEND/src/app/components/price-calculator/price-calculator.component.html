@@ -1,0 +1,67 @@
+<div class="price-calculator" *ngIf="priceBreakdown">
+  <div class="price-summary" (click)="toggleBreakdown()">
+    <div class="price-main">
+      <span class="price-label">Geschätzter Preis:</span>
+      <span class="price-value">{{ priceBreakdown.totalPrice | number:'1.2-2' }} €</span>
+    </div>
+    <button type="button" class="toggle-breakdown">
+      {{ showBreakdown ? '▼' : '▶' }} Details
+    </button>
+  </div>
+
+  <div class="price-breakdown" *ngIf="showBreakdown">
+    <div class="breakdown-header">
+      <h4>Preisberechnung</h4>
+      <span class="category-tag">
+        {{ getCategoryIcon(priceBreakdown.category) }} {{ priceBreakdown.category }}
+      </span>
+    </div>
+
+    <div class="breakdown-items">
+      <div class="breakdown-item">
+        <span class="item-label">Grundgebühr</span>
+        <span class="item-value">{{ priceBreakdown.basePrice | number:'1.2-2' }} €</span>
+      </div>
+
+      <div class="breakdown-item">
+        <span class="item-label">Gewicht ({{ gewicht }}kg × 0.50€)</span>
+        <span class="item-value">{{ priceBreakdown.weightCost | number:'1.2-2' }} €</span>
+      </div>
+
+      <div class="breakdown-item">
+        <span class="item-label">Entfernung ({{ entfernung }} × 0.80€/km)</span>
+        <span class="item-value">{{ priceBreakdown.distanceCost | number:'1.2-2' }} €</span>
+      </div>
+
+      <div class="breakdown-divider"></div>
+
+      <div class="breakdown-item">
+        <span class="item-label">Zwischensumme</span>
+        <span class="item-value">{{ priceBreakdown.subtotal | number:'1.2-2' }} €</span>
+      </div>
+
+      <div class="breakdown-item">
+        <span class="item-label">
+          Kategorie-Zuschlag
+          <span class="multiplier-badge">{{ getCategoryMultiplierText(priceBreakdown.categoryMultiplier) }}</span>
+        </span>
+        <span class="item-value"></span>
+      </div>
+
+      <div class="breakdown-divider"></div>
+
+      <div class="breakdown-item total">
+        <span class="item-label">Gesamtpreis</span>
+        <span class="item-value">{{ priceBreakdown.totalPrice | number:'1.2-2' }} €</span>
+      </div>
+    </div>
+
+    <div class="breakdown-note">
+      <small>💡 Dies ist eine Schätzung. Der endgültige Preis kann verhandelbar sein.</small>
+    </div>
+  </div>
+</div>
+
+<div class="loading-indicator" *ngIf="isCalculating">
+  <span class="spinner">⏳</span> Berechne Preis...
+</div>

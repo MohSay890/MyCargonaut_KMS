@@ -162,6 +162,91 @@ app-sidebar {
   margin: 0;
 }
 
+/* Question Items (Yes/No) */
+.question-item {
+  padding: 1.5rem;
+  background: var(--bg-light);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.question-item:hover {
+  border-color: var(--primary);
+  background: #f0fdf4;
+}
+
+.question-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  font-size: 1.05rem;
+  color: var(--text-dark);
+  font-weight: 500;
+}
+
+.question-icon {
+  font-size: 1.75rem;
+  flex-shrink: 0;
+}
+
+.question-text {
+  line-height: 1.6;
+}
+
+.yes-no-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.btn-yes,
+.btn-no {
+  flex: 1;
+  padding: 1rem;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  background: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-yes {
+  color: #16a34a;
+}
+
+.btn-yes:hover {
+  border-color: #16a34a;
+  background: #f0fdf4;
+}
+
+.btn-yes.selected {
+  background: #16a34a;
+  color: white;
+  border-color: #16a34a;
+  transform: scale(1.02);
+}
+
+.btn-no {
+  color: #dc2626;
+}
+
+.btn-no:hover {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
+.btn-no.selected {
+  background: #dc2626;
+  color: white;
+  border-color: #dc2626;
+  transform: scale(1.02);
+}
+
 /* Category Ratings */
 .category-ratings {
   display: flex;

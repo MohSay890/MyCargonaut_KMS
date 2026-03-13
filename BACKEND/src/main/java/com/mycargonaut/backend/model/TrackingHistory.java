@@ -26,6 +26,10 @@ public class TrackingHistory {
     private Tracking tracking;
     
     // Location at this point
+    @Column(columnDefinition = "geometry(Point,4326)")
+    private org.locationtech.jts.geom.Point location;
+
+    // Legacy coordinates fallback
     private Double lat;
     private Double lng;
     private String address;

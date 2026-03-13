@@ -1,0 +1,225 @@
+<div class="page-layout-wrapper">
+  <div class="container">
+    <div class="page-layout">
+      <!-- Sidebar -->
+      <app-sidebar></app-sidebar>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div class="bank-account-container">
+          <div class="header">
+            <div class="header-content">
+              <div class="icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                  <line x1="1" y1="10" x2="23" y2="10"></line>
+                </svg>
+              </div>
+              <div>
+                <h2>Bankkonto für Auszahlungen</h2>
+                <p>Hinterlege dein Bankkonto, um Auszahlungen zu erhalten</p>
+              </div>
+            </div>
+          </div>
+
+  <!-- Success/Error Messages -->
+  <div class="alert alert-success" *ngIf="successMessage">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+    </svg>
+    {{ successMessage }}
+  </div>
+
+  <div class="alert alert-error" *ngIf="errorMessage">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="15" y1="9" x2="9" y2="15"></line>
+      <line x1="9" y1="9" x2="15" y2="15"></line>
+    </svg>
+    {{ errorMessage }}
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Lade Kontodaten...</p>
+  </div>
+
+  <!-- No Account Yet -->
+  <div class="no-account" *ngIf="!isLoading && !currentAccount && !isEditing">
+    <div class="no-account-icon">🏦</div>
+    <h3>Noch kein Bankkonto hinterlegt</h3>
+    <p>Hinterlege dein Bankkonto, um Auszahlungen für deine Fahrten zu erhalten.</p>
+    <button class="btn btn-primary" (click)="onEdit()">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Bankkonto hinzufügen
+    </button>
+  </div>
+
+  <!-- Display Mode - Existing Account -->
+  <div class="account-display" *ngIf="!isLoading && currentAccount && !isEditing">
+    <div class="verification-badge" [class.verified]="currentAccount.isVerified">
+      <svg *ngIf="currentAccount.isVerified" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <svg *ngIf="!currentAccount.isVerified" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <span *ngIf="currentAccount.isVerified">Verifiziert</span>
+      <span *ngIf="!currentAccount.isVerified">Nicht verifiziert</span>
+    </div>
+
+    <div class="account-details">
+      <div class="detail-row">
+        <span class="label">Kontoinhaber</span>
+        <span class="value">{{ currentAccount.accountHolderName }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">IBAN</span>
+        <span class="value monospace">{{ currentAccount.iban }}</span>
+      </div>
+      <div class="detail-row" *ngIf="currentAccount.bic">
+        <span class="label">BIC</span>
+        <span class="value monospace">{{ currentAccount.bic }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Bank</span>
+        <span class="value">{{ currentAccount.bankName }}</span>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button class="btn btn-secondary" (click)="onEdit()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+        </svg>
+        Bearbeiten
+      </button>
+      <button class="btn btn-danger" (click)="onDelete()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+        Löschen
+      </button>
+    </div>
+  </div>
+
+  <!-- Edit Mode - Form -->
+  <form [formGroup]="bankAccountForm" (ngSubmit)="onSubmit()" *ngIf="!isLoading && isEditing">
+    <div class="form-section">
+      <div class="form-group">
+        <label for="accountHolderName">
+          Kontoinhaber *
+          <span class="hint">Name wie auf dem Bankkonto</span>
+        </label>
+        <input
+          type="text"
+          id="accountHolderName"
+          formControlName="accountHolderName"
+          placeholder="Max Mustermann"
+          [class.invalid]="isFieldInvalid('accountHolderName')"
+        />
+        <span class="error-message" *ngIf="isFieldInvalid('accountHolderName')">
+          {{ getFieldError('accountHolderName') }}
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="iban">
+          IBAN *
+          <span class="hint">Internationale Bankkontonummer</span>
+        </label>
+        <input
+          type="text"
+          id="iban"
+          formControlName="iban"
+          placeholder="DE89 3704 0044 0532 0130 00"
+          (input)="formatIBAN($event)"
+          [class.invalid]="isFieldInvalid('iban')"
+          maxlength="34"
+        />
+        <span class="error-message" *ngIf="isFieldInvalid('iban')">
+          {{ getFieldError('iban') }}
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="bic">
+          BIC (optional)
+          <span class="hint">Bank Identifier Code (optional für SEPA)</span>
+        </label>
+        <input
+          type="text"
+          id="bic"
+          formControlName="bic"
+          placeholder="COBADEFFXXX"
+          (input)="formatBIC($event)"
+          [class.invalid]="isFieldInvalid('bic')"
+          maxlength="11"
+        />
+        <span class="error-message" *ngIf="isFieldInvalid('bic')">
+          {{ getFieldError('bic') }}
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="bankName">
+          Bankname *
+          <span class="hint">Name deiner Bank</span>
+        </label>
+        <input
+          type="text"
+          id="bankName"
+          formControlName="bankName"
+          placeholder="Commerzbank"
+          [class.invalid]="isFieldInvalid('bankName')"
+        />
+        <span class="error-message" *ngIf="isFieldInvalid('bankName')">
+          {{ getFieldError('bankName') }}
+        </span>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="16" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+      </svg>
+      <div>
+        <strong>Hinweis:</strong> Deine Kontodaten werden verschlüsselt gespeichert.
+        Auszahlungen erfolgen automatisch jeden Montag für abgeschlossene Fahrten.
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSaving">
+        Abbrechen
+      </button>
+      <button type="submit" class="btn btn-primary" [disabled]="isSaving || bankAccountForm.invalid">
+        <span *ngIf="!isSaving">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+          Speichern
+        </span>
+        <span *ngIf="isSaving" class="saving-spinner">
+          <div class="spinner-small"></div>
+          Speichere...
+        </span>
+      </button>
+    </div>
+  </form>
+</div>
+      </main>
+    </div>
+  </div>
+</div>

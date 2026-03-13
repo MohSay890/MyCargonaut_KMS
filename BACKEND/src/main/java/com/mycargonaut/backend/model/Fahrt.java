@@ -5,6 +5,7 @@ import lombok.Data;          // Für @Data (erzeugt Getter/Setter)
 import java.time.LocalDate;   // Für Geburtsdatum/Datum
 import java.util.List;        // Für Listen
 import java.math.BigDecimal;  // Für den Preis in "Fahrt"
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Data
@@ -38,12 +39,29 @@ public class Fahrt {
     @Column(columnDefinition = "TEXT")
     private String erstellerAvatar;   // Avatar URL/Base64 of creator - can be very long
 
+    // Review/Rating information
+    private Double durchschnittlicheBewertung; // Average rating (0.0 - 5.0)
+    private Integer anzahlBewertungen;          // Number of reviews
+    
+    @Transient
+    private Integer erstellerFahrten; // Completed trips dynamically calculated
+
+    // Trip status
+    private String status;            // Status: "ACTIVE", "IN_PROGRESS", "COMPLETED", "CANCELLED"
+
     @ManyToOne
+    @JsonIgnoreProperties({"fahrzeug", "bewertungen"})
     private Cargonaut fahrer;
 
     @ManyToOne
+    @JsonIgnoreProperties({"besitzer"})
     private Fahrzeug fahrzeug;
 
-    @OneToMany(mappedBy = "fahrt")
+    @OneToMany(mappedBy = "fahrt", fetch = FetchType.LAZY)
+    @JsonIgnoreProperties({"fahrt", "besitzer"})
     private List<Fracht> frachten;
+    
+    @OneToMany(mappedBy = "fahrt", fetch = FetchType.LAZY)
+    @JsonIgnoreProperties({"fahrt"})
+    private List<Bewertung> bewertungen;
 }

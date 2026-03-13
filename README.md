@@ -1,230 +1,301 @@
-# MyCargonaut_KMS
+# MyCargonaut
 
-MyCargonaut - A platform for sharing transport capacity. Users can offer or request transport services for goods and cargo. Full-stack application with Spring Boot backend and Angular frontend.
+MyCargonaut - Eine Plattform zum Teilen von Transportkapazitäten. Nutzer können Transportdienste für Güter und Fracht anbieten oder anfragen. Eine Full-Stack-Anwendung mit Spring Boot Backend und Angular Frontend.
 
-## Project Structure
+## 📖 Übersicht
+MyCargonaut verbindet Fahrer, die noch ungenutzten Platz in ihrem Fahrzeug haben, mit Personen, die etwas von A nach B transportieren lassen möchten. So schonen wir nicht nur die Umwelt durch weniger Leerfahrten, sondern ermöglichen es Nutzern auch, sich Transportkosten zu teilen. 
+
+Egal ob es der Umzugskarton für den Studenten, das gekaufte eBay-Fahrrad oder eine Mitfahrgelegenheit ist: Auf MyCargonaut kann jeder sowohl **Angebote (Offers)** erstellen als auch **Anfragen (Requests)** aufgeben. Alles geschützt durch ein modernes Treuhand-Zahlungssystem (Escrow) und Live-GPS-Tracking.
+
+## 🎯 Key Features
+- **Rollenflexibilität:** Jeder Nutzer kann gleichzeitig Fahrer (Anbieter) und Versender (Anfrager) sein.
+- **Fahrtangebote (Offers):** Fahrer stellen Routen mit freiem Platzangebot ein. Kapazitäten nach Gewicht/Maßen werden abgeglichen.
+- **Transportanfragen (Requests):** Versender inserieren ihren Transportbedarf. Fahrer können daraufhin direkte Preisangebote machen.
+- **Integriertes Bezahlsystem (Escrow):** Zahlungen werden von der Plattform treuhänderisch verwahrt. Erst bei erfolgreicher Zustellung erhält der Fahrer sein Geld (abzüglich 15% Plattformgebühr).
+- **Live-Tracking (GPS):** Echtzeit-Standortverfolgung über WebSockets. Versender sehen während der Fahrt genau, wo sich ihr Transportgut befindet.
+- **Gegenseitige Bewertungen:** Nach Abschluss der Fahrt können sich Nutzer und Fahrer mit Sternen (1-5) und Kommentaren bewerten.
+
+---
+
+## 🏗️ Technical Architecture
+
+### Frontend Stack
+- **Framework:** Angular 19 (Standalone Components)
+- **Sprache:** TypeScript
+- **Design/Styling:** HTML5/CSS3 (mit modernem CSS Grid/Flexbox)
+- **Karten & Tracking:** Leaflet.js
+- **Kommunikation:** RxJS, HttpClient, STOMP (WebSockets für Live-Tracking)
+
+### Backend Stack
+- **Framework:** Spring Boot 3.2.0
+- **Sprache:** Java 21 (LTS)
+- **Sicherheit:** Spring Security, JWT (JSON Web Tokens)
+- **Datenbank:** PostgreSQL 15
+- **Schnittstellen:** RESTful APIs, WebSocket (STOMP-Endpunkte)
+- **Build Tool:** Maven 3.9+
+
+### Development Tools
+- **Containerisierung:** Docker & Docker Compose
+- **Versionskontrolle:** Git & GitHub
+- **IDE:** Visual Studio Code / IntelliJ IDEA
+
+---
+
+## 📱 App Struktur
 
 ```text
 MyCargonaut_KMS/
+│
 ├── .github/
-│   └── workflows/          # CI/CD pipeline (Java 21 + Angular tests)
+│   └── workflows/          # CI/CD Pipeline (Java 21 + Angular Tests)
 ├── BACKEND/                # Spring Boot 3.2.0 (Java 21)
-│   ├── src/
-│   ├── pom.xml
-│   └── README.md           # Backend-specific documentation
+│   ├── src/main/java/      # Controller, Services, Repositories, Models
+│   ├── src/test/           # Backend Unit & Integration Tests
+│   └── pom.xml             # Maven Dependencies
+│   
 ├── FRONTEND/               # Angular 19 (Node.js 18+)
-│   ├── src/
-│   ├── package.json
-│   └── README.md           # Frontend-specific documentation
+│   ├── src/app/            # Angular Components, Services, Guards
+│   ├── e2e/                # End-to-end Tests (Playwright)
+│   └── package.json        # NPM Dependencies
+│   
 ├── DESIGN/                 # UI/UX Design Assets
-│   ├── mockups/            # HTML/CSS mockups
-│   └── wireframes/         # High-fidelity wireframe sketches
-├── UML_Diagrams/           # System architecture diagrams
-├── docker-compose.yml      # PostgreSQL database setup
-└── README.md               # This file
+│   ├── mockups/            # HTML/CSS Mockups
+│   └── wireframes/         # High-Fidelity Wireframes
+│
+├── UML_Diagrams/           # Systemarchitektur & Klassendiagramme
+├── docker-compose.yml      # PostgreSQL Datenbank-Setup
+└── README.md               # Diese Datei
 ```
 
-## Design & Prototypes
-Before development, we established the visual structure of the application. You can find these assets in the `DESIGN` folder at the project root:
+---
 
-- **Wireframes**: Low-fidelity sketches outlining the layout.
-  - 📂 Location: [`DESIGN/wireframes/`](./DESIGN/wireframes/)
-- **Mockups**: High-fidelity static designs using HTML & CSS.
-  - 📂 Location: [`DESIGN/mockups/`](./DESIGN/mockups/)
-- **UML Diagrams**: System architecture and class diagrams.
-  - 📂 Location: [`UML_Diagrams/`](./UML_Diagrams/)
+## 🗄️ Datenbank Schema
+Unsere relationale Datenbank (PostgreSQL) beinhaltet unter anderem die folgenden Haupttabellen:
 
-
-## Prerequisites
-
-Before you begin, ensure you have the following installed:
-
-- **Java 21** (LTS) - [Download](https://adoptium.net/)
-- **Maven 3.9+** - [Download](https://maven.apache.org/download.cgi)
-- **Node.js 18+** and **npm** - [Download](https://nodejs.org/)
-- **Docker** and **Docker Compose** - [Download](https://www.docker.com/products/docker-desktop/)
-- **Git** - [Download](https://git-scm.com/downloads)
-
-## Getting Started
-
-### 1️⃣ Clone the Repository
-
-```bash
-git clone https://github.com/MohSay890/MyCargonaut_KMS.git
-cd MyCargonaut_KMS
+#### `cargonaut`
+```sql
+- id (BIGINT, Primary Key)
+- email (VARCHAR) - E-Mail Adresse des Nutzers
+- passwort (VARCHAR) - Verschlüsseltes Passwort (BCrypt)
+- vorname (VARCHAR) - Vorname
+- nachname (VARCHAR) - Nachname 
+- geburtsdatum (DATE) - Geburtsdatum
+- handynummer (VARCHAR) - Telefonnummer
+- stadt (VARCHAR) - Wohnort
+- plz (VARCHAR) - Postleitzahl
+- bio (TEXT) - Profilbeschreibung
+- profilbild (TEXT) - URL/Pfad zum Profilbild
+- registriert (DATE) - Registrierungsdatum
+- ausweis_verifiziert (BOOLEAN) - Status der Identitätsprüfung
+- fuehrerschein_verifiziert (BOOLEAN) - Status der Führerscheinprüfung
 ```
 
-### 2️⃣ Set Up the Database
+#### `fahrzeug`
+```sql
+- id (BIGINT, Primary Key)
+- marke (VARCHAR) - Fahrzeugmarke
+- modell (VARCHAR) - Modellname
+- typ (VARCHAR) - Art des Fahrzeugs (z.B. Transporter, PKW)
+- baujahr (INTEGER) - Baujahr 
+- kennzeichen (VARCHAR) - Nummernschild
+- kapazitaet (DOUBLE PRECISION) - Ladevolumen in m³
+- max_gewicht (DOUBLE PRECISION) - Maximales Zuladungsgewicht in kg
+- abmessungen (VARCHAR) - Dimensionen der Ladefläche
+- hat_kuehlung (BOOLEAN) - Kühlfunktion vorhanden
+- ist_aktiv (BOOLEAN) - Steht für Fahrten zur Verfügung
+- besitzer_id (BIGINT, Foreign Key) - Verweis auf Cargonaut
+```
 
-Start the PostgreSQL database using Docker Compose:
+#### `fahrt` (Angebote / Generierte Fahrten)
+```sql
+- id (BIGINT, Primary Key)
+- start_ort (VARCHAR) - Startadresse/Stadt
+- ziel_ort (VARCHAR) - Zieladresse/Stadt 
+- datum (DATE) - Abfahrtsdatum
+- uhrzeit (VARCHAR) - Geplante Uhrzeit
+- preis (NUMERIC) - Preis der Fahrt
+- freie_plaetze (INTEGER) - Verfügbare Kapazität (Plätze/Gewicht)
+- status (VARCHAR) - Zustand (PENDING, BOOKED, ACTIVE, COMPLETED)
+- fahrer_id (BIGINT, Foreign Key) - Anbieter der Fahrt
+- fahrzeug_id (BIGINT, Foreign Key) - Genutztes Fahrzeug
+- beschreibung (TEXT) - Optionale Routeninfos
+```
 
+#### `buchung`
+```sql
+- id (BIGINT, Primary Key)
+- fahrt_id (BIGINT, Foreign Key) - Referenz zur Fahrt
+- mitfahrer_id (BIGINT, Foreign Key) - Referenz zum anfragenden Nutzer
+- status (VARCHAR) - Buchungszustand (PENDING, CONFIRMED, CANCELLED)
+- anzahl_plaetze (INTEGER) - Anzahl reservierter Plätze
+- is_paid (BOOLEAN) - Zahlungsstatus 
+- payment_required (BOOLEAN) - Ist eine Escrow-Zahlung nötig?
+- gebucht_am (TIMESTAMP) - Erstelldatum der Buchung
+```
+
+#### `payments` (Escrow-Transaktionen)
+```sql
+- id (BIGINT, Primary Key)
+- fahrt_id (BIGINT, Foreign Key) - Zugehörige Fahrt
+- payer_id (BIGINT, Foreign Key) - Zahlender Nutzer
+- recipient_id (BIGINT, Foreign Key) - Empfangender Fahrer
+- amount (NUMERIC) - Bruttobetrag
+- platform_fee (NUMERIC) - 15% Systemgebühr
+- recipient_amount (NUMERIC) - Nettobetrag für den Fahrer
+- status (VARCHAR) - PENDING, PROCESSING, COMPLETED
+- escrow_status (VARCHAR) - HELD (verwahrt), RELEASED (ausgezahlt), REFUNDED (erstattet)
+- transaction_reference (VARCHAR) - Interne Belegnummer
+```
+
+#### `payouts`
+```sql
+- id (BIGINT, Primary Key)
+- payment_id (BIGINT, Foreign Key) - Ursprüngliche Zahlung
+- driver_id (BIGINT, Foreign Key) - Ausgezahler Fahrer
+- amount (NUMERIC) - Auszahlungsbetrag
+- status (VARCHAR) - Zustand der Banküberweisung
+- scheduled_at (TIMESTAMP) - Geplanter Transfer
+```
+
+#### `bewertung`
+```sql
+- id (BIGINT, Primary Key)
+- sterne (INTEGER) - Sterne von 1 bis 5
+- kommentar (VARCHAR) - Textuelle Begründung
+- autor_id (BIGINT, Foreign Key) - Verfasser
+- bewerteter_nutzer_id (BIGINT, Foreign Key) - Empfänger
+- fahrt_id (BIGINT, Foreign Key) - Zugehöriger Trip
+- ist_puenktlich (BOOLEAN) - Pünktlichkeits-Tag
+- abmachungen_eingehalten (BOOLEAN) - Zuverlässigkeits-Tag
+````
+
+## 🚀 Quick Start
+
+### Voraussetzungen
+- **Java 21** (LTS)
+- **Node.js 18+** & npm
+- **Docker** & Docker Compose
+- **Maven 3.9+**
+
+### Lokales Setup
+
+Öffne **3 separate Terminals** in deinem Projekt-Stammverzeichnis:
+
+#### Terminal 1: Datenbank (Docker)
 ```bash
 docker-compose up -d
-```
-
-This will start PostgreSQL on `localhost:5433` (mapped from container port 5432) with:
-- Database: `mycargonaut`
-- Username: `admin`
-- Password: `password`
-- Container name: `mycargonaut_db`
-
-Verify the database is running:
-```bash
+# Überprüfe den Status:
 docker ps
 ```
+*Die Postgre-Datenbank läuft nun auf Port 5433.*
 
-You should see `mycargonaut_db` container running.
-
-### 3️⃣ Set Up the Backend
-
-Navigate to the backend directory:
-
+#### Terminal 2: Backend (Spring Boot)
 ```bash
-cd BACKEND
-```
-
-Build the project:
-```bash
-mvn clean install
-```
-
-Run the Spring Boot application:
-```bash
-mvn spring-boot:run
-```
-
-The backend will start on **http://localhost:8080**
-
-**Verify backend is running:**
-- Open: http://localhost:8080/api/health
-- You should see: `{"status":"UP",...}`
-
-### 4️⃣ Set Up the Frontend
-
-Open a **new terminal** and navigate to the frontend directory:
-
-```bash
-cd FRONTEND
-```
-
-Install dependencies:
-```bash
-npm install
-```
-
-Start the Angular development server:
-```bash
-ng serve
-```
-
-The frontend will start on **http://localhost:4200**
-
-**Verify frontend is running:**
-- Open: http://localhost:4200
-- You should see the Angular welcome page
-
-## Quick Start Summary
-
-After cloning, you need **3 separate terminals** to run the application:
-
-### Terminal 1: Database (Docker)
-```bash
-# From project root
-docker-compose up -d
-
-# Verify it's running
-docker ps
-```
-
-### Terminal 2: Backend (Spring Boot)
-```bash
-# From project root
 cd BACKEND
 mvn clean install
 mvn spring-boot:run
-
-# Backend will start on http://localhost:8080
 ```
+*Das Backend startet auf http://localhost:8080. (Check: http://localhost:8080/api/health)*
 
-### Terminal 3: Frontend (Angular)
+#### Terminal 3: Frontend (Angular)
 ```bash
-# From project root
 cd FRONTEND
 npm install
 npm start
-
-# Frontend will start on http://localhost:4200
 ```
+*Das Frontend startet auf http://localhost:4200. Öffne diese URL in deinem Browser.*
 
-**Access the application**: Open your browser and navigate to **http://localhost:4200**
+---
 
-## Development Workflow
+## 🧪 Testing
 
-### Backend Development
-- Code is in `BACKEND/src/main/java/com/mycargonaut/backend/`
-- Tests are in `BACKEND/src/test/`
-- Run tests: `mvn test`
-- See [BACKEND/README.md](BACKEND/README.md) for more details
+Wir legen großen Wert auf eine robuste Testabdeckung, sowohl im Backend, als auch im Frontend und der kritischen User-Journeys (z.B. dem Bezahl- und Trackingsystem).
 
-### Frontend Development
-- Code is in `FRONTEND/src/app/`
-- Run tests: `npm test`
-- Build for production: `npm run build`
-- See [FRONTEND/README.md](FRONTEND/README.md) for more details
+### Unit Tests
+- **Backend:** JUnit 5 und Mockito. Testet Controller API-Responses, Service-Logik (z.B. Escrow-Gebührenberechnung) und sichert ab, dass JWT-Tokens richtig validiert werden. Ausführbar über `mvn test`.
 
-## Technology Stack
+- **Frontend:** Jasmine/Karma. Testet die Angular Komponenten, Routing-Guards und Service-Mocks. Ausführbar über `npm test`.
 
-### Backend
-- **Java**: 21 (LTS)
-- **Spring Boot**: 3.2.0
-- **Database**: PostgreSQL 15
-- **Build Tool**: Maven
+### E2E Tests (End-to-End)
+- **Framework:** Playwright
 
-### Frontend
-- **Framework**: Angular 19
-- **Language**: TypeScript
-- **Package Manager**: npm
-- **Key Features**: 
-  - Real-time GPS tracking
-  - Payment processing with 15% platform commission
-  - Rating & review system
-  - Transport offer/request search with filters
+- Testet komplette "Happy Paths" vom Einloggen über das Buchen bis zur Bezahlung und Live-Tracking-Simulation auf der Leaflet Karte.
 
-## Common Issues & Solutions
+- Ausführbar im Ordner `/FRONTEND/` mit: `npx playwright test` 
 
-### Database Connection Error
-- Ensure Docker is running: `docker ps`
-- Restart database: `docker-compose restart`
+> 💡 **Für ausführliche Details zu unseren Testabläufen und -skripten lies bitte unseren separaten [TESTING_GUIDE.md](./TESTING_GUIDE.md).** Hier wird genau erklärt, wie du Tests schreibst und unsere Skripte wie `one-click-e2e.ps1` nutzt.
 
-### Backend Port Already in Use (8080)
-- Windows: `netstat -ano | findstr :8080` then `taskkill /F /PID <PID>`
-- Mac/Linux: `lsof -i :8080` then `kill -9 <PID>`
-- Or change port in `BACKEND/src/main/resources/application.properties`
+---
 
-### Database Port Already in Use (5433)
-- Stop the container: `docker-compose down`
-- Change port in `docker-compose.yml` (modify `5433:5432` line)
-- Update `BACKEND/src/main/resources/application.properties` accordingly
+## 🎨 UI/UX Features
+- **Responsive Design:** Die App skaliert reibungslos auf Desktop, Tablet und mobilen Geräten.
+- **Interaktive Karten:** Integration von Leaflet-basierten interaktiven Karten zur Verfolgung.
+- **Klarer Bezahl-Flow (Modals):** Eine nahtlose Modal-Checkout-Erfahrung für Escrow.
+- **Status Badges:** Transparente farblich gekennzeichnete Tags für Fahrtzustände (Pending, Booked, Active, Completed).
 
-### Frontend Port Already in Use (4200)
-- Angular will automatically suggest port 4201
-- Or specify port: `ng serve --port 4201`
+---
 
-## CI/CD Pipeline
+## 🔒 Security & Privacy
+- **Authentifizierung:** Secure Token-basiertes System (JWT) bei jedem API-Request.
 
-The project uses GitHub Actions for continuous integration:
-- **Backend**: Builds and tests with Maven (Java 21)
-- **Frontend**: Runs unit tests with Jest
+- **Autorisierung:** Backend-Checks stellen sicher, dass bspw. Benutzer nur ihre *eigenen* Fahrten bearbeiten oder Escrows freigeben lassen können.
 
-Pipeline runs on push/PR to `main` and `develop` branches.
+- **Escrow-Zahlungen:** Echtes Geld wird niemals sofort weitergeleitet; das "Treuhandsystem" hindert Betrug auf der Plattform, da Auszahlungen an das Beenden der echten GPS-Fahrt gekoppelt sind.
 
-## Contributing
+- **Passwortsicherheit:** Gesalzene Hashes über BCrypt vor dem Speichern in der DB.
 
-1. Create a feature branch: `git checkout -b feature/your-feature`
-2. Make your changes and commit: `git commit -m "Add your feature"`
-3. Push to the branch: `git push origin feature/your-feature`
-4. Open a Pull Request
+---
 
-## License
+## 🤝 Contributing
 
-MIT
+Wir freuen uns über jede Mitwirkung! So kannst du dazu beitragen:
+
+### Development Workflow
+1. Erstelle einen Branch für dein Feature (z.B. `feature/neues-tracking`).
+
+2. Entwickle das Feature und schreibe dazu immer die passenden Unit- und ggf. Playwright E2E-Tests.
+
+3. Führe lokal die Tests aus (`mvn test` und `npm run build`), um sicherzustellen, dass keine Fehler eingebaut wurden.
+
+4. Committe mit klaren, verständlichen Commit-Messages.
+
+5. Pushe den Branch zu GitHub und stelle einen **Pull Request**
+    - Beschreibe im PR-Text genau, was dein Feature macht, welche Änderungen du vorgenommen hast und welche Tests du hinzugefügt hast.
+
+6. Ein anderes Teammitglied sollte den **Pull Request** überprüfen. Achte dabei besonders auf:
+   - Funktionalität: Erfüllt der Code die Anforderungen des Features?
+   - Code-Qualität: Ist der Code sauber, modular und wartbar?
+   - Pipelines: Werden alle Tests erfolgreich ausgeführt? Gibt es neue Tests für das Feature?
+   - Tests: Sind ausreichend Tests vorhanden und erfolgreich?
+
+
+7. Nach erfolgreicher Code-Review und Merge wird das Feature in die nächste Version integriert.
+
+### Code Standards
+- **Java:** Halte dich an gängige Java/Spring-Standards (z.B. sprechende Namen, Kapselung, dependency injection).
+
+- **Angular:** Nutze Standalone-Components. Schreibe `*ngIf` Logik sauber und modularisiere große Templates in wiederverwendbare, kleinere UI-Komponenten ab.
+
+- Kommentiere komplexe Teile der Geschäftslogik (insbesondere in Zahlungs- und Tracking-Services).
+
+---
+
+## 📄 License
+**MIT**
+
+---
+
+## 👥 Team
+Entwickelt als Projekt für KMS (Praktikum Konzepte moderner Softwareentwicklung) im Wintersemester 25/26 an der THM von:
+- Mohamed Elsayed 
+- Ismail Messaoudi
+- Cansel Cakar
+
+---
+
+## 🔄 Changelog
+- **v1.2.0:** Escrow-System vollständig integriert. Automatische Fahrer-Auszahlungen abzüglich 15% Provision realisiert. Fehler bei mehrfachen Bewertungen behoben.
+
+- **v1.1.0:** WebSocketbasiertes GPS-Tracking per PIN-Code für laufende Fahrten eingeführt.
+
+- **v1.0.0:** Initiales Release mit Suchfunktion, Anmeldung, Angebote und Buchungsanfragen.

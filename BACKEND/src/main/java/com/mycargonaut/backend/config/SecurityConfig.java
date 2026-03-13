@@ -3,7 +3,6 @@ package com.mycargonaut.backend.config;
 import com.mycargonaut.backend.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -47,6 +46,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/health", "/actuator/**", "/api/auth/**").permitAll()
                 // Erlaube Fahrten-Endpunkte (Suche und Anzeige) ohne Token
                 .requestMatchers("/api/fahrten/**").permitAll()
+                // Erlaube Bewertungs-Endpunkte ohne Token (für Anzeige von Profilen)
+                .requestMatchers("/api/bewertungen/**").permitAll()
                 // Erlaube Anfragen-Endpunkte (Suche und Anzeige) ohne Token
                 .requestMatchers("/api/requests/**").permitAll()
                 // Erlaube Angebots-Endpunkte ohne Token
@@ -58,7 +59,15 @@ public class SecurityConfig {
                 // Erlaube Payment-Endpunkte ohne Token (für Entwicklung)
                 .requestMatchers("/api/payments/**").permitAll()
                 // Erlaube Tracking-Endpunkte ohne Token (für Entwicklung)
-                .requestMatchers("/api/tracking/**").permitAll()
+                .requestMatchers("/api/tracking/**", "/ws/tracking/**").permitAll()
+                // Erlaube Buchungs-Endpunkte ohne Token (für Entwicklung)
+                .requestMatchers("/api/buchungen/**").permitAll()
+                // Erlaube Nachrichten-Endpunkte ohne Token (für Entwicklung)
+                .requestMatchers("/api/nachrichten/**").permitAll()
+                // Erlaube Driver-Payout-Endpunkte ohne Token (für Entwicklung)
+                .requestMatchers("/api/driver-payout-accounts/**").permitAll()
+                // Erlaube Payout-Endpunkte ohne Token (für Entwicklung)
+                .requestMatchers("/api/payouts/**").permitAll()
                 // Alles andere erfordert ein gültiges JWT-Token
                 .anyRequest().authenticated()
             )

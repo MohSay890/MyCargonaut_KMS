@@ -36,6 +36,11 @@ export class RequestOfferService {
     return this.http.get<RequestOffer[]>(`${this.apiUrl}/request/${requestId}`);
   }
 
+  // Angebote, die auf die Anfragen eines Nutzers gesendet wurden
+  getOffersReceived(userEmail: string): Observable<RequestOffer[]> {
+    return this.http.get<RequestOffer[]>(`${this.apiUrl}/user/${encodeURIComponent(userEmail)}/offers-received`);
+  }
+
   // Angebote eines Fahrers laden
   getOffersByDriver(email: string): Observable<RequestOffer[]> {
     const params = new HttpParams().set('email', email);
@@ -48,9 +53,9 @@ export class RequestOfferService {
   }
 
   // Angebot akzeptieren
-  acceptOffer(offerId: number, userEmail: string): Observable<RequestOffer> {
+  acceptOffer(offerId: number, userEmail: string): Observable<any> {
     const params = new HttpParams().set('userEmail', userEmail);
-    return this.http.put<RequestOffer>(`${this.apiUrl}/${offerId}/accept`, null, { params });
+    return this.http.put<any>(`${this.apiUrl}/${offerId}/accept`, null, { params });
   }
 
   // Angebot ablehnen

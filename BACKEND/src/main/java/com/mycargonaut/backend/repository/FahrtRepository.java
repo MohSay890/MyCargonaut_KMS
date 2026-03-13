@@ -14,6 +14,9 @@ public interface FahrtRepository extends JpaRepository<Fahrt, Long> {
 
     // Find all journeys created by a specific user (by email)
     List<Fahrt> findByErstellerEmail(String erstellerEmail);
+    
+    // Count completed journeys by a specific user (by email) and status
+    int countByErstellerEmailAndStatus(String erstellerEmail, String status);
 
     // Search with date filter
     @Query("SELECT f FROM Fahrt f WHERE " +

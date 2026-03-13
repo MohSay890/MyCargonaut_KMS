@@ -46,11 +46,10 @@ export class VehicleEditorComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Subscribe to vehicles changes - only show active vehicles
+    // Subscribe to vehicles changes - show all vehicles (active and inactive)
     this.vehiclesSub = this.vehicleService.vehicles$.subscribe(vehicles => {
-      // Filter out deleted (inactive) vehicles for better UX
-      this.vehicles = vehicles.filter(v => v.isActive !== false);
-      console.log('Active vehicles loaded:', this.vehicles.length);
+      this.vehicles = vehicles;
+      console.log('All vehicles loaded:', this.vehicles.length);
     });
 
     // Initial load

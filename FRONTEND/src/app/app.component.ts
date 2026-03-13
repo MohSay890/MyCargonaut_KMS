@@ -1,9 +1,11 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, Router, NavigationEnd } from '@angular/router';
 import { FooterComponent } from './components/footer/footer.component';
 import { UserProfileService } from './services/user-profile.service';
+import { NotificationService, Notification } from './services/notification.service';
 import { filter } from 'rxjs/operators';
+import { Subscription, interval } from 'rxjs';
 
 const DEFAULT_AVATAR = 'https://i.pravatar.cc/300?img=68';
 
@@ -14,17 +16,24 @@ const DEFAULT_AVATAR = 'https://i.pravatar.cc/300?img=68';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   title = 'MyCargonaut';
   isAuthenticated: boolean = false;
   showUserMenu: boolean = false;
+  showNotificationsMenu: boolean = false;
   currentUser: any = null;
   favoritesCount: number = 0;
   defaultAvatar = DEFAULT_AVATAR;
 
+  notifications: Notification[] = [];
+  unreadNotificationCount: number = 0;
+  private notificationSub: Subscription | null = null;
+  private pollSub: Subscription | null = null;
+
   constructor(
     private router: Router,
-    private userProfileService: UserProfileService
+    private userProfileService: UserProfileService,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
@@ -34,9 +43,15 @@ export class AppComponent implements OnInit {
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe(() => {
         this.showUserMenu = false;
+        this.showNotificationsMenu = false;
         // Re-check authentication on navigation
         this.checkAuthentication();
       });
+  }
+
+  ngOnDestroy(): void {
+    if (this.notificationSub) this.notificationSub.unsubscribe();
+    if (this.pollSub) this.pollSub.unsubscribe();
   }
 
   checkAuthentication(): void {
@@ -81,11 +96,17 @@ export class AppComponent implements OnInit {
         });
       } else {
         this.currentUser = null;
+        this.stopNotificationPolling();
       }
       this.loadFavoritesCount();
+      if (this.currentUser) {
+        this.loadNotifications();
+        this.startNotificationPolling();
+      }
     } else {
       this.currentUser = null;
       this.favoritesCount = 0;
+      this.stopNotificationPolling();
     }
   }
 
@@ -94,8 +115,57 @@ export class AppComponent implements OnInit {
     this.favoritesCount = 0; // Placeholder
   }
 
+  loadNotifications(): void {
+    if (!this.currentUser?.email) return;
+
+    if (this.notificationSub) this.notificationSub.unsubscribe();
+    this.notificationSub = this.notificationService.getUserNotifications(this.currentUser.email).subscribe({
+      next: (notifications) => {
+        this.notifications = notifications.slice(0, 5); // Show latest 5
+        // Just for display logic, if a type is 'booking' it means actionable request
+        this.unreadNotificationCount = notifications.filter(n => ['booking', 'message', 'offer', 'offer-status'].includes(n.type)).length;
+      },
+      error: (err) => console.error('Error fetching notifications:', err)
+    });
+  }
+
+  startNotificationPolling(): void {
+    if (!this.pollSub) {
+      this.pollSub = interval(30000).subscribe(() => {
+        this.loadNotifications();
+      });
+    }
+  }
+
+  stopNotificationPolling(): void {
+    if (this.pollSub) {
+      this.pollSub.unsubscribe();
+      this.pollSub = null;
+    }
+  }
+
   toggleUserMenu(): void {
     this.showUserMenu = !this.showUserMenu;
+    this.showNotificationsMenu = false;
+  }
+
+  toggleNotificationsMenu(): void {
+    this.showNotificationsMenu = !this.showNotificationsMenu;
+    this.showUserMenu = false;
+  }
+
+  closeMenus(): void {
+    this.showUserMenu = false;
+    this.showNotificationsMenu = false;
+  }
+
+  onNotificationClick(notification: Notification): void {
+    this.closeMenus();
+    if (notification.actionUrl) {
+      this.router.navigateByUrl(notification.actionUrl);
+    } else {
+      this.router.navigate(['/dashboard']);
+    }
   }
 
   closeUserMenu(): void {
@@ -114,8 +184,8 @@ export class AppComponent implements OnInit {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
-    if (!target.closest('.user-menu')) {
-      this.showUserMenu = false;
+    if (!target.closest('.user-menu') && !target.closest('.notifications-container')) {
+      this.closeMenus();
     }
   }
 }

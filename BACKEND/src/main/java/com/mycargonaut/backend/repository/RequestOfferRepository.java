@@ -21,6 +21,9 @@ public interface RequestOfferRepository extends JpaRepository<RequestOffer, Long
     // Count offers for a request
     long countByRequestId(Long requestId);
     
+    // Find multiple requests offers
+    List<RequestOffer> findByRequestIdInOrderByErstelltAmDesc(List<Long> requestIds);
+    
     // Find accepted offer for a request
     RequestOffer findByRequestIdAndStatus(Long requestId, String status);
 }

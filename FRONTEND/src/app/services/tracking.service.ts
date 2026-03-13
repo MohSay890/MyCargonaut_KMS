@@ -2,6 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, Subject, interval, of, throwError } from 'rxjs';
 import { takeUntil, map, catchError, switchMap, tap } from 'rxjs/operators';
+import { Client } from '@stomp/stompjs';
 import { environment } from '../../environments/environment';
 
 // ========== Interfaces ==========
@@ -126,6 +127,15 @@ const STATUS_COLORS: { [key: string]: string } = {
   'CANCELLED': '#ef4444'
 };
 
+export interface LocationUpdateMessage {
+  fahrtId: number;
+  latitude: number;
+  longitude: number;
+  speed: number;
+  heading: number;
+  timestamp: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -136,6 +146,11 @@ export class TrackingService implements OnDestroy {
   private currentSessionSubject = new BehaviorSubject<TrackingSession | null>(null);
   private notificationsSubject = new BehaviorSubject<TrackingNotification[]>([]);
   private isPollingSubject = new BehaviorSubject<boolean>(false);
+  private isConnectedSubject = new BehaviorSubject<boolean>(false);
+
+  // WebSocket / STOMP
+  private stompClient: Client | null = null;
+  private currentSubscription: any = null;
 
   // Polling control
   private stopPolling$ = new Subject<void>();
@@ -152,6 +167,7 @@ export class TrackingService implements OnDestroy {
     this.destroy$.complete();
     this.stopPolling();
     this.stopSimulation();
+    this.disconnectWebSocket();
   }
 
   // ========== Public Observables ==========
@@ -166,6 +182,132 @@ export class TrackingService implements OnDestroy {
 
   get isPolling$(): Observable<boolean> {
     return this.isPollingSubject.asObservable();
+  }
+
+  get isConnected$(): Observable<boolean> {
+    return this.isConnectedSubject.asObservable();
+  }
+
+  // ========== WebSocket Methods ==========
+
+  /**
+   * Connect to WebSocket server using STOMP
+   */
+  connectWebSocket(): void {
+    if (this.stompClient && this.stompClient.active) return;
+    
+    // Use http://localhost:8080/ws/tracking for STOMP (or over wss)
+    const token = localStorage.getItem('authToken'); // JWT token
+    const wsUrl = `ws://localhost:8080/ws/tracking/websocket`;
+    
+    this.stompClient = new Client({
+      brokerURL: wsUrl,
+      connectHeaders: {
+        Authorization: token ? `Bearer ${token}` : ''
+      },
+      debug: (msg: string) => console.log('STOMP: ', msg),
+      reconnectDelay: 5000,
+      heartbeatIncoming: 4000,
+      heartbeatOutgoing: 4000
+    });
+
+    this.stompClient.onConnect = () => {
+      console.log('Connected to Tracking WebSocket Server');
+      this.isConnectedSubject.next(true);
+
+      // If we have an active session, automatically subscribe to its topic
+      const session = this.currentSessionSubject.value;
+      if (session) {
+        this.subscribeToTrip(session.fahrtId);
+      }
+    };
+
+    this.stompClient.onDisconnect = () => {
+      console.log('Disconnected from Tracking WebSocket Server');
+      this.isConnectedSubject.next(false);
+    };
+
+    this.stompClient.activate();
+  }
+
+  disconnectWebSocket(): void {
+    if (this.stompClient) {
+      this.stompClient.deactivate();
+      this.stompClient = null;
+    }
+  }
+
+  /**
+   * Subscribe to trip topic to receive live location updates
+   */
+  subscribeToTrip(fahrtId: number): void {
+    if (!this.stompClient || !this.stompClient.active) {
+      this.connectWebSocket();
+      // It will subscribe upon connection
+      return;
+    }
+
+    // Unsubscribe from previous if any
+    if (this.currentSubscription) {
+      this.currentSubscription.unsubscribe();
+    }
+
+    console.log(`Subscribing to /topic/trip/${fahrtId}`);
+    this.currentSubscription = this.stompClient.subscribe(`/topic/trip/${fahrtId}`, (message) => {
+      if (message.body) {
+        const update: LocationUpdateMessage = JSON.parse(message.body);
+        this.handleLiveLocationUpdate(update);
+      }
+    });
+  }
+
+  private handleLiveLocationUpdate(update: LocationUpdateMessage): void {
+    const session = this.currentSessionSubject.value;
+    if (session && session.fahrtId === update.fahrtId) {
+      // Update session with new coordinates
+      const updatedSession = { ...session };
+      updatedSession.currentLocation = {
+        lat: update.latitude,
+        lng: update.longitude,
+        // Carry over existing metadata if not updated
+        address: session.currentLocation?.address,
+        city: session.currentLocation?.city
+      };
+      updatedSession.currentSpeed = update.speed;
+      updatedSession.heading = update.heading;
+      updatedSession.lastUpdate = new Date(update.timestamp);
+      
+      this.currentSessionSubject.next(updatedSession);
+    }
+  }
+
+  /**
+   * Send live location update from driver app
+   */
+  sendLiveLocation(fahrtId: number, location: LocationUpdate): void {
+    if (this.stompClient && this.stompClient.active) {
+      const payload: LocationUpdateMessage = {
+        fahrtId: fahrtId,
+        latitude: location.lat,
+        longitude: location.lng,
+        speed: location.speed || 0,
+        heading: location.heading || 0,
+        timestamp: new Date().getTime()
+      };
+      
+      this.stompClient.publish({
+        destination: `/app/tracking/update`,
+        body: JSON.stringify(payload)
+      });
+    } else {
+      // Fallback via HTTP if WebSocket is not ready
+      console.warn("WebSocket not active. Falling back to HTTP...");
+      // Assuming we have the trackingId based on fahrtId
+      const session = this.currentSessionSubject.value;
+      if (session) {
+        this.updateLocation(Number(session.id), location).subscribe();
+      }
+    }
   }
 
   // ========== Customer Methods (Query Status) ==========
@@ -402,6 +544,12 @@ export class TrackingService implements OnDestroy {
   }
 
   private startRealGPSTracking(trackingId: number): void {
+    const session = this.currentSessionSubject.value;
+    const fahrtId = session ? session.fahrtId : -1;
+    
+    // Make sure STOMP is connected for transmitting
+    this.connectWebSocket();
+    
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
         const location: LocationUpdate = {
@@ -410,7 +558,14 @@ export class TrackingService implements OnDestroy {
           speed: position.coords.speed ? position.coords.speed * 3.6 : 0, // m/s to km/h
           heading: position.coords.heading || 0
         };
-        this.updateLocation(trackingId, location).subscribe();
+        
+        if (fahrtId !== -1 && this.stompClient && this.stompClient.active) {
+            // Real-time broadcast
+            this.sendLiveLocation(fahrtId, location);
+        } else {
+            // Fallback to HTTP
+            this.updateLocation(trackingId, location).subscribe();
+        }
       },
       (error) => {
         console.error('GPS Error:', error);

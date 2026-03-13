@@ -25,13 +25,17 @@ public class FahrtController {
     // GET all journeys
     @GetMapping
     public List<Fahrt> getAllFahrten() {
-        return fahrtRepository.findAll();
+        return fahrtRepository.findAll().stream()
+                .filter(f -> f.getStatus() == null || "ACTIVE".equalsIgnoreCase(f.getStatus()))
+                .map(fahrtService::enrichFahrt)
+                .toList();
     }
 
     // GET single journey by ID
     @GetMapping("/{id}")
     public ResponseEntity<Fahrt> getFahrtById(@PathVariable Long id) {
         return fahrtRepository.findById(id)
+                .map(fahrtService::enrichFahrt)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -106,7 +110,9 @@ public class FahrtController {
     // GET - Get journeys by creator email (for "Meine Fahrten")
     @GetMapping("/meine")
     public List<Fahrt> getMeineFahrten(@RequestParam String email) {
-        return fahrtRepository.findByErstellerEmail(email);
+        return fahrtRepository.findByErstellerEmail(email).stream()
+                .map(fahrtService::enrichFahrt)
+                .toList();
     }
 
     // PUT - Update a journey (with authorization check)

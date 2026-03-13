@@ -25,13 +25,8 @@ feat: Implement transport request workflow with offer management system
 - Created request-detail component with responsive design
 - Added offer modal with price validation against max budget
 - Improved search results to show both offers and requests
-- Fixed username display issue (vorname/nachname vs firstName/lastName)
+- Improved the Demo page (So es funktioniert)
 - Added proper navigation between search results and detail pages
-
-### 5. Code Quality
-- Simplified all JavaDoc-style comments to casual German comments
-- Made comments sound human-written instead of AI-generated
-- Improved code readability across backend and frontend
 
 ## Technical Changes ##
 

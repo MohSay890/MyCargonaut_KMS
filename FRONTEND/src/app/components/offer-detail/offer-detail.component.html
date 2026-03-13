@@ -8,7 +8,8 @@
       <span class="separator">›</span>
       <span class="current">{{ offer.route }}</span>
       <span class="separator">›</span>
-      <span class="current">Angebot von {{ offer.driverName }}</span>
+      <span class="current" *ngIf="offer.description !== 'Transportfahrt aus Anfrage'">Angebot von {{ offer.driverName }}</span>
+      <span class="current" *ngIf="offer.description === 'Transportfahrt aus Anfrage'">Fahrt von {{ offer.driverName }} (Deine Anfrage)</span>
     </div>
   </nav>
 
@@ -28,6 +29,9 @@
           <!-- Route Header -->
           <section class="route-header">
             <h1>{{ offer.route }}</h1>
+            <div class="anfrage-banner" *ngIf="offer.description === 'Transportfahrt aus Anfrage'" style="background-color: #e0f2fe; color: #0284c7; padding: 10px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-weight: 500;">
+              ✨ Das ist die Fahrt für deine Transport-Anfrage. Der Fahrer hat dein Angebot bestätigt!
+            </div>
             <div class="route-info">
               <span class="info-item">📅 {{ offer.date }}, {{ offer.time }} Uhr</span>
               <span class="info-item">⏱️ {{ offer.duration }}</span>
@@ -82,7 +86,7 @@
           </section>
 
           <!-- Live Tracking Widget -->
-          <section class="detail-section tracking-widget" *ngIf="hasTracking && trackingSession">
+          <section class="detail-section tracking-widget" *ngIf="isLoggedIn && hasTracking && trackingSession">
             <div class="tracking-header">
               <h2>📍 Live-Tracking</h2>
               <span class="tracking-badge" [style.background-color]="getStatusColor(trackingSession.status.code)">
@@ -124,7 +128,7 @@
           </section>
 
           <!-- Tracking Placeholder (when no tracking yet) -->
-          <section class="detail-section tracking-placeholder" *ngIf="!hasTracking && !isLoadingTracking && hasAlreadyPaid">
+          <section class="detail-section tracking-placeholder" *ngIf="isLoggedIn && !hasTracking && !isLoadingTracking && hasAlreadyPaid">
             <div class="placeholder-content">
               <span class="placeholder-icon">📦</span>
               <h3>Tracking wird vorbereitet</h3>
@@ -209,23 +213,38 @@
             </div>
 
             <!-- Action Buttons -->
-            <button class="btn-book" (click)="onBookNow()" *ngIf="!isOwnOffer && !hasAlreadyPaid">Jetzt anfragen</button>
-            <div class="info-message info-own-offer" *ngIf="isOwnOffer">
-              <span class="info-icon">ℹ️</span>
-              Dies ist dein eigenes Angebot
+              <button class="btn-book" (click)="onBookNow()" *ngIf="isLoggedIn && !isOwnOffer && !hasAlreadyPaid && !hasExistingBooking && !hasConfirmedBooking && !isFullyBooked">Jetzt anfragen</button>
+              <button class="btn-book btn-payment" (click)="onConfirmBooking()" *ngIf="isLoggedIn && !isOwnOffer && !hasAlreadyPaid && hasConfirmedBooking && !isFullyBooked">
+                💳 Weiter zur Zahlung
+              </button>
+              <div class="info-message info-own-offer" *ngIf="isOwnOffer">
+                <span class="info-icon">ℹ️</span>
+                Dies ist dein eigenes Angebot
+              </div>
+              <div class="info-message info-fully-booked" *ngIf="!isOwnOffer && isFullyBooked && !hasAlreadyPaid">
+                <span class="info-icon">🔒</span>
+                Dieses Angebot ist bereits gebucht und bezahlt
+            </div>
+            <div class="info-message info-already-booked" *ngIf="!isOwnOffer && hasExistingBooking">
+              <span class="info-icon">⏳</span>
+              Du hast bereits eine Buchungsanfrage für diese Fahrt
+            </div>
+            <div class="info-message info-confirmed" *ngIf="!isOwnOffer && hasConfirmedBooking && !hasAlreadyPaid">
+              <span class="info-icon">✅</span>
+              Deine Buchung wurde bestätigt! Bitte zahle jetzt, um die Fahrt zu sichern.
             </div>
             <div class="info-message info-already-paid" *ngIf="!isOwnOffer && hasAlreadyPaid">
               <span class="info-icon">✓</span>
               Du hast bereits für diese Fahrt bezahlt
             </div>
-            <button class="btn-message" (click)="onSendMessage()" *ngIf="!isOwnOffer">Nachricht senden</button>
-            <button class="btn-save" [class.saved]="isSaved" (click)="onToggleFavorite()" *ngIf="!isOwnOffer">
+            <button class="btn-message" (click)="onSendMessage()" *ngIf="isLoggedIn && !isOwnOffer">Nachricht senden</button>
+            <button class="btn-save" [class.saved]="isSaved" (click)="onToggleFavorite()" *ngIf="isLoggedIn && !isOwnOffer">
               <span class="heart-icon">{{ isSaved ? '♥' : '♡' }}</span>
               {{ isSaved ? 'Gespeichert' : 'Merken' }}
             </button>
 
             <!-- Tracking Code Display -->
-            <div class="tracking-code-card" *ngIf="hasTracking && trackingSession">
+            <div class="tracking-code-card" *ngIf="isLoggedIn && hasTracking && trackingSession">
               <div class="tracking-code-header">
                 <span class="tracking-icon">📍</span>
                 <span class="tracking-label">Tracking-Code</span>
@@ -263,6 +282,59 @@
     (confirm)="onConfirmBooking()"
     (cancel)="onCancelBooking()">
   </app-confirmation-modal>
+
+  <!-- Booking Request Modal -->
+  <div class="modal-overlay" *ngIf="showBookingRequestModal" (click)="onCancelBookingRequest()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Buchungsanfrage senden</h2>
+        <button class="btn-close" (click)="onCancelBookingRequest()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-description">
+          Sende eine Buchungsanfrage an {{ offer.driverName }}. Der Fahrer wird deine Anfrage prüfen und sie bestätigen oder ablehnen.
+        </p>
+
+        <div class="form-group">
+          <label for="bookingMessage">Nachricht an den Fahrer (optional)</label>
+          <textarea
+            id="bookingMessage"
+            [(ngModel)]="bookingMessage"
+            placeholder="Hallo, ich würde gerne mit dir fahren. Ich habe zwei große Koffer dabei..."
+            rows="4"
+            [disabled]="isSubmittingBooking">
+          </textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="bookingSeats">Anzahl der Plätze</label>
+          <input
+            type="number"
+            id="bookingSeats"
+            [(ngModel)]="bookingSeats"
+            [min]="1"
+            [max]="offer.maxWeight"
+            [disabled]="isSubmittingBooking">
+          <small class="form-help">Verfügbare Plätze: {{ offer.maxWeight }}</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button
+          class="btn-cancel"
+          (click)="onCancelBookingRequest()"
+          [disabled]="isSubmittingBooking">
+          Abbrechen
+        </button>
+        <button
+          class="btn-submit"
+          (click)="onSubmitBookingRequest()"
+          [disabled]="isSubmittingBooking">
+          <span *ngIf="!isSubmittingBooking">Anfrage senden</span>
+          <span *ngIf="isSubmittingBooking">Wird gesendet...</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Payment Modal -->
   <app-payment-modal

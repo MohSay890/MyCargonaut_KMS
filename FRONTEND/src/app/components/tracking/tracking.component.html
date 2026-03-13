@@ -76,35 +76,6 @@
             </div>
           </div>
 
-          <!-- Simulation Controls -->
-          <div class="simulation-controls">
-            <div class="control-info">
-              <span class="control-icon">{{ isGPSActive ? '📍' : '🎮' }}</span>
-              <span *ngIf="!isGPSActive">Demo-Modus: Starte die Simulation, um Live-Updates zu sehen</span>
-              <span *ngIf="isGPSActive" class="gps-active-text">✅ GPS aktiv - Dein Standort wird in Echtzeit geteilt</span>
-            </div>
-            <div class="control-buttons">
-              <button
-                class="btn-gps-toggle"
-                [class.gps-active]="isGPSActive"
-                (click)="onToggleDriverGPS()">
-                <span *ngIf="!isGPSActive">📍 GPS-Tracking aktivieren</span>
-                <span *ngIf="isGPSActive">⏹️ GPS-Tracking stoppen</span>
-              </button>
-              <button
-                class="btn-simulation"
-                [class.running]="isSimulationRunning"
-                [disabled]="isGPSActive"
-                (click)="onToggleSimulation()">
-                <span *ngIf="!isSimulationRunning">▶️ Simulation starten</span>
-                <span *ngIf="isSimulationRunning">⏸️ Simulation pausieren</span>
-              </button>
-              <button class="btn-reset" [disabled]="isGPSActive" (click)="onResetSimulation()">
-                🔄 Zurücksetzen
-              </button>
-            </div>
-          </div>
-
           <!-- Live Position Card -->
           <div class="live-position-card" [class.delivered]="session.status.code === 'DELIVERED'">
             <div class="position-header">
@@ -113,7 +84,7 @@
                 <span>{{ session.status.label }}</span>
               </div>
               <div class="position-update">
-                <span class="pulse-dot" *ngIf="isSimulationRunning"></span>
+                <span class="pulse-dot"></span>
                 Letzte Aktualisierung: {{ getTimeAgo(session.lastUpdate) }}
               </div>
             </div>
@@ -183,6 +154,9 @@
                 </div>
               </div>
             </div>
+
+            <!-- Leaflet Map Integration -->
+            <div id="map"></div>
           </div>
 
           <!-- Status Timeline -->
@@ -287,6 +261,19 @@
           </div>
 
         </ng-container>
+
+        <!-- No Session / Enter Code State -->
+        <div class="empty-state" *ngIf="!isLoading && !session">
+          <div class="empty-icon">📍</div>
+          <h2>Live Tracking starten</h2>
+          <p>Bitte gib den Tracking-Code deiner Fahrt ein, um den Transport live zu verfolgen.</p>
+          <div class="tracking-search-box" style="margin-top: 2rem; display: flex; gap: 1rem; max-width: 400px; margin-inline: auto;">
+            <input type="text" [(ngModel)]="searchTrackingCode" placeholder="z.B. MC-12345" class="form-control" style="flex: 1; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px;">
+            <button class="btn-primary" (click)="onSearchTracking()" style="padding: 0.75rem 1.5rem; border: none; border-radius: 6px; background: #3b82f6; color: white; cursor: pointer;">Suchen</button>
+          </div>
+          <p class="error-text" *ngIf="errorMessage" style="color: #ef4444; margin-top: 1rem;">{{ errorMessage }}</p>
+        </div>
+
       </div>
     </div>
   </div>

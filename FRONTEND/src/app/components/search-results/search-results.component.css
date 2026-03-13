@@ -59,20 +59,21 @@
   border: 2px solid transparent;
   border-radius: 8px;
   background: white;
-  color: var(--text-gray);
+  color: #005b52;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .toggle-btn:hover {
-  background: var(--bg-light);
-  color: var(--primary-color);
+  background: #f0fdf4;
+  color: #005b52;
+  border-color: #005b52;
 }
 
 .toggle-btn.active {
-  background: var(--primary-color);
+  background: #005b52;
   color: white;
-  border-color: var(--primary-color);
+  border-color: #005b52;
 }
 
 .btn-create-request {
@@ -900,4 +901,20 @@
   .btn-details {
     width: auto;
   }
+}
+
+.own-request-badge, .own-offer-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #eef2ff;
+    color: #4f46e5;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.info-icon {
+    font-size: 1rem;
 }
